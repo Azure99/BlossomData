@@ -30,18 +30,18 @@ class BasePipeline:
         raise NotImplementedError("Pipeline not implemented")
 
     def filter(
-            self, filter_func: Callable[[BaseSchema], bool], parallel: int = 1
+        self, filter_func: Callable[[BaseSchema], bool], parallel: int = 1
     ) -> "BasePipeline":
         return self.add_operator(
             FilterOperator(filter_func=filter_func, parallel=parallel)
         )
 
     def map(
-            self, map_func: Callable[[BaseSchema], BaseSchema], parallel: int = 1
+        self, map_func: Callable[[BaseSchema], BaseSchema], parallel: int = 1
     ) -> "BasePipeline":
         return self.add_operator(MapOperator(map_func=map_func, parallel=parallel))
 
     def transform(
-            self, transform_func: Callable[[list[BaseSchema]], list[BaseSchema]]
+        self, transform_func: Callable[[list[BaseSchema]], list[BaseSchema]]
     ) -> "BasePipeline":
         return self.add_operator(TransformOperator(transform_func))

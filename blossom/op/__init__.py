@@ -1,6 +1,6 @@
 from .base_operator import BaseOperator
 from .chat.chat_distill import ChatDistill
-from .chat.chat_empty_filter import ChatEmptyFilter
+from .chat.chat_invalid_filter import ChatInvalidFilter
 from .chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
 from .chat.chat_online_search_filter import ChatOnlineSearchFilter
 from .chat.chat_translate import ChatTranslate
@@ -18,6 +18,6 @@ __all__ = [
     "ChatMultiReasoningFilter",
     "ChatOnlineSearchFilter",
     "ChatTranslate",
-    "ChatEmptyFilter",
+    "ChatInvalidFilter",
     "TextTranslate",
 ]

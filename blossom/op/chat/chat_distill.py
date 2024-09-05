@@ -16,27 +16,37 @@ class ChatDistill(MapOperator):
         self,
         teacher_model: str,
         mode: Mode = Mode.FIRST_TURN,
+        max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
         self.teacher_model = teacher_model
         self.mode = mode
+        self.max_retry = max_retry
         self.extra_params = extra_params
 
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_chat(item)
 
-        if self.mode == ChatDistill.Mode.FIRST_TURN:
-            _item.messages = self._process_first_turn(_item.messages)
-        elif self.mode == ChatDistill.Mode.LAST_TURN:
-            _item.messages = self._process_last_turn(_item.messages)
-        elif self.mode == ChatDistill.Mode.MULTI_TURN:
-            _item.messages = self._process_multi_turn(_item.messages)
-        else:
-            raise NotImplementedError("Distill mode not implemented")
+        for _ in range(self.max_retry):
+            try:
+                _item.messages = self._process_item_messages(_item.messages)
+            except Exception:
+                pass
+        _item.messages = []
 
         return self._cast_base(_item)
+
+    def _process_item_messages(self, messages: list[ChatMessage]) -> list[ChatMessage]:
+        if self.mode == ChatDistill.Mode.FIRST_TURN:
+            return self._process_first_turn(messages)
+        elif self.mode == ChatDistill.Mode.LAST_TURN:
+            return self._process_last_turn(messages)
+        elif self.mode == ChatDistill.Mode.MULTI_TURN:
+            return self._process_multi_turn(messages)
+
+        raise NotImplementedError("Distill mode not implemented")
 
     def _process_first_turn(self, messages: list[ChatMessage]) -> list[ChatMessage]:
         messages = list(filter(lambda x: x.role != ChatRole.ASSISTANT, messages))

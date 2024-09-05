@@ -10,6 +10,7 @@ class TextTranslate(MapOperator):
         self,
         translate_model: str,
         target_language: str = "Chinese",
+        max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
@@ -22,11 +23,14 @@ class TextTranslate(MapOperator):
         _item = self._cast_text(item)
 
         translator = TextTranslator(self.context.get_model(self.translate_model))
-        _item.content = translator.translate(
-            content=_item.content,
-            target_language=self.target_language,
-            instruction_only=False,
-            extra_params=self.extra_params,
-        )
+        try:
+            _item.content = translator.translate(
+                content=_item.content,
+                target_language=self.target_language,
+                instruction_only=False,
+                extra_params=self.extra_params,
+            )
+        except Exception:
+            _item.content = ""
 
         return self._cast_base(_item)

@@ -21,6 +21,7 @@ class ChatTranslate(MapOperator):
         target_language: str = "Chinese",
         role: Role = Role.ALL,
         instruction_only: bool = False,
+        max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
@@ -29,6 +30,7 @@ class ChatTranslate(MapOperator):
         self.target_language = target_language
         self.role = role
         self.instruction_only = instruction_only
+        self.max_retry = max_retry
         self.extra_params = extra_params
 
     def process_item(self, item: BaseSchema) -> BaseSchema:
@@ -37,12 +39,16 @@ class ChatTranslate(MapOperator):
         translator = TextTranslator(self.context.get_model(self.translate_model))
         for message in _item.messages:
             if self._check_translate_role(message):
-                message.content = translator.translate(
-                    content=message.content,
-                    target_language=self.target_language,
-                    instruction_only=self.instruction_only,
-                    extra_params=self.extra_params,
-                )
+                try:
+                    message.content = translator.translate(
+                        content=message.content,
+                        target_language=self.target_language,
+                        instruction_only=self.instruction_only,
+                        max_retry=self.max_retry,
+                        extra_params=self.extra_params,
+                    )
+                except Exception:
+                    message.content = ""
 
         return self._cast_base(_item)
 

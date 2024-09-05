@@ -37,7 +37,7 @@ class ChatMathDistill(MapOperator):
         self,
         teacher_model: str,
         validate_mode: ValidateMode = ValidateMode.NONE,
-        max_retry: int = 5,
+        max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):

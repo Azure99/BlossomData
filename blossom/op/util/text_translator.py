@@ -26,6 +26,7 @@ class TextTranslator:
         content: str,
         target_language: str,
         instruction_only: bool,
+        max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
     ) -> str:
         prompt = TRANSLATE_PROMPT_TEMPLATE.format(
@@ -36,6 +37,18 @@ class TextTranslator:
             json=json_dumps({"text": content}),
         )
 
+        last_exception = None
+        for _ in range(max_retry):
+            try:
+                return self._translate_and_extract(prompt, extra_params)
+            except Exception:
+                last_exception = Exception
+
+        raise ValueError("Failed to translate text") from last_exception
+
+    def _translate_and_extract(
+        self, prompt: str, extra_params: Optional[dict[str, Any]] = None
+    ) -> str:
         translate_output = self.provider.chat_completion(
             messages=[ChatMessage(role=ChatRole.USER, content=prompt)],
             extra_params=extra_params,

@@ -35,7 +35,7 @@ class OpenAI(BaseProvider):
             "Content-Type": "application/json",
         }
         data = {
-            "model": self.model_name,
+            "model": self.api_model_name,
             "messages": [
                 {"role": message.role, "content": message.content}
                 for message in messages

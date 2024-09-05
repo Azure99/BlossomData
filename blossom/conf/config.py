@@ -9,7 +9,7 @@ DEFAULT_CONFIG_FILE = "config.yaml"
 class ModelConfig(BaseModel):
     name: str
     provider: str
-    auth: dict[str, str]
+    config: dict[str, str]
     extra_params: Optional[dict[str, Any]] = None
 
 

@@ -7,7 +7,7 @@ from blossom.schema.chat_schema import ChatMessage
 class BaseProvider:
     def __init__(self, model_config: ModelConfig):
         self.model_name = model_config.name
-        self.auth = model_config.auth
+        self.config = model_config.config
         self.extra_params = model_config.extra_params
 
     def chat_completion(

@@ -4,19 +4,31 @@ import requests
 
 from blossom.conf import ModelConfig
 from blossom.provider.base_provider import BaseProvider
-from blossom.schema.chat_schema import ChatMessage
+from blossom.schema.chat_schema import ChatMessage, ChatRole
 from blossom.util.json import json_dumps
+
+DEFAULT_BASE_URL = "https://api.openai.com/v1"
 
 
 class OpenAI(BaseProvider):
     def __init__(self, model_config: ModelConfig):
         super().__init__(model_config)
-        self.base_url = model_config.auth["base_url"]
-        self.api_key = model_config.auth["key"]
+        self.base_url = model_config.config.get("base_url", DEFAULT_BASE_URL)
+        self.api_key = model_config.config["key"]
+        self.default_system = model_config.config.get("default_system", None)
 
     def chat_completion(
         self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
     ) -> str:
+        if len(messages) == 0:
+            raise ValueError("No messages provided")
+
+        if messages[0].role != ChatRole.SYSTEM and self.default_system:
+            system_message = ChatMessage(
+                role=ChatRole.SYSTEM, content=self.default_system
+            )
+            messages.insert(0, system_message)
+
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",

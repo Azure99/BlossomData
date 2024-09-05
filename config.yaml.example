@@ -1,6 +1,6 @@
 models:
 - name: gpt-4o
   provider: openai
-  auth:
+  config:
     base_url: https://api.openai.com/v1
     key: sk-xxx

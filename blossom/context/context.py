@@ -29,6 +29,15 @@ class Context:
             messages, extra_params=extra_params
         )
 
+    def chat_completion_with_messages(
+        self,
+        model: str,
+        messages: list[ChatMessage],
+        extra_params: Optional[dict[str, Any]] = None,
+    ) -> list[ChatMessage]:
+        response = self.chat_completion(model, messages, extra_params=extra_params)
+        return messages + [ChatMessage(role=ChatRole.ASSISTANT, content=response)]
+
     def single_chat_completion(
         self,
         model: str,

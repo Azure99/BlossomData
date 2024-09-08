@@ -29,12 +29,14 @@ class ChatDistill(MapOperator):
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_chat(item)
 
+        new_messages = []
         for _ in range(self.max_retry):
             try:
-                _item.messages = self._process_item_messages(_item.messages)
+                new_messages = self._process_item_messages(_item.messages)
+                break
             except Exception:
                 pass
-        _item.messages = []
+        _item.messages = new_messages
 
         return self._cast_base(_item)
 
@@ -78,11 +80,6 @@ class ChatDistill(MapOperator):
         return new_messages
 
     def _add_assistant_reply(self, messages: list[ChatMessage]) -> list[ChatMessage]:
-        content = self._chat_completion(messages)
-        messages.append(ChatMessage(role=ChatRole.ASSISTANT, content=content))
-        return messages
-
-    def _chat_completion(self, messages: list[ChatMessage]) -> str:
-        return self.context.chat_completion(
+        return self.context.chat_completion_with_messages(
             model=self.teacher_model, messages=messages, extra_params=self.extra_params
         )

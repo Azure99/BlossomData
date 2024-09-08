@@ -56,16 +56,14 @@ class ChatMultiReasoningFilter(FilterOperator):
             response_1=response1,
             response_2=response2,
         )
-        validate_messages = [ChatMessage(role=ChatRole.USER, content=validate_prompt)]
-        validate_result = self.context.chat_completion(
-            model=self.review_model, messages=validate_messages
+        validate_messages = self.context.chat_completion_with_messages(
+            model=self.review_model,
+            messages=[ChatMessage(role=ChatRole.USER, content=validate_prompt)],
         )
-        validate_messages.extend(
-            [
-                ChatMessage(role=ChatRole.ASSISTANT, content=validate_result),
-                ChatMessage(role=ChatRole.USER, content=LLM_CHECK_JSON_PROMPT),
-            ]
+        validate_messages.append(
+            ChatMessage(role=ChatRole.USER, content=LLM_CHECK_JSON_PROMPT)
         )
+
         validate_json_result = self.context.chat_completion(
             model=self.review_model, messages=validate_messages
         )

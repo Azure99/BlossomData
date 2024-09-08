@@ -17,6 +17,7 @@ class TextTranslate(MapOperator):
         super().__init__(parallel=parallel)
         self.translate_model = translate_model
         self.target_language = target_language
+        self.max_retry = max_retry
         self.extra_params = extra_params
 
     def process_item(self, item: BaseSchema) -> BaseSchema:
@@ -28,6 +29,7 @@ class TextTranslate(MapOperator):
                 content=_item.content,
                 target_language=self.target_language,
                 instruction_only=False,
+                max_retry=self.max_retry,
                 extra_params=self.extra_params,
             )
         except Exception:

@@ -1,14 +1,14 @@
 # BlossomData
 
-BlossomData是一个用于合成大型语言模型（LLM）训练数据的框架。它提供了一系列工具，用于生成、翻译、蒸馏以及处理训练数据，帮助用户快速构建高质量的训练数据集。
+BlossomData是一个用于合成大型语言模型（LLM）训练数据的框架。它提供了一系列工具，用于处理训练数据，包括但不限于生成、翻译、蒸馏、校验等，帮助用户快速构建高质量的训练数据集。
 
-⚠注意：该项目仍处于原型阶段，算子较匮乏，并且可能存在大量未知问题。建议在实验环境中进行测试。
+⚠注意：该项目仍处于原型阶段，算子正在快速更新，并且可能存在大量未知问题。建议在实验环境中进行测试。
 
 # 使用示例
 
 在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。
 
-## 翻译训练数据
+## 翻译数据
 
 最简示例
 
@@ -25,7 +25,7 @@ data = [
 # 定义Pipeline
 pipeline = SimplePipeline().add_operators(
     # 对话翻译，使用gpt-4o将对话数据翻译为中文
-    ChatTranslate(translate_model="gpt-4o", target_language="Chinese"),
+    ChatTranslate(translate_model="gpt-4o-mini", target_language="Chinese"),
 )
 # 执行并打印结果
 print(pipeline.execute(data))
@@ -36,7 +36,7 @@ print(pipeline.execute(data))
 ```python
 pipeline = SimplePipeline().add_operators(
     ChatTranslate(
-        translate_model="gpt-4o",
+        translate_model="gpt-4o-mini",
         target_language="Chinese",
         instruction_only=True,
         parallel=4,
@@ -51,13 +51,62 @@ pipeline = SimplePipeline().add_operators(
 ```python
 pipeline = SimplePipeline().add_operators(
     ChatTranslate(
-        translate_model="gpt-4o",
+        translate_model="gpt-4o-mini",
         target_language="Chinese",
         # 由于Assistant的回复会被蒸馏覆盖，此处可以仅翻译USER的消息
-        role=ChatTranslate.Role.USER,
+        roles=[ChatRole.USER],
     ),
     # 提供多种蒸馏模式，第一轮、最后一轮、所有轮次
-    ChatDistill(teacher_model="gpt-4o", mode=ChatDistill.Mode.MULTI_TURN),
+    ChatDistill(teacher_model="gpt-4o-mini", mode=ChatDistill.Mode.MULTI_TURN),
+)
+```
+
+## 根据答案校验
+
+对于有确切答案的问题（GSM8K等数学数据集），我们可以蒸馏回答，并基于参考答案检查是否正确
+
+```python
+data = [
+    ChatSchema(
+        messages=[
+            ChatMessage(
+                role=ChatRole.USER,
+                content="Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas.",
+            ),
+            ChatMessage(role=ChatRole.ASSISTANT, content="−2,−1,2"),
+        ]
+    )
+]
+pipeline = SimplePipeline().add_operators(
+    ChatMathDistill(
+        teacher_model="gpt-4o-mini",
+        validate_mode=ChatMathDistill.ValidateMode.LLM,
+        max_retry=3,
+    ),
+)
+```
+
+## 多模型推理校验
+
+对于没有确切答案的问题，我们可以使用另一个模型进行推理，并由第三个模型对两个回答进行检查，过滤掉不一致的结果
+
+```python
+data = [
+    ChatSchema(
+        messages=[
+            ChatMessage(role=ChatRole.USER, content="Who developed ChatGPT?"),
+            ChatMessage(role=ChatRole.ASSISTANT, content="OpenAI"),
+        ]
+    ),
+    ChatSchema(
+        messages=[
+            ChatMessage(role=ChatRole.USER, content="Who developed ChatGPT?"),
+            ChatMessage(role=ChatRole.ASSISTANT, content="Google"),
+        ]
+    ),
+]
+pipeline = SimplePipeline().add_operators(
+    ChatMultiReasoningFilter(review_model="gpt-4o-mini", reasoning_model="gpt-4o-mini"),
 )
 ```
 
@@ -69,17 +118,20 @@ pipeline = SimplePipeline().add_operators(
 # 自定义Map算子，进行一对一映射
 class SelfQA(MapOperator):
     def process_item(self, item):
-        self_qa_prompt = f"""基于给定的文本，随意生成一个问题以及对应的长答案。
-你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。
-给定的文本：{item.content}"""
-        raw_result = self.context.single_chat_completion("gpt-4o", self_qa_prompt)
-        result = json.loads(raw_result)
+        self_qa_prompt = (
+            "基于给定的文本，随意生成一个问题以及对应的长答案。\n"
+            "你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。\n"
+            f"给定的文本：{item.content}"
+        )
+        raw_result = self.context.single_chat_completion("gpt-4o-mini", self_qa_prompt)
+        result = loads_markdown_first_json(raw_result)
         return ChatSchema(
             messages=[
                 ChatMessage(role=ChatRole.USER, content=result["question"]),
                 ChatMessage(role=ChatRole.ASSISTANT, content=result["answer"]),
             ]
         )
+
 
 # 纯文本英文数据
 data = [
@@ -93,7 +145,7 @@ data = [
 pipeline = SimplePipeline().add_operators(
     # 翻译英文文本
     TextTranslate(
-        translate_model="gpt-4o",
+        translate_model="gpt-4o-mini",
         target_language="Chinese",
     ),
     # 基于翻译后的文本，生成问题和答案

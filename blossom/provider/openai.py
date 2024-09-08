@@ -46,7 +46,9 @@ class OpenAI(BaseProvider):
         if extra_params is not None:
             data.update(extra_params)
 
-        response = requests.post(url, timeout=600, headers=headers, data=json_dumps(data, ensure_ascii=True))
+        response = requests.post(
+            url, timeout=600, headers=headers, data=json_dumps(data, ensure_ascii=True)
+        )
 
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"]

@@ -20,6 +20,7 @@ LLM_CHECK_JSON_PROMPT = """Please output your conclusion directly in JSON format
 The JSON should contain only one boolean field named "inconsistent," which indicates whether the "reference answer" and the "response" are obviously inconsistent.
 Please output only a JSON without any explanation or other irrelevant content."""
 
+
 class ChatMultiReasoningFilter(FilterOperator):
     def __init__(
         self,
@@ -41,13 +42,15 @@ class ChatMultiReasoningFilter(FilterOperator):
                 return self._process_item(_item)
             except Exception:
                 pass
-        
+
         return False
-    
+
     def _process_item(self, item: ChatSchema) -> bool:
         question = item.messages[-2].content
         response1 = item.messages[-1].content
-        response2 = self.context.chat_completion(model=self.reasoning_model, messages=item.messages[:-1])
+        response2 = self.context.chat_completion(
+            model=self.reasoning_model, messages=item.messages[:-1]
+        )
 
         validate_prompt = LLM_CHECK_PROMPT.format(
             question=question,
@@ -67,7 +70,8 @@ class ChatMultiReasoningFilter(FilterOperator):
         validate_json_result = self.context.chat_completion(
             model=self.review_model, messages=validate_messages
         )
-        inconsistent = loads_markdown_first_json(validate_json_result).get("inconsistent", False)
+        inconsistent = loads_markdown_first_json(validate_json_result).get(
+            "inconsistent", False
+        )
         consistent = not inconsistent
         return consistent
-

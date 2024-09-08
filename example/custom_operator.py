@@ -5,6 +5,7 @@ from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
 from blossom.schema.text_schema import TextSchema
 from blossom.util.json import loads_markdown_first_json
 
+
 # 自定义Map算子，进行一对一映射
 class SelfQA(MapOperator):
     def process_item(self, item):

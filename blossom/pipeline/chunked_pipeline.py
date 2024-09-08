@@ -1,8 +1,8 @@
 import json
 import math
 import os
-from typing import Optional
 import uuid
+from typing import Optional
 
 from blossom.conf import Config
 from blossom.io.schema import load_schema_dict_list

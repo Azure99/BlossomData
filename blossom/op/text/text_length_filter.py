@@ -1,7 +1,7 @@
 from typing import Callable
+
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatRole
 
 
 class TextLengthFilter(FilterOperator):

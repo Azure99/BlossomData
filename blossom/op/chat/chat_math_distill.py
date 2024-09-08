@@ -1,11 +1,10 @@
+import re
 from enum import Enum
 from typing import Any, Optional
 
 from blossom.op.map_operator import MapOperator
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessage, ChatRole
-import re
-
 from blossom.util.json import loads_markdown_first_json
 
 LAST_NUMBER_REGEX = r"-?\d+(?:\.\d+)?"

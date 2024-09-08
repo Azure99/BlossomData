@@ -41,8 +41,8 @@ class TextTranslator:
         for _ in range(max_retry):
             try:
                 return self._translate_and_extract(prompt, extra_params)
-            except Exception:
-                last_exception = Exception
+            except Exception as e:
+                last_exception = e
 
         raise ValueError("Failed to translate text") from last_exception
 

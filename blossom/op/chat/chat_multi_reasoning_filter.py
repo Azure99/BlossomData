@@ -3,7 +3,6 @@ from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
 from blossom.util.json import loads_markdown_first_json
 
-
 LLM_CHECK_PROMPT = """For the given "Question," "Response_1" and "Response_2" please analyze step by step whether the answers of  "Response_1" and "Response_2" are obviously inconsistent.
 
 ### Question:

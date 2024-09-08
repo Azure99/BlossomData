@@ -19,8 +19,6 @@ class ChatRepetitionFilter(FilterOperator):
             roles
             if roles
             else [
-                ChatRole.SYSTEM,
-                ChatRole.USER,
                 ChatRole.ASSISTANT,
             ]
         )

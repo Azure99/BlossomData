@@ -1,4 +1,3 @@
-from blossom.op.chat.chat_length_filter import ChatLengthFilter
 from blossom.op.chat.chat_repetition_filter import ChatRepetitionFilter
 from blossom.pipeline.simple_pipeline import SimplePipeline
 from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema

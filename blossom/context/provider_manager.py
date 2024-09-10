@@ -41,11 +41,10 @@ class ProviderManager:
     @staticmethod
     def _load_providers() -> dict[str, Type[BaseProvider]]:
         providers = {}
-
-        for _, module_name, _ in pkgutil.iter_modules(
-            [PROVIDER_PACKAGE.replace(".", "/")]
+        for module_info in pkgutil.walk_packages(
+            importlib.import_module(PROVIDER_PACKAGE).__path__, f"{PROVIDER_PACKAGE}."
         ):
-            module = importlib.import_module(f"{PROVIDER_PACKAGE}.{module_name}")
+            module = importlib.import_module(module_info.name)
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if issubclass(obj, BaseProvider) and obj is not BaseProvider:
                     providers[name.lower()] = obj

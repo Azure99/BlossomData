@@ -2,7 +2,7 @@ import uuid
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SchemaType(Enum):
@@ -13,6 +13,6 @@ class SchemaType(Enum):
 
 
 class BaseSchema(BaseModel):
-    id: str = str(uuid.uuid4())
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     type: SchemaType = SchemaType.BASE
     metadata: dict[str, Any] = {}

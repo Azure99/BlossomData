@@ -27,7 +27,7 @@ class OpenAI(BaseProvider):
             system_message = ChatMessage(
                 role=ChatRole.SYSTEM, content=self.default_system
             )
-            messages.insert(0, system_message)
+            messages = [system_message] + messages
 
         url = f"{self.base_url}/chat/completions"
         headers = {

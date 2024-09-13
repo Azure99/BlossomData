@@ -1,3 +1,4 @@
+from typing import Optional
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
@@ -24,14 +25,18 @@ class ChatMultiReasoningFilter(FilterOperator):
     def __init__(
         self,
         review_model: str,
-        reasoning_model: str,
+        reasoning_model: Optional[str] = None,
+        reference_field: Optional[str] = None,
         max_retry: int = 1,
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
         self.review_model = review_model
         self.reasoning_model = reasoning_model
+        self.reference_field = reference_field
         self.max_retry = max_retry
+        if self.reasoning_model is None and self.reference_field is None:
+            raise ValueError("reasoning_model or reference_field must be provided")
 
     def process_item(self, item: BaseSchema) -> bool:
         _item = self._cast_chat(item)
@@ -46,15 +51,24 @@ class ChatMultiReasoningFilter(FilterOperator):
 
     def _process_item(self, item: ChatSchema) -> bool:
         question = item.messages[-2].content
-        response1 = item.messages[-1].content
-        response2 = self.context.chat_completion(
-            model=self.reasoning_model, messages=item.messages[:-1]
-        )
+        model_answer = item.messages[-1].content
+
+        reference = None
+        if self.reference_field:
+            reference = item.metadata.get(self.reference_field)
+
+        if not reference and self.reasoning_model:
+            reference = self.context.chat_completion(
+                model=self.reasoning_model, messages=item.messages[:-1]
+            )
+
+        if not reference:
+            return False
 
         validate_prompt = LLM_CHECK_PROMPT.format(
             question=question,
-            response_1=response1,
-            response_2=response2,
+            response_1=model_answer,
+            response_2=reference,
         )
         validate_messages = self.context.chat_completion_with_messages(
             model=self.review_model,

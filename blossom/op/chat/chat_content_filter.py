@@ -11,8 +11,9 @@ class ChatContentFilter(FilterOperator):
         contents: list[str],
         roles: Optional[list[ChatRole]] = None,
         case_sensitive: bool = True,
+        reverse: bool = False,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse)
         self.contents = contents
         self.roles = roles or [ChatRole.ASSISTANT]
         self.case_sensitive = case_sensitive

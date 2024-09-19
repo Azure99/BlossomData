@@ -14,8 +14,10 @@ class ChatOnlineSearchFilter(FilterOperator):
         review_model: str,
         search_engine: Engine,
         skip_subjective: bool = True,
+        reverse: bool = False,
+        parallel: int = 1,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse, parallel=parallel)
         self.review_model = review_model
         self.search_engine = search_engine
         self.skip_subjective = skip_subjective

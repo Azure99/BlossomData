@@ -28,9 +28,10 @@ class ChatMultiReasoningFilter(FilterOperator):
         reasoning_model: Optional[str] = None,
         reference_field: Optional[str] = None,
         max_retry: int = 1,
+        reverse: bool = False,
         parallel: int = 1,
     ):
-        super().__init__(parallel=parallel)
+        super().__init__(reverse=reverse, parallel=parallel)
         self.review_model = review_model
         self.reasoning_model = reasoning_model
         self.reference_field = reference_field

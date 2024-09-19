@@ -13,8 +13,9 @@ class ChatRepetitionFilter(FilterOperator):
         n: int = 10,
         min_ratio: float = 0.0,
         max_ratio: float = 0.5,
+        reverse: bool = False,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse)
         self.roles = (
             roles
             if roles

@@ -9,10 +9,12 @@ class FilterOperator(BaseOperator):
     def __init__(
         self,
         filter_func: Optional[Callable[[BaseSchema], bool]] = None,
+        reverse: bool = False,
         parallel: int = 1,
     ):
         super().__init__()
         self.filter_func = filter_func
+        self.reverse = reverse
         self.parallel = parallel
 
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
@@ -21,7 +23,7 @@ class FilterOperator(BaseOperator):
                 results = list(executor.map(self.process_item, data))
         else:
             results = list(map(self.process_item, data))
-        return [item for item, passed in zip(data, results) if passed]
+        return [item for item, passed in zip(data, results) if passed ^ self.reverse]
 
     def process_item(self, item: BaseSchema) -> bool:
         if self.filter_func is None:

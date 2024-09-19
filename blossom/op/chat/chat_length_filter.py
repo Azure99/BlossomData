@@ -13,8 +13,9 @@ class ChatLengthFilter(FilterOperator):
         user_max_len: int = 4096,
         assistant_max_len: int = 4096,
         total_max_len: int = 16384,
+        reverse: bool = False,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse)
         self.len_func = len_func
         self.system_max_len = system_max_len
         self.user_max_len = user_max_len

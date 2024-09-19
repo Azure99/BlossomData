@@ -15,8 +15,9 @@ class ChatInvalidFilter(FilterOperator):
     def __init__(
         self,
         rule: Optional[list[Rule]] = None,
+        reverse: bool = False,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse)
         self.rule = (
             rule
             if rule

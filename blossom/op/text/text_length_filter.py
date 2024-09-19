@@ -9,8 +9,9 @@ class TextLengthFilter(FilterOperator):
         self,
         len_func: Callable[[str], int] = len,
         max_len: int = 16384,
+        reverse: bool = False,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse)
         self.len_func = len_func
         self.max_len = max_len
 

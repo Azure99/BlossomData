@@ -7,8 +7,9 @@ class TextContentFilter(FilterOperator):
         self,
         contents: list[str],
         case_sensitive: bool = True,
+        reverse: bool = False,
     ):
-        super().__init__()
+        super().__init__(reverse=reverse)
         self.contents = contents
         self.case_sensitive = case_sensitive
         if not case_sensitive:

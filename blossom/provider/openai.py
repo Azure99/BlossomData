@@ -22,24 +22,44 @@ class OpenAI(BaseProvider):
     ) -> str:
         if len(messages) == 0:
             raise ValueError("No messages provided")
-
         if messages[0].role != ChatRole.SYSTEM and self.default_system:
             system_message = ChatMessage(
                 role=ChatRole.SYSTEM, content=self.default_system
             )
             messages = [system_message] + messages
 
-        url = f"{self.base_url}/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
         data = {
             "model": self.api_model_name,
             "messages": [
                 {"role": message.role, "content": message.content}
                 for message in messages
             ],
+        }
+
+        response = self._request("chat/completions", data, extra_params)
+        return response["choices"][0]["message"]["content"]
+
+    def embedding(
+        self, input: str, extra_params: Optional[dict[str, Any]]
+    ) -> list[float]:
+        if len(input) == 0:
+            raise ValueError("No input provided")
+
+        data = {"model": self.api_model_name, "input": input}
+
+        response = self._request("embeddings", data, extra_params)
+        return response["data"][0]["embedding"]
+
+    def _request(
+        self,
+        url_part: str,
+        data: dict[str, Any],
+        extra_params: Optional[dict[str, Any]],
+    ) -> Any:
+        url = f"{self.base_url}/{url_part}"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
         }
         if self.extra_params is not None:
             data.update(self.extra_params)
@@ -51,7 +71,7 @@ class OpenAI(BaseProvider):
         )
 
         if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"]
+            return response.json()
         else:
             raise ValueError(
                 f"Request failed with status code {response.status_code}, {response.text}"

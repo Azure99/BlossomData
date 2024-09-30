@@ -18,3 +18,8 @@ class BaseProvider:
         self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
     ) -> str:
         raise NotImplementedError("Service not implemented")
+
+    def embedding(
+        self, input: str, extra_params: Optional[dict[str, Any]]
+    ) -> list[float]:
+        raise NotImplementedError("Service not implemented")

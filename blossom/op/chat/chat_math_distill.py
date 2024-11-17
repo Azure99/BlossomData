@@ -36,6 +36,7 @@ class ChatMathDistill(MapOperator):
         self,
         teacher_model: str,
         validate_mode: ValidateMode = ValidateMode.NONE,
+        validate_model: Optional[str] = None,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
@@ -43,6 +44,7 @@ class ChatMathDistill(MapOperator):
         super().__init__(parallel=parallel)
         self.teacher_model = teacher_model
         self.validate_mode = validate_mode
+        self.validate_model = validate_model or teacher_model
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -111,7 +113,7 @@ class ChatMathDistill(MapOperator):
             model_answer=model_answer,
         )
         validate_messages = self.context.chat_completion_with_messages(
-            model=self.teacher_model,
+            model=self.validate_model,
             messages=[ChatMessage(role=ChatRole.USER, content=validate_prompt)],
         )
 
@@ -119,7 +121,7 @@ class ChatMathDistill(MapOperator):
             ChatMessage(role=ChatRole.USER, content=LLM_CHECK_JSON_PROMPT)
         )
         validate_json_result = self.context.chat_completion(
-            model=self.teacher_model, messages=validate_messages
+            model=self.validate_model, messages=validate_messages
         )
         return loads_markdown_first_json(validate_json_result).get("consistent", False)
 

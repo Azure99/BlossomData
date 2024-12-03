@@ -54,4 +54,7 @@ class TextTranslator:
             extra_params=extra_params,
         )
         json_output = extract_markdown_first_json(translate_output)
-        return json.loads(json_output)["result"]
+        result = json.loads(json_output)["result"]
+        if not isinstance(result, str):
+            raise ValueError("Failed to extract translation result")
+        return result

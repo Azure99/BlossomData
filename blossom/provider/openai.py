@@ -1,3 +1,4 @@
+import time
 from typing import Any, Optional
 
 import requests
@@ -8,6 +9,9 @@ from blossom.schema.chat_schema import ChatMessage, ChatRole
 from blossom.util.json import json_dumps
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
+
+MAX_TOO_MANY_REQUESTS_RETRIES = 10
+TOO_MANY_REQUESTS_BACKOFF_FACTOR = 1.5
 
 
 class OpenAI(BaseProvider):
@@ -36,7 +40,7 @@ class OpenAI(BaseProvider):
             ],
         }
 
-        response = self._request("chat/completions", data, extra_params)
+        response = self._request("/chat/completions", data, extra_params)
         return response["choices"][0]["message"]["content"]
 
     def embedding(
@@ -47,7 +51,7 @@ class OpenAI(BaseProvider):
 
         data = {"model": self.api_model_name, "input": input}
 
-        response = self._request("embeddings", data, extra_params)
+        response = self._request("/embeddings", data, extra_params)
         return response["data"][0]["embedding"]
 
     def _request(
@@ -56,7 +60,7 @@ class OpenAI(BaseProvider):
         data: dict[str, Any],
         extra_params: Optional[dict[str, Any]],
     ) -> Any:
-        url = f"{self.base_url}/{url_part}"
+        url = f"{self.base_url}{url_part}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -66,13 +70,26 @@ class OpenAI(BaseProvider):
         if extra_params is not None:
             data.update(extra_params)
 
-        response = requests.post(
-            url, timeout=600, headers=headers, data=json_dumps(data, ensure_ascii=True)
-        )
+        rate_limit_retry = 0
+        rate_limit_backoff = 1.0
 
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise ValueError(
-                f"Request failed with status code {response.status_code}, {response.text}"
+        while rate_limit_retry < MAX_TOO_MANY_REQUESTS_RETRIES:
+            response = requests.post(
+                url,
+                timeout=600,
+                headers=headers,
+                data=json_dumps(data, ensure_ascii=True),
             )
+            if response.status_code == 200:
+                return response.json()
+
+            if response.status_code == 429 or response.status_code >= 500:
+                time.sleep(rate_limit_backoff)
+                rate_limit_backoff *= TOO_MANY_REQUESTS_BACKOFF_FACTOR
+                rate_limit_retry += 1
+            else:
+                break
+
+        raise ValueError(
+            f"Request failed with status code {response.status_code}, {response.text}"
+        )

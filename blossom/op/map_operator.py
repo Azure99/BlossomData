@@ -18,9 +18,14 @@ class MapOperator(BaseOperator):
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
         if self.parallel > 1:
             with ThreadPoolExecutor(max_workers=self.parallel) as executor:
-                return list(executor.map(self.process_item, data))
+                return list(executor.map(self.process_skip_failed, data))
 
-        return list(map(self.process_item, data))
+        return list(map(self.process_skip_failed, data))
+
+    def process_skip_failed(self, item: BaseSchema) -> BaseSchema:
+        if item.failed:
+            return item
+        return self.process_item(item)
 
     def process_item(self, item: BaseSchema) -> BaseSchema:
         if self.map_func is None:

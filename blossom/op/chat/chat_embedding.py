@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, Optional
+from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_embedder import TextEmbedder
@@ -55,8 +56,10 @@ class ChatEmbedding(MapOperator):
                     extra_params=self.extra_params,
                 )
                 embeddings.append(content_embedding)
-            except Exception:
-                pass
+            except Exception as e:
+                _item.failed = True
+                logger.exception(f"Failed to embed message: {message.content}, {e}")
+                return self._cast_base(_item)
         _item.metadata[self.embedding_field] = embeddings
 
         return self._cast_base(_item)

@@ -1,4 +1,5 @@
 from typing import Any, Optional
+from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_translator import TextTranslator
@@ -39,7 +40,10 @@ class ChatTranslate(MapOperator):
                         max_retry=self.max_retry,
                         extra_params=self.extra_params,
                     )
-                except Exception:
-                    message.content = ""
+                except Exception as e:
+                    _item.failed = True
+                    logger.exception(
+                        f"Failed to translate message: {message.content}, {e}"
+                    )
 
         return self._cast_base(_item)

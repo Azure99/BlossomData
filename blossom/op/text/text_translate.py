@@ -1,4 +1,5 @@
 from typing import Any, Optional
+from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_translator import TextTranslator
@@ -32,7 +33,8 @@ class TextTranslate(MapOperator):
                 max_retry=self.max_retry,
                 extra_params=self.extra_params,
             )
-        except Exception:
-            _item.content = ""
+        except Exception as e:
+            logger.exception(f"Failed to translate text: {e}")
+            _item.failed = True
 
         return self._cast_base(_item)

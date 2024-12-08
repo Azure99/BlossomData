@@ -9,6 +9,7 @@ from .chat.chat_math_distill import ChatMathDistill
 from .chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
 from .chat.chat_repetition_filter import ChatRepetitionFilter
 from .chat.chat_translate import ChatTranslate
+from .failed_item_filter import FailedItemFilter
 from .filter_operator import FilterOperator
 from .map_operator import MapOperator
 from .text.text_content_filter import TextContentFilter
@@ -21,6 +22,7 @@ from .transform_operator import TransformOperator
 
 __all__ = [
     "BaseOperator",
+    "FailedItemFilter",
     "FilterOperator",
     "MapOperator",
     "TransformOperator",

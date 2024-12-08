@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, Optional
+from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
 from blossom.schema.base_schema import BaseSchema
@@ -34,9 +35,13 @@ class ChatDistill(MapOperator):
             try:
                 new_messages = self._process_item_messages(_item.messages)
                 break
-            except Exception:
-                pass
-        _item.messages = new_messages
+            except Exception as e:
+                logger.exception(f"Failed to distill chat: {e}")
+
+        if new_messages:
+            _item.messages = new_messages
+        else:
+            _item.failed = True
 
         return self._cast_base(_item)
 

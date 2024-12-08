@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 from typing import Any, Optional
+from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
 from blossom.schema.base_schema import BaseSchema
@@ -64,8 +65,6 @@ class ChatMathDistill(MapOperator):
                     _item.messages, ChatRole.ASSISTANT
                 )
 
-        _item.messages = []
-
         if not question or (
             not reference and self.validate_mode != self.ValidateMode.NONE
         ):
@@ -74,14 +73,15 @@ class ChatMathDistill(MapOperator):
         for _ in range(self.max_retry):
             try:
                 model_answer = self._distill_with_validate(question, reference)
-                _item.messages.append(ChatMessage(role=ChatRole.USER, content=question))
-                _item.messages.append(
-                    ChatMessage(role=ChatRole.ASSISTANT, content=model_answer)
-                )
+                _item.messages = [
+                    ChatMessage(role=ChatRole.USER, content=question),
+                    ChatMessage(role=ChatRole.ASSISTANT, content=model_answer),
+                ]
                 return self._cast_base(_item)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.info(f"Validation failed: {question}, {e}")
 
+        _item.failed = True
         return self._cast_base(_item)
 
     def _distill_with_validate(self, question: str, reference: str) -> str:

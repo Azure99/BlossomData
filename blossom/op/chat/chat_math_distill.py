@@ -37,6 +37,7 @@ class ChatMathDistill(MapOperator):
         model: str,
         validate_mode: ValidateMode = ValidateMode.NONE,
         validate_model: Optional[str] = None,
+        reference_field: Optional[str] = None,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
@@ -45,6 +46,7 @@ class ChatMathDistill(MapOperator):
         self.model = model
         self.validate_mode = validate_mode
         self.validate_model = validate_model or model
+        self.reference_field = reference_field
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -52,7 +54,16 @@ class ChatMathDistill(MapOperator):
         _item = self._cast_chat(item)
 
         question = self._first_message_content(_item.messages, ChatRole.USER)
-        reference = self._first_message_content(_item.messages, ChatRole.ASSISTANT)
+        reference = ""
+        if self.validate_mode != self.ValidateMode.NONE:
+            if self.reference_field:
+                if self.reference_field in _item.metadata:
+                    reference = _item.metadata[self.reference_field]
+            if not reference:
+                reference = self._first_message_content(
+                    _item.messages, ChatRole.ASSISTANT
+                )
+
         _item.messages = []
 
         if not question or (

@@ -1,16 +1,22 @@
 # BlossomData
 
-BlossomData是一个用于合成大型语言模型（LLM）训练数据的框架。它提供了一系列工具，用于处理训练数据，包括但不限于生成、翻译、蒸馏、校验等，帮助用户快速构建高质量的训练数据集。
+BlossomData是一个用于处理大型语言模型（LLM）训练数据的框架。它提供了一系列工具，用于合成训练数据，包括但不限于生成、翻译、蒸馏、校验等，帮助用户快速构建高质量的训练数据集。
 
 ⚠注意：该项目仍处于原型阶段，算子正在快速更新，并且可能存在大量未知问题。建议在实验环境中进行测试。
 
 # 使用示例
 
+使用pip安装。
+
+```
+pip3 install git+https://github.com/Azure99/BlossomData.git
+```
+
 在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。
 
 ## 翻译数据
 
-最简示例
+下面是一个最简单的示例，用于将对话数据从英文翻译为中文。
 
 ```python
 # 示例对话数据
@@ -31,7 +37,7 @@ pipeline = SimplePipeline().add_operators(
 print(pipeline.execute(data))
 ```
 
-仅翻译数据中的翻译数据中的指令部分，不翻译代码或其他内容；并开启并行处理
+配置参数即可实现仅翻译数据中的指令部分，不翻译代码或其他内容，并开启并行处理。
 
 ```python
 pipeline = SimplePipeline().add_operators(
@@ -46,7 +52,7 @@ pipeline = SimplePipeline().add_operators(
 
 ## 翻译并重新蒸馏数据
 
-直接翻译的Assistant回复质量可能不佳，因此可以先翻译用户指令，再使用ChatDistill重新生成Assistant回复以提高质量
+直接翻译的模型回复质量可能不佳，因此可以先翻译用户指令，再使用ChatDistill重新生成Assistant回复以提高质量。
 
 ```python
 pipeline = SimplePipeline().add_operators(
@@ -63,7 +69,7 @@ pipeline = SimplePipeline().add_operators(
 
 ## 根据答案校验
 
-对于有确切答案的问题（GSM8K等数学数据集），我们可以蒸馏回答，并基于参考答案检查是否正确
+对于有确切答案的问题（GSM8K等数学数据集），我们可以蒸馏回答，并基于参考答案检查是否正确。
 
 ```python
 data = [
@@ -88,7 +94,7 @@ pipeline = SimplePipeline().add_operators(
 
 ## 多模型推理校验
 
-对于没有确切答案的问题，我们可以使用另一个模型进行推理，并由第三个模型对两个回答进行检查，过滤掉不一致的结果
+对于没有确切答案的问题，我们可以使用另一个模型进行推理，并由第三个模型对两个回答进行检查，过滤掉不一致的结果。
 
 ```python
 data = [
@@ -112,7 +118,7 @@ pipeline = SimplePipeline().add_operators(
 
 ## 自定义算子
 
-定义自己的算子，以便灵活处理和生成训练数据。例如，从英文文本中抽取问答对并合成训练数据
+定义自己的算子，以便灵活处理和生成训练数据。例如，翻译英文文档，然后从中抽取问答对作为训练数据。
 
 ```python
 # 自定义Map算子，进行一对一映射
@@ -152,8 +158,11 @@ pipeline = SimplePipeline().add_operators(
     SelfQA(),
 )
 print(pipeline.execute(data))
+```
 
-# 示例输出
+你可能会得到这样的输出：
+
+```
 # User: 为什么厨房新手喜欢做番茄炒蛋？
 # Assistant: 厨房新手喜欢做番茄炒蛋有几个主要原因。
 # 首先，番茄和鸡蛋这两种食材非常容易获得，几乎在所有的超市和市场都可以买到。
@@ -163,3 +172,4 @@ print(pipeline.execute(data))
 # 此外，这道菜还可以根据个人口味进行简易的调味调整，无需严格遵循复杂的配方。
 # 这些因素使得番茄炒蛋成为新手下厨时的首选之一。
 ```
+

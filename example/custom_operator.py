@@ -34,7 +34,7 @@ data = [
 pipeline = SimplePipeline().add_operators(
     # 翻译英文文本
     TextTranslate(
-        translate_model="gpt-4o-mini",
+        model="gpt-4o-mini",
         target_language="Chinese",
     ),
     # 基于翻译后的文本，生成问题和答案

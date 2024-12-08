@@ -25,7 +25,7 @@ data = [
 # 定义Pipeline
 pipeline = SimplePipeline().add_operators(
     # 对话翻译，使用gpt-4o将对话数据翻译为中文
-    ChatTranslate(translate_model="gpt-4o-mini", target_language="Chinese"),
+    ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
 )
 # 执行并打印结果
 print(pipeline.execute(data))
@@ -36,7 +36,7 @@ print(pipeline.execute(data))
 ```python
 pipeline = SimplePipeline().add_operators(
     ChatTranslate(
-        translate_model="gpt-4o-mini",
+        model="gpt-4o-mini",
         target_language="Chinese",
         instruction_only=True,
         parallel=4,
@@ -51,13 +51,13 @@ pipeline = SimplePipeline().add_operators(
 ```python
 pipeline = SimplePipeline().add_operators(
     ChatTranslate(
-        translate_model="gpt-4o-mini",
+        model="gpt-4o-mini",
         target_language="Chinese",
         # 由于Assistant的回复会被蒸馏覆盖，此处可以仅翻译USER的消息
         roles=[ChatRole.USER],
     ),
     # 提供多种蒸馏模式，第一轮、最后一轮、所有轮次
-    ChatDistill(teacher_model="gpt-4o-mini", mode=ChatDistill.Mode.MULTI_TURN),
+    ChatDistill(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
 )
 ```
 
@@ -79,7 +79,7 @@ data = [
 ]
 pipeline = SimplePipeline().add_operators(
     ChatMathDistill(
-        teacher_model="gpt-4o-mini",
+        model="gpt-4o-mini",
         validate_mode=ChatMathDistill.ValidateMode.LLM,
         max_retry=3,
     ),
@@ -145,7 +145,7 @@ data = [
 pipeline = SimplePipeline().add_operators(
     # 翻译英文文本
     TextTranslate(
-        translate_model="gpt-4o-mini",
+        model="gpt-4o-mini",
         target_language="Chinese",
     ),
     # 基于翻译后的文本，生成问题和答案

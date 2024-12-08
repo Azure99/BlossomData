@@ -9,14 +9,14 @@ from blossom.schema.base_schema import BaseSchema
 class TextTranslate(MapOperator):
     def __init__(
         self,
-        translate_model: str,
+        model: str,
         target_language: str = "Chinese",
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
-        self.translate_model = translate_model
+        self.model = model
         self.target_language = target_language
         self.max_retry = max_retry
         self.extra_params = extra_params
@@ -24,7 +24,7 @@ class TextTranslate(MapOperator):
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_text(item)
 
-        translator = TextTranslator(self.context.get_model(self.translate_model))
+        translator = TextTranslator(self.context.get_model(self.model))
         try:
             _item.content = translator.translate(
                 content=_item.content,

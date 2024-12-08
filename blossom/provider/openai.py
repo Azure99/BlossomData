@@ -2,6 +2,7 @@ import time
 from typing import Any, Optional
 
 import requests
+from blossom.log import logger
 
 from blossom.conf import ModelConfig
 from blossom.provider.base_provider import BaseProvider
@@ -74,16 +75,22 @@ class OpenAI(BaseProvider):
         rate_limit_backoff = 1.0
 
         while rate_limit_retry < MAX_TOO_MANY_REQUESTS_RETRIES:
+            logger.info(f"Sending request to OpenAI: {url}, {data}")
             response = requests.post(
                 url,
                 timeout=600,
                 headers=headers,
                 data=json_dumps(data, ensure_ascii=True),
             )
+            logger.info(f"OpenAI response: {response.text}")
+
             if response.status_code == 200:
                 return response.json()
 
             if response.status_code == 429 or response.status_code >= 500:
+                logger.warning(
+                    f"Rate limit exceeded, retrying in {rate_limit_backoff} seconds"
+                )
                 time.sleep(rate_limit_backoff)
                 rate_limit_backoff *= TOO_MANY_REQUESTS_BACKOFF_FACTOR
                 rate_limit_retry += 1

@@ -7,7 +7,6 @@ from .chat.chat_invalid_filter import ChatInvalidFilter
 from .chat.chat_length_filter import ChatLengthFilter
 from .chat.chat_math_distill import ChatMathDistill
 from .chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
-from .chat.chat_online_search_filter import ChatOnlineSearchFilter
 from .chat.chat_repetition_filter import ChatRepetitionFilter
 from .chat.chat_translate import ChatTranslate
 from .filter_operator import FilterOperator
@@ -33,7 +32,6 @@ __all__ = [
     "ChatLengthFilter",
     "ChatMathDistill",
     "ChatMultiReasoningFilter",
-    "ChatOnlineSearchFilter",
     "ChatRepetitionFilter",
     "ChatTranslate",
     "TextContentFilter",

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from blossom.op.map_operator import MapOperator
-from blossom.op.util.text import replace_text
+from blossom.util.text import replace_text
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatRole
 

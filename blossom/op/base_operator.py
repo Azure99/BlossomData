@@ -8,19 +8,19 @@ from blossom.schema.text_schema import TextSchema
 
 
 class BaseOperator:
-    def __init__(self):
+    def __init__(self) -> None:
         self.context: Context
 
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
         raise NotImplementedError("Operator not implemented")
 
-    def init_context(self, context: Context):
+    def init_context(self, context: Context) -> None:
         self.context = context
 
     @staticmethod
     def _cast_base(data: Any) -> BaseSchema:
         assert isinstance(data, BaseSchema)
-        return cast(BaseSchema, data)
+        return data
 
     @staticmethod
     def _cast_base_list(data: list[Any]) -> list[BaseSchema]:
@@ -31,7 +31,7 @@ class BaseOperator:
     @staticmethod
     def _cast_chat(data: Any) -> ChatSchema:
         assert isinstance(data, ChatSchema)
-        return cast(ChatSchema, data)
+        return data
 
     @staticmethod
     def _cast_chat_list(data: list[BaseSchema]) -> list[ChatSchema]:
@@ -42,7 +42,7 @@ class BaseOperator:
     @staticmethod
     def _cast_custom(data: Any) -> CustomSchema:
         assert isinstance(data, CustomSchema)
-        return cast(CustomSchema, data)
+        return data
 
     @staticmethod
     def _cast_custom_list(data: list[BaseSchema]) -> list[CustomSchema]:
@@ -53,7 +53,7 @@ class BaseOperator:
     @staticmethod
     def _cast_text(data: Any) -> TextSchema:
         assert isinstance(data, TextSchema)
-        return cast(TextSchema, data)
+        return data
 
     @staticmethod
     def _cast_text_list(data: list[BaseSchema]) -> list[TextSchema]:

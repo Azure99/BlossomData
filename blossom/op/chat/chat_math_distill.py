@@ -134,7 +134,11 @@ class ChatMathDistill(MapOperator):
         validate_json_result = self.context.chat_completion(
             model=self.validate_model, messages=validate_messages
         )
-        return loads_markdown_first_json(validate_json_result).get("consistent", False)
+        consistent = loads_markdown_first_json(validate_json_result).get(
+            "consistent", False
+        )
+        assert isinstance(consistent, bool)
+        return consistent
 
     @staticmethod
     def _first_message_content(messages: list[ChatMessage], role: ChatRole) -> str:

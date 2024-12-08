@@ -42,7 +42,10 @@ class OpenAI(BaseProvider):
         }
 
         response = self._request("/chat/completions", data, extra_params)
-        return response["choices"][0]["message"]["content"]
+
+        content = response["choices"][0]["message"]["content"]
+        assert isinstance(content, str)
+        return content
 
     def embedding(
         self, input: str, extra_params: Optional[dict[str, Any]]
@@ -53,7 +56,9 @@ class OpenAI(BaseProvider):
         data = {"model": self.api_model_name, "input": input}
 
         response = self._request("/embeddings", data, extra_params)
-        return response["data"][0]["embedding"]
+        embedding = response["data"][0]["embedding"]
+        assert isinstance(embedding, list)
+        return embedding
 
     def _request(
         self,

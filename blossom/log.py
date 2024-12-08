@@ -42,7 +42,7 @@ class Logger:
     def disable(self) -> None:
         self.logger.disabled = True
 
-    def set_level(self, level) -> None:
+    def set_level(self, level: int) -> None:
         self.logger.setLevel(level)
 
 

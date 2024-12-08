@@ -18,7 +18,7 @@ class ChatEmbedding(MapOperator):
         model: str,
         roles: list[ChatRole] = [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT],
         strategy: Strategy = Strategy.FIRST,
-        metadata_field: str = "embedding",
+        embedding_field: str = "embedding",
         overwrite_field: bool = False,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
@@ -28,7 +28,7 @@ class ChatEmbedding(MapOperator):
         self.model = model
         self.roles = roles
         self.strategy = strategy
-        self.metadata_field = metadata_field
+        self.embedding_field = embedding_field
         self.overwrite_field = overwrite_field
         self.max_retry = max_retry
         self.extra_params = extra_params
@@ -36,7 +36,7 @@ class ChatEmbedding(MapOperator):
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_chat(item)
 
-        if not self.overwrite_field and _item.metadata.get(self.metadata_field):
+        if not self.overwrite_field and _item.metadata.get(self.embedding_field):
             return self._cast_base(_item)
 
         messages = list(filter(lambda x: x.role in self.roles, _item.messages))
@@ -57,6 +57,6 @@ class ChatEmbedding(MapOperator):
                 embeddings.append(content_embedding)
             except Exception:
                 pass
-        _item.metadata[self.metadata_field] = embeddings
+        _item.metadata[self.embedding_field] = embeddings
 
         return self._cast_base(_item)

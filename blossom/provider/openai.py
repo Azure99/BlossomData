@@ -11,7 +11,7 @@ from blossom.util.json import json_dumps
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 
-MAX_TOO_MANY_REQUESTS_RETRIES = 10
+MAX_TOO_MANY_REQUESTS_RETRIES = 12
 TOO_MANY_REQUESTS_BACKOFF_FACTOR = 1.5
 
 
@@ -79,8 +79,8 @@ class OpenAI(BaseProvider):
         rate_limit_retry = 0
         rate_limit_backoff = 1.0
 
+        logger.info(f"Sending request to OpenAI: {url}, {data}")
         while rate_limit_retry < MAX_TOO_MANY_REQUESTS_RETRIES:
-            logger.info(f"Sending request to OpenAI: {url}, {data}")
             response = requests.post(
                 url,
                 timeout=600,

@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "blossom"
+version = "0.1.0"
+description = "A simple way to synthesize LLM training data."
+repository = "https://github.com/Azure99/BlossomData"
+authors = ["Azure99"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+pyyaml = "^6.0"
+pydantic = "^2.0"
+requests = "^2.0"
+transformers = "^4.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.10.0"
+ruff = "^0.8.2"
+mypy = "^1.13.0"
+types-pyyaml = "^6.0.12.20240917"
+types-requests = "^2.32.0.20241016"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -16,8 +16,8 @@ data = [
 ]
 
 pipeline = SimplePipeline().add_operators(
-    ChatTranslate(translate_model="gpt-4o-mini", target_language="Chinese"),
-    ChatDistill(teacher_model="gpt-4o-mini", mode=ChatDistill.Mode.MULTI_TURN),
+    ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
+    ChatDistill(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
 )
 
 result = pipeline.execute(data)

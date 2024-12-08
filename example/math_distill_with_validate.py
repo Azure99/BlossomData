@@ -17,7 +17,7 @@ data = [
 
 pipeline = SimplePipeline().add_operators(
     ChatMathDistill(
-        teacher_model="gpt-4o-mini",
+        model="gpt-4o-mini",
         validate_mode=ChatMathDistill.ValidateMode.LLM,
         max_retry=3,
     ),

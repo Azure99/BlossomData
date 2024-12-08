@@ -1,5 +1,3 @@
-from typing import Optional
-
 from blossom.op.map_operator import MapOperator
 from blossom.util.text import replace_text
 from blossom.schema.base_schema import BaseSchema
@@ -10,12 +8,12 @@ class ChatContentReplacer(MapOperator):
     def __init__(
         self,
         replacements: dict[str, str],
-        roles: Optional[list[ChatRole]] = None,
+        roles: list[ChatRole] = [ChatRole.ASSISTANT],
         case_sensitive: bool = True,
     ):
         super().__init__()
         self.replacements = replacements
-        self.roles = roles or [ChatRole.ASSISTANT]
+        self.roles = roles
         self.case_sensitive = case_sensitive
 
     def process_item(self, item: BaseSchema) -> BaseSchema:

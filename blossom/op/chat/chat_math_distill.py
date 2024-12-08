@@ -34,7 +34,7 @@ class ChatMathDistill(MapOperator):
 
     def __init__(
         self,
-        teacher_model: str,
+        model: str,
         validate_mode: ValidateMode = ValidateMode.NONE,
         validate_model: Optional[str] = None,
         max_retry: int = 1,
@@ -42,9 +42,9 @@ class ChatMathDistill(MapOperator):
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
-        self.teacher_model = teacher_model
+        self.model = model
         self.validate_mode = validate_mode
-        self.validate_model = validate_model or teacher_model
+        self.validate_model = validate_model or model
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -75,7 +75,7 @@ class ChatMathDistill(MapOperator):
 
     def _distill_with_validate(self, question: str, reference: str) -> str:
         model_answer = self.context.single_chat_completion(
-            model=self.teacher_model,
+            model=self.model,
             user_message=question,
             extra_params=self.extra_params,
         )

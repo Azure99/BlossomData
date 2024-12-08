@@ -16,7 +16,7 @@ class ChatEmbedding(MapOperator):
     def __init__(
         self,
         model: str,
-        roles: Optional[list[ChatRole]] = None,
+        roles: list[ChatRole] = [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT],
         strategy: Strategy = Strategy.FIRST,
         metadata_field: str = "embedding",
         overwrite_field: bool = False,
@@ -26,9 +26,7 @@ class ChatEmbedding(MapOperator):
     ):
         super().__init__(parallel=parallel)
         self.model = model
-        self.roles = (
-            roles if roles else [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT]
-        )
+        self.roles = roles
         self.strategy = strategy
         self.metadata_field = metadata_field
         self.overwrite_field = overwrite_field

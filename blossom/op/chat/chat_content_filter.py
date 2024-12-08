@@ -1,5 +1,3 @@
-from typing import Optional
-
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatRole
@@ -9,13 +7,13 @@ class ChatContentFilter(FilterOperator):
     def __init__(
         self,
         contents: list[str],
-        roles: Optional[list[ChatRole]] = None,
+        roles: list[ChatRole] = [ChatRole.ASSISTANT],
         case_sensitive: bool = True,
         reverse: bool = False,
     ):
         super().__init__(reverse=reverse)
         self.contents = contents
-        self.roles = roles or [ChatRole.ASSISTANT]
+        self.roles = roles
         self.case_sensitive = case_sensitive
         if not case_sensitive:
             self.contents = [content.lower() for content in contents]

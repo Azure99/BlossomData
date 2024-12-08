@@ -7,22 +7,22 @@ from blossom.schema.chat_schema import ChatMessage, ChatRole
 
 
 class ChatDistill(MapOperator):
-    class Mode(Enum):
+    class Strategy(Enum):
         FIRST_TURN = 0
         LAST_TURN = 1
         MULTI_TURN = 2
 
     def __init__(
         self,
-        teacher_model: str,
-        mode: Mode = Mode.FIRST_TURN,
+        model: str,
+        strategy: Strategy = Strategy.FIRST_TURN,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
-        self.teacher_model = teacher_model
-        self.mode = mode
+        self.model = model
+        self.strategy = strategy
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -41,14 +41,14 @@ class ChatDistill(MapOperator):
         return self._cast_base(_item)
 
     def _process_item_messages(self, messages: list[ChatMessage]) -> list[ChatMessage]:
-        if self.mode == ChatDistill.Mode.FIRST_TURN:
+        if self.strategy == ChatDistill.Strategy.FIRST_TURN:
             return self._process_first_turn(messages)
-        elif self.mode == ChatDistill.Mode.LAST_TURN:
+        elif self.strategy == ChatDistill.Strategy.LAST_TURN:
             return self._process_last_turn(messages)
-        elif self.mode == ChatDistill.Mode.MULTI_TURN:
+        elif self.strategy == ChatDistill.Strategy.MULTI_TURN:
             return self._process_multi_turn(messages)
 
-        raise NotImplementedError("Distill mode not implemented")
+        raise NotImplementedError("Distill strategy not implemented")
 
     def _process_first_turn(self, messages: list[ChatMessage]) -> list[ChatMessage]:
         messages = list(filter(lambda x: x.role != ChatRole.ASSISTANT, messages))
@@ -81,5 +81,5 @@ class ChatDistill(MapOperator):
 
     def _add_assistant_reply(self, messages: list[ChatMessage]) -> list[ChatMessage]:
         return self.context.chat_completion_with_messages(
-            model=self.teacher_model, messages=messages, extra_params=self.extra_params
+            model=self.model, messages=messages, extra_params=self.extra_params
         )

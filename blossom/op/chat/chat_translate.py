@@ -9,20 +9,18 @@ from blossom.schema.chat_schema import ChatRole
 class ChatTranslate(MapOperator):
     def __init__(
         self,
-        translate_model: str,
+        model: str,
         target_language: str = "Chinese",
-        roles: Optional[list[ChatRole]] = None,
+        roles: list[ChatRole] = [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT],
         instruction_only: bool = False,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
-        self.translate_model = translate_model
+        self.model = model
         self.target_language = target_language
-        self.roles = (
-            roles if roles else [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT]
-        )
+        self.roles = roles
         self.instruction_only = instruction_only
         self.max_retry = max_retry
         self.extra_params = extra_params
@@ -30,7 +28,7 @@ class ChatTranslate(MapOperator):
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_chat(item)
 
-        translator = TextTranslator(self.context.get_model(self.translate_model))
+        translator = TextTranslator(self.context.get_model(self.model))
         for message in _item.messages:
             if message.role in self.roles:
                 try:

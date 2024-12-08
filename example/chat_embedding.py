@@ -1,6 +1,6 @@
-from blossom.op.chat.chat_embedding import ChatEmbedding
-from blossom.pipeline.simple_pipeline import SimplePipeline
-from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
+from blossom.op import ChatEmbedding
+from blossom.pipeline import SimplePipeline
+from blossom.schema import ChatMessage, ChatRole, ChatSchema
 
 
 data = [

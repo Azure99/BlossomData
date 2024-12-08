@@ -1,6 +1,6 @@
-from blossom.op.chat.chat_length_filter import ChatLengthFilter
-from blossom.pipeline.simple_pipeline import SimplePipeline
-from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
+from blossom.op import ChatLengthFilter
+from blossom.pipeline import SimplePipeline
+from blossom.schema import ChatMessage, ChatRole, ChatSchema
 
 tokenizer = None
 
@@ -10,7 +10,7 @@ def llama_tokenizer_len(text):
     from transformers import AutoTokenizer
 
     if not tokenizer:
-        tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
+        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-1.5B")
     length = len(tokenizer.encode(text))
     print(f"'{text}' tokenized length: {length}")
     return length

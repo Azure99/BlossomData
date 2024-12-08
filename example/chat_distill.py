@@ -1,7 +1,6 @@
-from blossom.op.chat.chat_distill import ChatDistill
-from blossom.op.chat.chat_translate import ChatTranslate
-from blossom.pipeline.simple_pipeline import SimplePipeline
-from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
+from blossom.op import ChatDistill, ChatTranslate
+from blossom.pipeline import SimplePipeline
+from blossom.schema import ChatMessage, ChatRole, ChatSchema
 
 
 data = [

@@ -1,6 +1,6 @@
-from blossom.op.chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
-from blossom.pipeline.simple_pipeline import SimplePipeline
-from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
+from blossom.op import ChatMultiReasoningFilter
+from blossom.pipeline import SimplePipeline
+from blossom.schema import ChatMessage, ChatRole, ChatSchema
 
 
 data = [

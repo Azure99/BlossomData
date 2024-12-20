@@ -1,3 +1,4 @@
+import random
 import time
 from typing import Any, Optional
 
@@ -20,8 +21,20 @@ class OpenAI(BaseProvider):
     def __init__(self, model_config: ModelConfig):
         super().__init__(model_config)
         self.base_url = model_config.config.get("base_url", DEFAULT_BASE_URL)
-        self.api_key = model_config.config["key"]
         self.default_system = model_config.config.get("default_system", None)
+        self.api_keys = self._load_api_keys(model_config)
+
+    def _load_api_keys(self, model_config: ModelConfig) -> list[str]:
+        api_keys = []
+        if "key" in model_config.config:
+            api_keys.append(model_config.config["key"])
+        if "keys" in model_config.config:
+            api_keys.extend(model_config.config["keys"])
+        if len(api_keys) == 0:
+            raise ValueError("No API key provided")
+        if not all(isinstance(key, str) for key in api_keys):
+            raise ValueError("API keys must be strings")
+        return api_keys
 
     def chat_completion(
         self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
@@ -71,11 +84,6 @@ class OpenAI(BaseProvider):
         data: dict[str, Any],
         extra_params: Optional[dict[str, Any]],
     ) -> Any:
-        url = f"{self.base_url}{url_part}"
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
         if self.extra_params is not None:
             data.update(self.extra_params)
         if extra_params is not None:
@@ -84,8 +92,14 @@ class OpenAI(BaseProvider):
         rate_limit_retry = 0
         rate_limit_backoff = 1.0
 
-        logger.info(f"Sending request to OpenAI: {url}, {data}")
         while rate_limit_retry < MAX_TOO_MANY_REQUESTS_RETRIES:
+            url = f"{self.base_url}{url_part}"
+            headers = {
+                "Authorization": f"Bearer {self._get_api_key()}",
+                "Content-Type": "application/json",
+            }
+            logger.info(f"Sending request to OpenAI: {url}, {data}")
+
             response = requests.post(
                 url,
                 timeout=600,
@@ -110,3 +124,6 @@ class OpenAI(BaseProvider):
         raise ValueError(
             f"Request failed with status code {response.status_code}, {response.text}"
         )
+
+    def _get_api_key(self) -> str:
+        return random.choice(self.api_keys)

@@ -10,7 +10,7 @@ class ModelConfig(BaseModel):
     name: str
     provider: str
     api_model_name: Optional[str]
-    config: dict[str, str]
+    config: dict[str, Any]
     extra_params: Optional[dict[str, Any]] = None
 
 

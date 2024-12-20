@@ -3,6 +3,7 @@ from typing import Any, Optional
 from blossom.conf.config import Config
 from blossom.context.provider_manager import ProviderManager
 from blossom.provider.base_provider import BaseProvider
+from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage, ChatRole
 
 
@@ -30,6 +31,16 @@ class Context:
             messages, extra_params=extra_params
         )
 
+    def chat_completion_with_details(
+        self,
+        model: str,
+        messages: list[ChatMessage],
+        extra_params: Optional[dict[str, Any]] = None,
+    ) -> ChatCompletionResponse:
+        return self.get_model(model).chat_completion_with_details(
+            messages, extra_params=extra_params
+        )
+
     def chat_completion_with_messages(
         self,
         model: str,
@@ -46,6 +57,18 @@ class Context:
         extra_params: Optional[dict[str, Any]] = None,
     ) -> str:
         return self.chat_completion(
+            model,
+            [ChatMessage(role=ChatRole.USER, content=user_message)],
+            extra_params=extra_params,
+        )
+
+    def single_chat_completion_with_details(
+        self,
+        model: str,
+        user_message: str,
+        extra_params: Optional[dict[str, Any]] = None,
+    ) -> ChatCompletionResponse:
+        return self.chat_completion_with_details(
             model,
             [ChatMessage(role=ChatRole.USER, content=user_message)],
             extra_params=extra_params,

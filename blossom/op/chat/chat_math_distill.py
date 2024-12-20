@@ -4,6 +4,7 @@ from typing import Any, Optional
 from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
+from blossom.provider.protocol import ChatCompletionFinishReason
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessage, ChatRole
 from blossom.util.json import loads_markdown_first_json
@@ -25,6 +26,9 @@ LLM_CHECK_PROMPT = """For the given "Question," "Reference answer," and "Respons
 LLM_CHECK_JSON_PROMPT = """Please output your conclusion directly in JSON format.
 The JSON should contain only one boolean field named "consistent," which indicates whether the "reference answer" and the "response" are consistent.
 Please output only a JSON without any explanation or other irrelevant content."""
+
+
+MATADATA_REASONING_COUNT = "reasoning_count"
 
 
 class ChatMathDistill(MapOperator):
@@ -70,13 +74,14 @@ class ChatMathDistill(MapOperator):
         ):
             return self._cast_base(_item)
 
-        for _ in range(self.max_retry):
+        for retry_count in range(self.max_retry):
             try:
                 model_answer = self._distill_with_validate(question, reference)
                 _item.messages = [
                     ChatMessage(role=ChatRole.USER, content=question),
                     ChatMessage(role=ChatRole.ASSISTANT, content=model_answer),
                 ]
+                _item.metadata[MATADATA_REASONING_COUNT] = retry_count + 1
                 return self._cast_base(_item)
             except Exception as e:
                 logger.info(f"Validation failed: {question}, {e}")
@@ -85,11 +90,20 @@ class ChatMathDistill(MapOperator):
         return self._cast_base(_item)
 
     def _distill_with_validate(self, question: str, reference: str) -> str:
-        model_answer = self.context.single_chat_completion(
+        response = self.context.single_chat_completion_with_details(
             model=self.model,
             user_message=question,
             extra_params=self.extra_params,
         )
+        finish_reason = response.choices[0].finish_reason
+
+        # model answer is not complete
+        if finish_reason != ChatCompletionFinishReason.STOP:
+            # cannot validate incomplete model answer
+            if self.validate_mode != self.ValidateMode.NONE:
+                raise ValueError("Model answer is not complete")
+
+        model_answer = response.choices[0].message.content
         if self._validate_model_answer(question, reference, model_answer):
             return model_answer
         raise ValueError("Model answer is not consistent with the reference answer")

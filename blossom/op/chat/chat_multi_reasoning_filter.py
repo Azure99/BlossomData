@@ -1,7 +1,7 @@
 from typing import Optional
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema.chat_schema import ChatSchema, user
 from blossom.util.json import loads_markdown_first_json
 
 LLM_CHECK_PROMPT = """For the given "Question," "Response_1" and "Response_2" please analyze step by step whether the answers of  "Response_1" and "Response_2" are obviously inconsistent.
@@ -73,11 +73,9 @@ class ChatMultiReasoningFilter(FilterOperator):
         )
         validate_messages = self.context.chat_completion_with_messages(
             model=self.review_model,
-            messages=[ChatMessage(role=ChatRole.USER, content=validate_prompt)],
+            messages=[user(validate_prompt)],
         )
-        validate_messages.append(
-            ChatMessage(role=ChatRole.USER, content=LLM_CHECK_JSON_PROMPT)
-        )
+        validate_messages.append(user(LLM_CHECK_JSON_PROMPT))
 
         validate_json_result = self.context.chat_completion(
             model=self.review_model, messages=validate_messages

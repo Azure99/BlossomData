@@ -8,7 +8,7 @@ from blossom.log import logger
 from blossom.conf import ModelConfig
 from blossom.provider.base_provider import BaseProvider
 from blossom.provider.protocol import ChatCompletionResponse
-from blossom.schema.chat_schema import ChatMessage, ChatRole
+from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 from blossom.util.json import json_dumps
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
@@ -49,10 +49,7 @@ class OpenAI(BaseProvider):
         if len(messages) == 0:
             raise ValueError("No messages provided")
         if messages[0].role != ChatRole.SYSTEM and self.default_system:
-            system_message = ChatMessage(
-                role=ChatRole.SYSTEM, content=self.default_system
-            )
-            messages = [system_message] + messages
+            messages = [system(self.default_system)] + messages
 
         data = {
             "model": self.api_model_name,

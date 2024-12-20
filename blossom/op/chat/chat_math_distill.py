@@ -6,7 +6,7 @@ from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatMessage, ChatRole
+from blossom.schema.chat_schema import ChatMessage, ChatRole, user, assistant
 from blossom.util.json import loads_markdown_first_json
 
 LAST_NUMBER_REGEX = r"-?\d+(?:\.\d+)?"
@@ -78,8 +78,8 @@ class ChatMathDistill(MapOperator):
             try:
                 model_answer = self._distill_with_validate(question, reference)
                 _item.messages = [
-                    ChatMessage(role=ChatRole.USER, content=question),
-                    ChatMessage(role=ChatRole.ASSISTANT, content=model_answer),
+                    user(question),
+                    assistant(model_answer),
                 ]
                 _item.metadata[MATADATA_REASONING_COUNT] = retry_count + 1
                 return self._cast_base(_item)
@@ -139,12 +139,10 @@ class ChatMathDistill(MapOperator):
         )
         validate_messages = self.context.chat_completion_with_messages(
             model=self.validate_model,
-            messages=[ChatMessage(role=ChatRole.USER, content=validate_prompt)],
+            messages=[user(validate_prompt)],
         )
 
-        validate_messages.append(
-            ChatMessage(role=ChatRole.USER, content=LLM_CHECK_JSON_PROMPT)
-        )
+        validate_messages.append(user(LLM_CHECK_JSON_PROMPT))
         validate_json_result = self.context.chat_completion(
             model=self.validate_model, messages=validate_messages
         )

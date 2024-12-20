@@ -4,7 +4,7 @@ from blossom.conf.config import Config
 from blossom.context.provider_manager import ProviderManager
 from blossom.provider.base_provider import BaseProvider
 from blossom.provider.protocol import ChatCompletionResponse
-from blossom.schema.chat_schema import ChatMessage, ChatRole
+from blossom.schema.chat_schema import ChatMessage, user, assistant
 
 
 class Context:
@@ -48,7 +48,7 @@ class Context:
         extra_params: Optional[dict[str, Any]] = None,
     ) -> list[ChatMessage]:
         response = self.chat_completion(model, messages, extra_params=extra_params)
-        return messages + [ChatMessage(role=ChatRole.ASSISTANT, content=response)]
+        return messages + [assistant(response)]
 
     def single_chat_completion(
         self,
@@ -57,8 +57,8 @@ class Context:
         extra_params: Optional[dict[str, Any]] = None,
     ) -> str:
         return self.chat_completion(
-            model,
-            [ChatMessage(role=ChatRole.USER, content=user_message)],
+            model=model,
+            messages=[user(user_message)],
             extra_params=extra_params,
         )
 
@@ -69,7 +69,7 @@ class Context:
         extra_params: Optional[dict[str, Any]] = None,
     ) -> ChatCompletionResponse:
         return self.chat_completion_with_details(
-            model,
-            [ChatMessage(role=ChatRole.USER, content=user_message)],
+            model=model,
+            messages=[user(user_message)],
             extra_params=extra_params,
         )

@@ -2,7 +2,7 @@ import json
 from typing import Any, Optional
 
 from blossom.provider.base_provider import BaseProvider
-from blossom.schema.chat_schema import ChatMessage, ChatRole
+from blossom.schema.chat_schema import user
 from blossom.util.json import extract_markdown_first_json, json_dumps
 
 TRANSLATE_PROMPT_TEMPLATE = """Your task is to translate the text into {target_language}. When translating, you need to follow the following rules:
@@ -50,7 +50,7 @@ class TextTranslator:
         self, prompt: str, extra_params: Optional[dict[str, Any]] = None
     ) -> str:
         translate_output = self.provider.chat_completion(
-            messages=[ChatMessage(role=ChatRole.USER, content=prompt)],
+            messages=[user(prompt)],
             extra_params=extra_params,
         )
         json_output = extract_markdown_first_json(translate_output)

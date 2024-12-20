@@ -11,3 +11,12 @@ class TransformOperator(BaseOperator):
 
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
         return self.transform_func(data)
+
+
+def transform_operator() -> Callable[..., TransformOperator]:
+    def decorator(
+        func: Callable[[list[BaseSchema]], list[BaseSchema]]
+    ) -> TransformOperator:
+        return TransformOperator(transform_func=func)
+
+    return decorator

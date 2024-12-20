@@ -31,3 +31,10 @@ class MapOperator(BaseOperator):
         if self.map_func is None:
             raise NotImplementedError("map function not implemented")
         return self.map_func(item)
+
+
+def map_operator(parallel: int = 1) -> Callable[..., MapOperator]:
+    def decorator(func: Callable[[BaseSchema], BaseSchema]) -> MapOperator:
+        return MapOperator(map_func=func, parallel=parallel)
+
+    return decorator

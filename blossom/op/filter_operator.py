@@ -34,3 +34,12 @@ class FilterOperator(BaseOperator):
         if self.filter_func is None:
             raise NotImplementedError("filter function not implemented")
         return self.filter_func(item)
+
+
+def filter_operator(
+    reverse: bool = False, parallel: int = 1
+) -> Callable[..., FilterOperator]:
+    def decorator(func: Callable[[BaseSchema], bool]) -> FilterOperator:
+        return FilterOperator(filter_func=func, reverse=reverse, parallel=parallel)
+
+    return decorator

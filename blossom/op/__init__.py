@@ -10,15 +10,15 @@ from .chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
 from .chat.chat_repetition_filter import ChatRepetitionFilter
 from .chat.chat_translate import ChatTranslate
 from .failed_item_filter import FailedItemFilter
-from .filter_operator import FilterOperator
-from .map_operator import MapOperator
+from .filter_operator import FilterOperator, filter_operator
+from .map_operator import MapOperator, map_operator
 from .text.text_content_filter import TextContentFilter
 from .text.text_content_replacer import TextContentReplacer
 from .text.text_embedding import TextEmbedding
 from .text.text_length_filter import TextLengthFilter
 from .text.text_repetition_filter import TextRepetitionFilter
 from .text.text_translate import TextTranslate
-from .transform_operator import TransformOperator
+from .transform_operator import TransformOperator, transform_operator
 
 __all__ = [
     "BaseOperator",
@@ -26,6 +26,9 @@ __all__ = [
     "FilterOperator",
     "MapOperator",
     "TransformOperator",
+    "filter_operator",
+    "map_operator",
+    "transform_operator",
     "ChatContentFilter",
     "ChatContentReplacer",
     "ChatDistill",

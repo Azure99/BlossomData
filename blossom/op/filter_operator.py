@@ -20,10 +20,15 @@ class FilterOperator(BaseOperator):
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
         if self.parallel > 1:
             with ThreadPoolExecutor(max_workers=self.parallel) as executor:
-                results = list(executor.map(self.process_item, data))
+                results = list(executor.map(self.process_skip_failed, data))
         else:
-            results = list(map(self.process_item, data))
+            results = list(map(self.process_skip_failed, data))
         return [item for item, passed in zip(data, results) if passed ^ self.reverse]
+
+    def process_skip_failed(self, item: BaseSchema) -> bool:
+        if item.failed:
+            return True
+        return self.process_item(item)
 
     def process_item(self, item: BaseSchema) -> bool:
         if self.filter_func is None:

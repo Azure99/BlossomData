@@ -33,6 +33,36 @@ class ChatSchema(BaseSchema):
 
     def add_assistant(self, content: str) -> "ChatSchema":
         return self.add_message(ChatRole.ASSISTANT, content)
+    
+    def clear_messages(self) -> "ChatSchema":
+        self.messages = []
+        return self
+    
+    def remove_last_message(self) -> "ChatSchema":
+        if self.messages:
+            self.messages.pop()
+        return self
+    
+    def remove_last_system(self) -> "ChatSchema":
+        for i in reversed(range(len(self.messages))):
+            if self.messages[i].role == ChatRole.SYSTEM:
+                self.messages.pop(i)
+                break
+        return self
+    
+    def remove_last_user(self) -> "ChatSchema":
+        for i in reversed(range(len(self.messages))):
+            if self.messages[i].role == ChatRole.USER:
+                self.messages.pop(i)
+                break
+        return self
+    
+    def remove_last_assistant(self) -> "ChatSchema":
+        for i in reversed(range(len(self.messages))):
+            if self.messages[i].role == ChatRole.ASSISTANT:
+                self.messages.pop(i)
+                break
+        return self
 
     def first_message(
         self, default: Optional[ChatMessage] = None

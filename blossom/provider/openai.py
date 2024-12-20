@@ -6,6 +6,7 @@ from blossom.log import logger
 
 from blossom.conf import ModelConfig
 from blossom.provider.base_provider import BaseProvider
+from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage, ChatRole
 from blossom.util.json import json_dumps
 
@@ -25,6 +26,13 @@ class OpenAI(BaseProvider):
     def chat_completion(
         self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
     ) -> str:
+        response = self.chat_completion_with_details(messages, extra_params)
+        content = response.choices[0].message.content
+        return content
+
+    def chat_completion_with_details(
+        self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
+    ) -> ChatCompletionResponse:
         if len(messages) == 0:
             raise ValueError("No messages provided")
         if messages[0].role != ChatRole.SYSTEM and self.default_system:
@@ -42,10 +50,7 @@ class OpenAI(BaseProvider):
         }
 
         response = self._request("/chat/completions", data, extra_params)
-
-        content = response["choices"][0]["message"]["content"]
-        assert isinstance(content, str)
-        return content
+        return ChatCompletionResponse(**response)
 
     def embedding(
         self, input: str, extra_params: Optional[dict[str, Any]]

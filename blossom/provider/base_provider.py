@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 from blossom.conf.config import ModelConfig
+from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage
 
 
@@ -17,6 +18,11 @@ class BaseProvider:
     def chat_completion(
         self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
     ) -> str:
+        raise NotImplementedError("Service not implemented")
+
+    def chat_completion_with_details(
+        self, messages: list[ChatMessage], extra_params: Optional[dict[str, Any]] = None
+    ) -> ChatCompletionResponse:
         raise NotImplementedError("Service not implemented")
 
     def embedding(

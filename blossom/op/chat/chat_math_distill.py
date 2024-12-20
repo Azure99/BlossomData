@@ -90,9 +90,9 @@ class ChatMathDistill(MapOperator):
         return self._cast_base(_item)
 
     def _distill_with_validate(self, question: str, reference: str) -> str:
-        response = self.context.single_chat_completion_with_details(
+        response = self.context.chat_completion_with_details(
             model=self.model,
-            user_message=question,
+            messages=[user(question)],
             extra_params=self.extra_params,
         )
         finish_reason = response.choices[0].finish_reason
@@ -137,9 +137,15 @@ class ChatMathDistill(MapOperator):
             reference_answer=reference_answer,
             model_answer=model_answer,
         )
-        validate_messages = self.context.chat_completion_with_messages(
-            model=self.validate_model,
-            messages=[user(validate_prompt)],
+        validate_messages = [user(validate_prompt)]
+
+        validate_messages.append(
+            assistant(
+                self.context.chat_completion(
+                    model=self.validate_model,
+                    messages=validate_messages,
+                )
+            )
         )
 
         validate_messages.append(user(LLM_CHECK_JSON_PROMPT))

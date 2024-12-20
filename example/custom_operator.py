@@ -12,7 +12,7 @@ class SelfQA(MapOperator):
             "你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。\n"
             f"给定的文本：{item.content}"
         )
-        raw_result = self.context.single_chat_completion("gpt-4o-mini", self_qa_prompt)
+        raw_result = self.context.chat_completion("gpt-4o-mini", [user(self_qa_prompt)])
         result = loads_markdown_first_json(raw_result)
         return ChatSchema(
             messages=[

@@ -46,7 +46,7 @@ def filter_hi_prompt(item):
 
 @context_map_operator(parallel=2)
 def generate_response(context, item):
-    response = context.single_chat_completion("gpt-4o-mini", item.first_user())
+    response = context.chat_completion("gpt-4o-mini", [item.first_message()])
     return item.add_assistant(response)
 
 

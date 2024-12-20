@@ -23,8 +23,8 @@ pip3 install git+https://github.com/Azure99/BlossomData.git
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="hello"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Hello."),
+            user("hello"),
+            assistant("Hello."),
         ]
     ),
 ]
@@ -75,11 +75,8 @@ pipeline = SimplePipeline().add_operators(
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(
-                role=ChatRole.USER,
-                content="Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas.",
-            ),
-            ChatMessage(role=ChatRole.ASSISTANT, content="−2,−1,2"),
+            user("Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas.")
+            assistant("−2,−1,2"),
         ]
     )
 ]
@@ -100,14 +97,14 @@ pipeline = SimplePipeline().add_operators(
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Who developed ChatGPT?"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="OpenAI"),
+            user("Who developed ChatGPT?"),
+            assistant("OpenAI"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Who developed ChatGPT?"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Google"),
+            user("Who developed ChatGPT?"),
+            assistant("Google"),
         ]
     ),
 ]
@@ -118,11 +115,11 @@ pipeline = SimplePipeline().add_operators(
 
 ## 自定义算子
 
-定义自己的算子，以便灵活处理和生成训练数据。例如，翻译英文文档，然后从中抽取问答对作为训练数据。
+定义自己的算子，以便灵活处理和生成训练数据。下面的示例中，首先翻译英文文档为中文，然后从中抽取问答对作为训练数据。
 
 ```python
 # 自定义Map算子，进行一对一映射
-@context_map_operator()
+@context_map_operator(parallel=4)
 def self_qa_op(context, item):
     self_qa_prompt = (
         "基于给定的文本，随意生成一个问题以及对应的长答案。\n"
@@ -133,8 +130,8 @@ def self_qa_op(context, item):
     result = loads_markdown_first_json(raw_result)
     return ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content=result["question"]),
-            ChatMessage(role=ChatRole.ASSISTANT, content=result["answer"]),
+            user(result["question"]),
+            assistant(result["answer"]),
         ]
     )
 

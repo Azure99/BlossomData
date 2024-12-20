@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
+from blossom.context import Context
 
 from blossom.op.base_operator import BaseOperator
 from blossom.schema.base_schema import BaseSchema
@@ -36,5 +37,19 @@ class MapOperator(BaseOperator):
 def map_operator(parallel: int = 1) -> Callable[..., MapOperator]:
     def decorator(func: Callable[[BaseSchema], BaseSchema]) -> MapOperator:
         return MapOperator(map_func=func, parallel=parallel)
+
+    return decorator
+
+
+def context_map_operator(parallel: int = 1) -> Callable[..., MapOperator]:
+    def decorator(func: Callable[[Context, BaseSchema], BaseSchema]) -> MapOperator:
+        class WrappedMapOperator(MapOperator):
+            def __init__(self, parallel: int):
+                super().__init__(parallel=parallel)
+
+            def process_item(self, item: BaseSchema) -> BaseSchema:
+                return func(self.context, item)
+
+        return WrappedMapOperator(parallel=parallel)
 
     return decorator

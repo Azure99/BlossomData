@@ -122,21 +122,21 @@ pipeline = SimplePipeline().add_operators(
 
 ```python
 # 自定义Map算子，进行一对一映射
-class SelfQA(MapOperator):
-    def process_item(self, item):
-        self_qa_prompt = (
-            "基于给定的文本，随意生成一个问题以及对应的长答案。\n"
-            "你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。\n"
-            f"给定的文本：{item.content}"
-        )
-        raw_result = self.context.single_chat_completion("gpt-4o-mini", self_qa_prompt)
-        result = loads_markdown_first_json(raw_result)
-        return ChatSchema(
-            messages=[
-                ChatMessage(role=ChatRole.USER, content=result["question"]),
-                ChatMessage(role=ChatRole.ASSISTANT, content=result["answer"]),
-            ]
-        )
+@context_map_operator()
+def self_qa_op(context, item):
+    self_qa_prompt = (
+        "基于给定的文本，随意生成一个问题以及对应的长答案。\n"
+        "你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。\n"
+        f"给定的文本：{item.content}"
+    )
+    raw_result = context.single_chat_completion("gpt-4o-mini", self_qa_prompt)
+    result = loads_markdown_first_json(raw_result)
+    return ChatSchema(
+        messages=[
+            ChatMessage(role=ChatRole.USER, content=result["question"]),
+            ChatMessage(role=ChatRole.ASSISTANT, content=result["answer"]),
+        ]
+    )
 
 
 # 纯文本英文数据
@@ -155,7 +155,7 @@ pipeline = SimplePipeline().add_operators(
         target_language="Chinese",
     ),
     # 基于翻译后的文本，生成问题和答案
-    SelfQA(),
+    self_qa_op,
 )
 print(pipeline.execute(data))
 ```

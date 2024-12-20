@@ -1,5 +1,10 @@
 import copy
-from blossom.op import filter_operator, map_operator, transform_operator
+from blossom.op import (
+    filter_operator,
+    map_operator,
+    transform_operator,
+    context_map_operator,
+)
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatMessage, ChatRole, ChatSchema
 
@@ -7,8 +12,10 @@ from blossom.schema import ChatMessage, ChatRole, ChatSchema
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Hello"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Hello."),
+            ChatMessage(
+                role=ChatRole.USER, content="Just give me a number within 99999"
+            ),
+            ChatMessage(role=ChatRole.ASSISTANT, content="1"),
         ]
     ),
     ChatSchema(
@@ -39,10 +46,18 @@ def filter_hi(item):
     return item.messages[0].content != "Hi"
 
 
+@context_map_operator(parallel=2)
+def generate_response(context, item):
+    response = context.single_chat_completion("gpt-4o-mini", item.messages[0].content)
+    item.messages.append(ChatMessage(role=ChatRole.ASSISTANT, content=response))
+    return item
+
+
 pipeline = SimplePipeline().add_operators(
     duplicate_data,
     remove_assistant,
     filter_hi,
+    generate_response
 )
 
 result = pipeline.execute(data)

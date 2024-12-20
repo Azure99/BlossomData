@@ -1,21 +1,18 @@
 from blossom.op import ChatRepetitionFilter
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatSchema, user, assistant
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="1 + 1 = ?"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="1 + 1 is equal to 2."),
+            user("1 + 1 = ?"),
+            assistant("1 + 1 is equal to 2."),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="1 + 1 = ?"),
-            ChatMessage(
-                role=ChatRole.ASSISTANT,
-                content="1 + 1 is equal to 2 to 2 to 2 to 2 to 2 to 2 to 2 to 2.",
-            ),
+            user("1 + 1 = ?"),
+            assistant("1 + 1 is equal to 2 to 2 to 2 to 2 to 2 to 2 to 2 to 2."),
         ]
     ),
 ]

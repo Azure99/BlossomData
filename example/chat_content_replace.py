@@ -1,14 +1,14 @@
 from blossom.op import ChatContentReplacer
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatRole, ChatSchema, system, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.SYSTEM, content="openai developed you"),
-            ChatMessage(role=ChatRole.USER, content="who developed you"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="OpenAI developed me"),
+            system("openai developed you"),
+            user("who developed you"),
+            assistant("OpenAI developed me"),
         ]
     )
 ]

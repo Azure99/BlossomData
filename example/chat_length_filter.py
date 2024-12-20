@@ -1,6 +1,6 @@
 from blossom.op import ChatLengthFilter
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatSchema, user, assistant
 
 tokenizer = None
 
@@ -19,17 +19,14 @@ def llama_tokenizer_len(text):
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="hello world"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="hello world hello world"),
+            user("hello world"),
+            assistant("hello world hello world"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="hello world"),
-            ChatMessage(
-                role=ChatRole.ASSISTANT,
-                content="hello world hello world hello world hello world hello world",
-            ),
+            user("hello world"),
+            assistant("hello world hello world hello world hello world hello world"),
         ]
     ),
 ]

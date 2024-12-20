@@ -1,21 +1,19 @@
 from blossom.op import ChatEmbedding
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatSchema, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(
-                role=ChatRole.USER, content="How was dinner today? Was it tasty?"
-            ),
-            ChatMessage(role=ChatRole.ASSISTANT, content="It was so tasty, thank you!"),
+            user("How was dinner today? Was it tasty?"),
+            assistant("It was so tasty, thank you!"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Was dinner delicious today?"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Yes, it was delicious!"),
+            user("Was dinner delicious today?"),
+            assistant("Yes, it was delicious!"),
         ]
     ),
 ]

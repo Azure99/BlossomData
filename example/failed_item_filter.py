@@ -1,17 +1,17 @@
 from blossom.op import ChatDistill, ChatTranslate, FailedItemFilter
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatSchema, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="hello"),
+            user("hello"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.ASSISTANT, content="hello"),
+            assistant("hello"),
         ]
     ),
 ]

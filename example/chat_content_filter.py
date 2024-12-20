@@ -1,19 +1,19 @@
 from blossom.op import ChatContentFilter
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatRole, ChatSchema, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="who developed you"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="OpenAI developed me"),
+            user("who developed you"),
+            assistant("OpenAI developed me"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="who developed you"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Google developed me"),
+            user("who developed you"),
+            assistant("Google developed me"),
         ]
     ),
 ]

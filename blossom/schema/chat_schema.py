@@ -19,3 +19,15 @@ class ChatMessage(BaseModel):
 class ChatSchema(BaseSchema):
     type: SchemaType = SchemaType.CHAT
     messages: list[ChatMessage]
+
+
+def system(content: str) -> ChatMessage:
+    return ChatMessage(role=ChatRole.SYSTEM, content=content)
+
+
+def user(content: str) -> ChatMessage:
+    return ChatMessage(role=ChatRole.USER, content=content)
+
+
+def assistant(content: str) -> ChatMessage:
+    return ChatMessage(role=ChatRole.ASSISTANT, content=content)

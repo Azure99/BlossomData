@@ -1,5 +1,12 @@
 from .base_schema import BaseSchema, SchemaType
-from .chat_schema import ChatSchema, ChatMessage, ChatRole
+from .chat_schema import (
+    ChatSchema,
+    ChatMessage,
+    ChatRole,
+    system,
+    user,
+    assistant,
+)
 from .custom_schema import CustomSchema
 from .text_schema import TextSchema
 
@@ -9,6 +16,9 @@ __all__ = [
     "ChatSchema",
     "ChatMessage",
     "ChatRole",
+    "system",
+    "user",
+    "assistant",
     "CustomSchema",
     "TextSchema",
 ]

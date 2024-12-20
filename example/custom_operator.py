@@ -1,6 +1,6 @@
 from blossom.op import MapOperator, TextTranslate
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema, TextSchema
+from blossom.schema import ChatSchema, TextSchema, user, assistant
 from blossom.util import loads_markdown_first_json
 
 
@@ -16,8 +16,8 @@ class SelfQA(MapOperator):
         result = loads_markdown_first_json(raw_result)
         return ChatSchema(
             messages=[
-                ChatMessage(role=ChatRole.USER, content=result["question"]),
-                ChatMessage(role=ChatRole.ASSISTANT, content=result["answer"]),
+                user(result["question"]),
+                assistant(result["answer"]),
             ]
         )
 

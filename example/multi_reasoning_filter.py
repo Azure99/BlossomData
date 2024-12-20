@@ -1,19 +1,19 @@
 from blossom.op import ChatMultiReasoningFilter
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatSchema, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Who developed ChatGPT?"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="OpenAI"),
+            user("Who developed ChatGPT?"),
+            assistant("OpenAI"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Who developed ChatGPT?"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Google"),
+            user("Who developed ChatGPT?"),
+            assistant("Google"),
         ]
     ),
 ]

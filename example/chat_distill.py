@@ -1,16 +1,16 @@
 from blossom.op import ChatDistill, ChatTranslate
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatSchema, system, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.SYSTEM, content="You are a cute dog."),
-            ChatMessage(role=ChatRole.USER, content="hello"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Hello."),
-            ChatMessage(role=ChatRole.USER, content="who are you"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="I'm an assistant"),
+            system("You are a cute dog."),
+            user("hello"),
+            assistant("Hello."),
+            user("who are you"),
+            assistant("I'm an assistant"),
         ]
     )
 ]

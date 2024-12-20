@@ -6,22 +6,20 @@ from blossom.op import (
     context_map_operator,
 )
 from blossom.pipeline import SimplePipeline
-from blossom.schema import ChatMessage, ChatRole, ChatSchema
+from blossom.schema import ChatRole, ChatSchema, user, assistant
 
 
 data = [
     ChatSchema(
         messages=[
-            ChatMessage(
-                role=ChatRole.USER, content="Just give me a number within 99999"
-            ),
-            ChatMessage(role=ChatRole.ASSISTANT, content="1"),
+            user("Just give me a number within 99999"),
+            assistant("1"),
         ]
     ),
     ChatSchema(
         messages=[
-            ChatMessage(role=ChatRole.USER, content="Hi"),
-            ChatMessage(role=ChatRole.ASSISTANT, content="Hi."),
+            user("Hi"),
+            assistant("Hi."),
         ]
     ),
 ]
@@ -49,15 +47,12 @@ def filter_hi(item):
 @context_map_operator(parallel=2)
 def generate_response(context, item):
     response = context.single_chat_completion("gpt-4o-mini", item.messages[0].content)
-    item.messages.append(ChatMessage(role=ChatRole.ASSISTANT, content=response))
+    item.messages.append(assistant(response))
     return item
 
 
 pipeline = SimplePipeline().add_operators(
-    duplicate_data,
-    remove_assistant,
-    filter_hi,
-    generate_response
+    duplicate_data, remove_assistant, filter_hi, generate_response
 )
 
 result = pipeline.execute(data)

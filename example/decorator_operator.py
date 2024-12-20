@@ -40,19 +40,18 @@ def remove_assistant(item):
 
 
 @filter_operator()
-def filter_hi(item):
-    return item.messages[0].content != "Hi"
+def filter_hi_prompt(item):
+    return item.first_user() != "Hi"
 
 
 @context_map_operator(parallel=2)
 def generate_response(context, item):
-    response = context.single_chat_completion("gpt-4o-mini", item.messages[0].content)
-    item.messages.append(assistant(response))
-    return item
+    response = context.single_chat_completion("gpt-4o-mini", item.first_user())
+    return item.add_assistant(response)
 
 
 pipeline = SimplePipeline().add_operators(
-    duplicate_data, remove_assistant, filter_hi, generate_response
+    duplicate_data, remove_assistant, filter_hi_prompt, generate_response
 )
 
 result = pipeline.execute(data)

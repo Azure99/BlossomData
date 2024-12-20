@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -19,6 +20,69 @@ class ChatMessage(BaseModel):
 class ChatSchema(BaseSchema):
     type: SchemaType = SchemaType.CHAT
     messages: list[ChatMessage]
+
+    def add_message(self, role: ChatRole, content: str) -> "ChatSchema":
+        self.messages.append(ChatMessage(role=role, content=content))
+        return self
+
+    def add_system(self, content: str) -> "ChatSchema":
+        return self.add_message(ChatRole.SYSTEM, content)
+
+    def add_user(self, content: str) -> "ChatSchema":
+        return self.add_message(ChatRole.USER, content)
+
+    def add_assistant(self, content: str) -> "ChatSchema":
+        return self.add_message(ChatRole.ASSISTANT, content)
+
+    def first_message(
+        self, default: Optional[ChatMessage] = None
+    ) -> Optional[ChatMessage]:
+        if not self.messages:
+            return default
+        return self.messages[0]
+
+    def first_system(self, default: Optional[str] = None) -> Optional[str]:
+        for message in self.messages:
+            if message.role == ChatRole.SYSTEM:
+                return message.content
+        return default
+
+    def first_user(self, default: Optional[str] = None) -> Optional[str]:
+        for message in self.messages:
+            if message.role == ChatRole.USER:
+                return message.content
+        return default
+
+    def first_assistant(self, default: Optional[str] = None) -> Optional[str]:
+        for message in self.messages:
+            if message.role == ChatRole.ASSISTANT:
+                return message.content
+        return default
+
+    def last_message(
+        self, default: Optional[ChatMessage] = None
+    ) -> Optional[ChatMessage]:
+        if not self.messages:
+            return default
+        return self.messages[-1]
+
+    def last_system(self, default: Optional[str] = None) -> Optional[str]:
+        for message in reversed(self.messages):
+            if message.role == ChatRole.SYSTEM:
+                return message.content
+        return default
+
+    def last_user(self, default: Optional[str] = None) -> Optional[str]:
+        for message in reversed(self.messages):
+            if message.role == ChatRole.USER:
+                return message.content
+        return default
+
+    def last_assistant(self, default: Optional[str] = None) -> Optional[str]:
+        for message in reversed(self.messages):
+            if message.role == ChatRole.ASSISTANT:
+                return message.content
+        return default
 
 
 def system(content: str) -> ChatMessage:

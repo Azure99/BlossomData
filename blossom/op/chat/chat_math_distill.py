@@ -43,6 +43,7 @@ class ChatMathDistill(MapOperator):
         validate_mode: ValidateMode = ValidateMode.NONE,
         validate_model: Optional[str] = None,
         reference_field: Optional[str] = None,
+        check_prompt: Optional[str] = None,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
@@ -52,6 +53,7 @@ class ChatMathDistill(MapOperator):
         self.validate_mode = validate_mode
         self.validate_model = validate_model or model
         self.reference_field = reference_field
+        self.check_prompt = check_prompt
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -132,7 +134,8 @@ class ChatMathDistill(MapOperator):
     def _validate_model_answer_llm(
         self, question: str, reference_answer: str, model_answer: str
     ) -> bool:
-        validate_prompt = LLM_CHECK_PROMPT.format(
+        prompt_template = self.check_prompt or LLM_CHECK_PROMPT
+        validate_prompt = prompt_template.format(
             question=question,
             reference_answer=reference_answer,
             model_answer=model_answer,

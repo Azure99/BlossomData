@@ -4,7 +4,7 @@ from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_translator import TextTranslator
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatRole
+from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 
 
 class ChatTranslate(MapOperator):
@@ -26,20 +26,28 @@ class ChatTranslate(MapOperator):
         self.max_retry = max_retry
         self.extra_params = extra_params
 
+    def _translate(self, content: str) -> str:
+        translator = TextTranslator(self.context.get_model(self.model))
+        return translator.translate(
+            content=content,
+            target_language=self.target_language,
+            instruction_only=self.instruction_only,
+            max_retry=self.max_retry,
+            extra_params=self.extra_params,
+        )
+
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_chat(item)
 
-        translator = TextTranslator(self.context.get_model(self.model))
         for message in _item.messages:
             if message.role in self.roles:
                 try:
-                    message.content = translator.translate(
-                        content=message.content,
-                        target_language=self.target_language,
-                        instruction_only=self.instruction_only,
-                        max_retry=self.max_retry,
-                        extra_params=self.extra_params,
-                    )
+                    if isinstance(message.content, str):
+                        message.content = self._translate(message.content)
+                    elif isinstance(message.content, list):
+                        for part in message.content:
+                            if isinstance(part, ChatMessageContentText):
+                                part.text = self._translate(part.text)
                 except Exception as e:
                     _item.failed = True
                     logger.exception(

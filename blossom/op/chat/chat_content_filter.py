@@ -1,6 +1,9 @@
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatRole
+from blossom.schema.chat_schema import (
+    ChatMessageContentText,
+    ChatRole,
+)
 
 
 class ChatContentFilter(FilterOperator):
@@ -22,7 +25,13 @@ class ChatContentFilter(FilterOperator):
         _item = self._cast_chat(item)
         for message in _item.messages:
             if message.role in self.roles:
-                text = message.content
+                if isinstance(message.content, str):
+                    text = message.content
+                elif isinstance(message.content, list):
+                    text = ""
+                    for part in message.content:
+                        if isinstance(part, ChatMessageContentText):
+                            text += part.text
                 if not self.case_sensitive:
                     text = text.lower()
                 if any(content in text for content in self.contents):

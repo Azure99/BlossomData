@@ -1,7 +1,7 @@
 from blossom.op.filter_operator import FilterOperator
 from blossom.op.util.char_repetition_filter import CharRepetitionFilter
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatRole
+from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 
 
 class ChatRepetitionFilter(FilterOperator):
@@ -25,6 +25,12 @@ class ChatRepetitionFilter(FilterOperator):
         _item = self._cast_chat(item)
         for message in _item.messages:
             if message.role in self.roles:
-                if not self.char_repetition_filter.filter(message.content):
-                    return False
+                if isinstance(message.content, str):
+                    if not self.char_repetition_filter.filter(message.content):
+                        return False
+                elif isinstance(message.content, list):
+                    for part in message.content:
+                        if isinstance(part, ChatMessageContentText):
+                            if not self.char_repetition_filter.filter(part.text):
+                                return False
         return True

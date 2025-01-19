@@ -5,7 +5,7 @@ from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_embedder import TextEmbedder
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatRole
+from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 
 
 class ChatEmbedding(MapOperator):
@@ -34,6 +34,14 @@ class ChatEmbedding(MapOperator):
         self.max_retry = max_retry
         self.extra_params = extra_params
 
+    def _embedding(self, text: str) -> list[float]:
+        embedder = TextEmbedder(self.context.get_model(self.model))
+        return embedder.embedding(
+            content=text,
+            max_retry=self.max_retry,
+            extra_params=self.extra_params,
+        )
+
     def process_item(self, item: BaseSchema) -> BaseSchema:
         _item = self._cast_chat(item)
 
@@ -46,16 +54,17 @@ class ChatEmbedding(MapOperator):
         elif self.strategy == ChatEmbedding.Strategy.LAST:
             messages = [messages[-1]]
 
-        embedder = TextEmbedder(self.context.get_model(self.model))
         embeddings = []
         for message in messages:
             try:
-                content_embedding = embedder.embedding(
-                    content=message.content,
-                    max_retry=self.max_retry,
-                    extra_params=self.extra_params,
-                )
-                embeddings.append(content_embedding)
+                if isinstance(message.content, str):
+                    content_embedding = [self._embedding(message.content)]
+                elif isinstance(message.content, list):
+                    content_embedding = []
+                    for part in message.content:
+                        if isinstance(part, ChatMessageContentText):
+                            content_embedding.append(self._embedding(part.text))
+                embeddings.extend(content_embedding)
             except Exception as e:
                 _item.failed = True
                 logger.exception(f"Failed to embed message: {message.content}, {e}")

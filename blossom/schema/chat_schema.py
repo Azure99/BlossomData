@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel
 
@@ -12,9 +12,39 @@ class ChatRole(Enum):
     SYSTEM = "system"
 
 
+class ChatMessageContentType(Enum):
+    TEXT = "text"
+    IMAGE_URL = "image_url"
+
+
+class ChatMessageContent(BaseModel):
+    type: ChatMessageContentType
+
+
+class ChatMessageContentImageDetail(Enum):
+    AUTO = "auto"
+    LOW = "low"
+    HIGH = "high"
+
+
+class ChatMessageContentImageURL(BaseModel):
+    url: str
+    detail: Optional[ChatMessageContentImageDetail] = None
+
+
+class ChatMessageContentImage(ChatMessageContent):
+    type: ChatMessageContentType = ChatMessageContentType.IMAGE_URL
+    image_url: ChatMessageContentImageURL
+
+
+class ChatMessageContentText(ChatMessageContent):
+    type: ChatMessageContentType = ChatMessageContentType.TEXT
+    text: str
+
+
 class ChatMessage(BaseModel):
     role: ChatRole
-    content: str
+    content: Union[str, list[ChatMessageContent]]
 
 
 class ChatSchema(BaseSchema):
@@ -71,19 +101,25 @@ class ChatSchema(BaseSchema):
             return default
         return self.messages[0]
 
-    def first_system(self, default: Optional[str] = None) -> Optional[str]:
+    def first_system(
+        self, default: Optional[Union[str, list[ChatMessageContent]]] = None
+    ) -> Optional[Union[str, list[ChatMessageContent]]]:
         for message in self.messages:
             if message.role == ChatRole.SYSTEM:
                 return message.content
         return default
 
-    def first_user(self, default: Optional[str] = None) -> Optional[str]:
+    def first_user(
+        self, default: Optional[Union[str, list[ChatMessageContent]]] = None
+    ) -> Optional[Union[str, list[ChatMessageContent]]]:
         for message in self.messages:
             if message.role == ChatRole.USER:
                 return message.content
         return default
 
-    def first_assistant(self, default: Optional[str] = None) -> Optional[str]:
+    def first_assistant(
+        self, default: Optional[Union[str, list[ChatMessageContent]]] = None
+    ) -> Optional[Union[str, list[ChatMessageContent]]]:
         for message in self.messages:
             if message.role == ChatRole.ASSISTANT:
                 return message.content
@@ -96,32 +132,38 @@ class ChatSchema(BaseSchema):
             return default
         return self.messages[-1]
 
-    def last_system(self, default: Optional[str] = None) -> Optional[str]:
+    def last_system(
+        self, default: Optional[Union[str, list[ChatMessageContent]]] = None
+    ) -> Optional[Union[str, list[ChatMessageContent]]]:
         for message in reversed(self.messages):
             if message.role == ChatRole.SYSTEM:
                 return message.content
         return default
 
-    def last_user(self, default: Optional[str] = None) -> Optional[str]:
+    def last_user(
+        self, default: Optional[Union[str, list[ChatMessageContent]]] = None
+    ) -> Optional[Union[str, list[ChatMessageContent]]]:
         for message in reversed(self.messages):
             if message.role == ChatRole.USER:
                 return message.content
         return default
 
-    def last_assistant(self, default: Optional[str] = None) -> Optional[str]:
+    def last_assistant(
+        self, default: Optional[Union[str, list[ChatMessageContent]]] = None
+    ) -> Optional[Union[str, list[ChatMessageContent]]]:
         for message in reversed(self.messages):
             if message.role == ChatRole.ASSISTANT:
                 return message.content
         return default
 
 
-def system(content: str) -> ChatMessage:
+def system(content: Union[str, list[ChatMessageContent]]) -> ChatMessage:
     return ChatMessage(role=ChatRole.SYSTEM, content=content)
 
 
-def user(content: str) -> ChatMessage:
+def user(content: Union[str, list[ChatMessageContent]]) -> ChatMessage:
     return ChatMessage(role=ChatRole.USER, content=content)
 
 
-def assistant(content: str) -> ChatMessage:
+def assistant(content: Union[str, list[ChatMessageContent]]) -> ChatMessage:
     return ChatMessage(role=ChatRole.ASSISTANT, content=content)

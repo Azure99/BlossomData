@@ -1,12 +1,19 @@
 import re
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 from blossom.log import logger
 
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
 from blossom.schema.base_schema import BaseSchema
-from blossom.schema.chat_schema import ChatMessage, ChatRole, user, assistant
+from blossom.schema.chat_schema import (
+    ChatMessage,
+    ChatMessageContent,
+    ChatMessageContentText,
+    ChatRole,
+    user,
+    assistant,
+)
 from blossom.util.json import loads_markdown_first_json
 
 LAST_NUMBER_REGEX = r"-?\d+(?:\.\d+)?"
@@ -67,9 +74,11 @@ class ChatMathDistill(MapOperator):
                 if self.reference_field in _item.metadata:
                     reference = _item.metadata[self.reference_field]
             if not reference:
-                reference = self._first_message_content(
+                chat_reference = self._first_message_content(
                     _item.messages, ChatRole.ASSISTANT
                 )
+                assert isinstance(chat_reference, str)
+                reference = chat_reference
 
         if not question or (
             not reference and self.validate_mode != self.ValidateMode.NONE
@@ -91,7 +100,9 @@ class ChatMathDistill(MapOperator):
         _item.failed = True
         return self._cast_base(_item)
 
-    def _distill_with_validate(self, question: str, reference: str) -> str:
+    def _distill_with_validate(
+        self, question: Union[str, list[ChatMessageContent]], reference: str
+    ) -> str:
         response = self.context.chat_completion_with_details(
             model=self.model,
             messages=[user(question)],
@@ -106,13 +117,24 @@ class ChatMathDistill(MapOperator):
                 raise ValueError("Model answer is not complete")
 
         model_answer = response.choices[0].message.content
+        assert isinstance(model_answer, str)
         if self._validate_model_answer(question, reference, model_answer):
             return model_answer
         raise ValueError("Model answer is not consistent with the reference answer")
 
     def _validate_model_answer(
-        self, question: str, reference_answer: str, model_answer: str
+        self,
+        question: Union[str, list[ChatMessageContent]],
+        reference_answer: str,
+        model_answer: str,
     ) -> bool:
+        if isinstance(question, list):
+            for part in question:
+                if isinstance(part, ChatMessageContentText):
+                    question = part.text
+                    break
+        assert isinstance(question, str)
+
         if self.validate_mode == self.ValidateMode.REGEX:
             return self._validate_model_answer_regex(reference_answer, model_answer)
 
@@ -162,5 +184,7 @@ class ChatMathDistill(MapOperator):
         return consistent
 
     @staticmethod
-    def _first_message_content(messages: list[ChatMessage], role: ChatRole) -> str:
+    def _first_message_content(
+        messages: list[ChatMessage], role: ChatRole
+    ) -> Union[str, list[ChatMessageContent]]:
         return next((m.content for m in messages if m.role == role), "")

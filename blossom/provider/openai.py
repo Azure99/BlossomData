@@ -41,6 +41,7 @@ class OpenAI(BaseProvider):
     ) -> str:
         response = self.chat_completion_with_details(messages, extra_params)
         content = response.choices[0].message.content
+        assert isinstance(content, str)
         return content
 
     def chat_completion_with_details(

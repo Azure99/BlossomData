@@ -8,7 +8,7 @@ class FailedItemFilter(BaseOperator):
         reverse: bool = False,
     ):
         self.reverse = reverse
-        
+
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
         results = list(map(self.process_item, data))
         return [item for item, passed in zip(data, results) if passed ^ self.reverse]

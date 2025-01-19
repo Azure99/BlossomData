@@ -1,9 +1,11 @@
 from enum import Enum
 from typing import Optional, Union
 
+from PIL import Image
 from pydantic import BaseModel
 
 from blossom.schema.base_schema import BaseSchema, SchemaType
+from blossom.util.image import encode_image_file_to_url, encode_image_to_url
 
 
 class ChatRole(Enum):
@@ -29,7 +31,7 @@ class ChatMessageContentImageDetail(Enum):
 
 class ChatMessageContentImageURL(BaseModel):
     url: str
-    detail: Optional[ChatMessageContentImageDetail] = None
+    detail: Optional[ChatMessageContentImageDetail] = ChatMessageContentImageDetail.AUTO
 
 
 class ChatMessageContentImage(ChatMessageContent):
@@ -173,5 +175,38 @@ def text_content(text: str) -> ChatMessageContent:
     return ChatMessageContentText(text=text)
 
 
-def image_content(url: str, detail: Optional[ChatMessageContentImageDetail] = None) -> ChatMessageContent:
-    return ChatMessageContentImage(image_url=ChatMessageContentImageURL(url=url, detail=detail))
+def image_content(
+    url: str,
+    detail: Optional[
+        ChatMessageContentImageDetail
+    ] = ChatMessageContentImageDetail.AUTO,
+) -> ChatMessageContent:
+    return ChatMessageContentImage(
+        image_url=ChatMessageContentImageURL(url=url, detail=detail)
+    )
+
+
+def image_content_from_file(
+    path: str,
+    detail: Optional[
+        ChatMessageContentImageDetail
+    ] = ChatMessageContentImageDetail.AUTO,
+    target_size: Optional[int] = None,
+    fmt: str = "JPEG",
+) -> ChatMessageContent:
+    return image_content(
+        encode_image_file_to_url(path, target_size=target_size, fmt=fmt), detail
+    )
+
+
+def image_content_from_image(
+    img: Image.Image,
+    detail: Optional[
+        ChatMessageContentImageDetail
+    ] = ChatMessageContentImageDetail.AUTO,
+    target_size: Optional[int] = None,
+    fmt: str = "JPEG",
+) -> ChatMessageContent:
+    return image_content(
+        encode_image_to_url(img, target_size=target_size, fmt=fmt), detail
+    )

@@ -167,3 +167,11 @@ def user(content: Union[str, list[ChatMessageContent]]) -> ChatMessage:
 
 def assistant(content: Union[str, list[ChatMessageContent]]) -> ChatMessage:
     return ChatMessage(role=ChatRole.ASSISTANT, content=content)
+
+
+def text_content(text: str) -> ChatMessageContent:
+    return ChatMessageContentText(text=text)
+
+
+def image_content(url: str, detail: Optional[ChatMessageContentImageDetail] = None) -> ChatMessageContent:
+    return ChatMessageContentImage(image_url=ChatMessageContentImageURL(url=url, detail=detail))

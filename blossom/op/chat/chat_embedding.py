@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Optional
-from blossom.log import logger
 
+from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_embedder import TextEmbedder
 from blossom.schema.base_schema import BaseSchema
@@ -17,7 +17,7 @@ class ChatEmbedding(MapOperator):
     def __init__(
         self,
         model: str,
-        roles: list[ChatRole] = [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT],
+        roles: Optional[list[ChatRole]] = None,
         strategy: Strategy = Strategy.FIRST,
         embedding_field: str = "embedding",
         overwrite_field: bool = False,
@@ -27,7 +27,7 @@ class ChatEmbedding(MapOperator):
     ):
         super().__init__(parallel=parallel)
         self.model = model
-        self.roles = roles
+        self.roles = roles or [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT]
         self.strategy = strategy
         self.embedding_field = embedding_field
         self.overwrite_field = overwrite_field
@@ -57,10 +57,10 @@ class ChatEmbedding(MapOperator):
         embeddings = []
         for message in messages:
             try:
+                content_embedding = []
                 if isinstance(message.content, str):
                     content_embedding = [self._embedding(message.content)]
                 elif isinstance(message.content, list):
-                    content_embedding = []
                     for part in message.content:
                         if isinstance(part, ChatMessageContentText):
                             content_embedding.append(self._embedding(part.text))

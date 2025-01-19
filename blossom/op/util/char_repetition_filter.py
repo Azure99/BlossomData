@@ -1,5 +1,5 @@
-from collections import Counter
 import math
+from collections import Counter
 
 
 class CharRepetitionFilter:

@@ -1,4 +1,6 @@
 from typing import Optional
+
+from blossom.log import logger
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatSchema, assistant, user
@@ -45,10 +47,11 @@ class ChatMultiReasoningFilter(FilterOperator):
         for _ in range(self.max_retry):
             try:
                 return self._process_item(_item)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.info(f"Failed to reason or validate chat: {e}")
 
-        return False
+        item.failed = True
+        return True
 
     def _process_item(self, item: ChatSchema) -> bool:
         question = item.messages[-2].content

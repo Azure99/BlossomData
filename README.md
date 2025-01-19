@@ -75,7 +75,7 @@ pipeline = SimplePipeline().add_operators(
 data = [
     ChatSchema(
         messages=[
-            user("Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas.")
+            user("Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas."),
             assistant("−2,−1,2"),
         ]
     )

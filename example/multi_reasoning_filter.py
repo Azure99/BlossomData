@@ -2,7 +2,6 @@ from blossom.op import ChatMultiReasoningFilter
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
-
 data = [
     ChatSchema(
         messages=[

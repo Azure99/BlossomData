@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
-from blossom.context import Context
 
+from blossom.context import Context
 from blossom.op.base_operator import BaseOperator
 from blossom.schema.base_schema import BaseSchema
 
@@ -49,12 +49,12 @@ def filter_operator(
 def context_filter_operator(parallel: int = 1) -> Callable[..., FilterOperator]:
     def decorator(func: Callable[[Context, BaseSchema], bool]) -> FilterOperator:
         class WrappedFilterOperator(FilterOperator):
-            def __init__(self, parallel: int):
-                super().__init__(parallel=parallel)
+            def __init__(self, filter_parallel: int):
+                super().__init__(parallel=filter_parallel)
 
             def process_item(self, item: BaseSchema) -> bool:
                 return func(self.context, item)
 
-        return WrappedFilterOperator(parallel=parallel)
+        return WrappedFilterOperator(filter_parallel=parallel)
 
     return decorator

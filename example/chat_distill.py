@@ -2,7 +2,6 @@ from blossom.op import ChatDistill, ChatTranslate
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, system, user, assistant
 
-
 data = [
     ChatSchema(
         messages=[

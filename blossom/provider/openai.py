@@ -3,9 +3,9 @@ import time
 from typing import Any, Optional
 
 import requests
-from blossom.log import logger
 
 from blossom.conf import ModelConfig
+from blossom.log import logger
 from blossom.provider.base_provider import BaseProvider
 from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
@@ -24,7 +24,8 @@ class OpenAI(BaseProvider):
         self.default_system = model_config.config.get("default_system", None)
         self.api_keys = self._load_api_keys(model_config)
 
-    def _load_api_keys(self, model_config: ModelConfig) -> list[str]:
+    @staticmethod
+    def _load_api_keys(model_config: ModelConfig) -> list[str]:
         api_keys = []
         if "key" in model_config.config:
             api_keys.append(model_config.config["key"])
@@ -64,12 +65,12 @@ class OpenAI(BaseProvider):
         return ChatCompletionResponse(**response)
 
     def embedding(
-        self, input: str, extra_params: Optional[dict[str, Any]]
+        self, input_text: str, extra_params: Optional[dict[str, Any]]
     ) -> list[float]:
-        if len(input) == 0:
+        if len(input_text) == 0:
             raise ValueError("No input provided")
 
-        data = {"model": self.api_model_name, "input": input}
+        data = {"model": self.api_model_name, "input": input_text}
 
         response = self._request("/embeddings", data, extra_params)
         embedding = response["data"][0]["embedding"]
@@ -90,6 +91,7 @@ class OpenAI(BaseProvider):
         rate_limit_retry = 0
         rate_limit_backoff = 1.0
 
+        response = None
         while rate_limit_retry < MAX_TOO_MANY_REQUESTS_RETRIES:
             url = f"{self.base_url}{url_part}"
             headers = {
@@ -121,6 +123,8 @@ class OpenAI(BaseProvider):
 
         raise ValueError(
             f"Request failed with status code {response.status_code}, {response.text}"
+            if response
+            else "Request failed"
         )
 
     def _get_api_key(self) -> str:

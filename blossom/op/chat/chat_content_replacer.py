@@ -1,19 +1,21 @@
+from typing import Optional
+
 from blossom.op.map_operator import MapOperator
-from blossom.util.text import replace_text
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatRole, ChatMessageContentText
+from blossom.util.text import replace_text
 
 
 class ChatContentReplacer(MapOperator):
     def __init__(
         self,
         replacements: dict[str, str],
-        roles: list[ChatRole] = [ChatRole.ASSISTANT],
+        roles: Optional[list[ChatRole]] = None,
         case_sensitive: bool = True,
     ):
         super().__init__()
         self.replacements = replacements
-        self.roles = roles
+        self.roles = roles or [ChatRole.ASSISTANT]
         self.case_sensitive = case_sensitive
 
     def _replace_text(self, text: str) -> str:

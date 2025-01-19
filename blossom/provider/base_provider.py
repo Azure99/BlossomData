@@ -26,6 +26,6 @@ class BaseProvider:
         raise NotImplementedError("Service not implemented")
 
     def embedding(
-        self, input: str, extra_params: Optional[dict[str, Any]]
+        self, input_text: str, extra_params: Optional[dict[str, Any]]
     ) -> list[float]:
         raise NotImplementedError("Service not implemented")

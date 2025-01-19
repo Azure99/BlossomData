@@ -2,7 +2,6 @@ from blossom.op import ChatDistill
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, text_content, image_content
 
-
 data = [
     ChatSchema(
         messages=[

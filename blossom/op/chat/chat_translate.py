@@ -1,6 +1,6 @@
 from typing import Any, Optional
-from blossom.log import logger
 
+from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_translator import TextTranslator
 from blossom.schema.base_schema import BaseSchema
@@ -12,7 +12,7 @@ class ChatTranslate(MapOperator):
         self,
         model: str,
         target_language: str = "Chinese",
-        roles: list[ChatRole] = [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT],
+        roles: Optional[list[ChatRole]] = None,
         instruction_only: bool = False,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
@@ -21,7 +21,7 @@ class ChatTranslate(MapOperator):
         super().__init__(parallel=parallel)
         self.model = model
         self.target_language = target_language
-        self.roles = roles
+        self.roles = roles or [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT]
         self.instruction_only = instruction_only
         self.max_retry = max_retry
         self.extra_params = extra_params

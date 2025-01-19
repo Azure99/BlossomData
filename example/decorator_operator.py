@@ -1,4 +1,5 @@
 import copy
+
 from blossom.op import (
     filter_operator,
     map_operator,
@@ -7,7 +8,6 @@ from blossom.op import (
 )
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatRole, ChatSchema, user, assistant
-
 
 data = [
     ChatSchema(
@@ -28,8 +28,8 @@ data = [
 @transform_operator()
 def duplicate_data(items):
     items = items + copy.deepcopy(items)
-    for id, item in enumerate(items):
-        item.id = str(id)
+    for item_id, item in enumerate(items):
+        item.id = str(item_id)
     return items
 
 

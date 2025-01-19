@@ -1,8 +1,8 @@
 import re
 from enum import Enum
 from typing import Any, Optional, Union
-from blossom.log import logger
 
+from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
 from blossom.schema.base_schema import BaseSchema
@@ -34,8 +34,7 @@ LLM_CHECK_JSON_PROMPT = """Please output your conclusion directly in JSON format
 The JSON should contain only one boolean field named "consistent," which indicates whether the "reference answer" and the "response" are consistent.
 Please output only a JSON without any explanation or other irrelevant content."""
 
-
-MATADATA_REASONING_COUNT = "reasoning_count"
+METADATA_REASONING_COUNT = "reasoning_count"
 
 
 class ChatMathDistill(MapOperator):
@@ -92,7 +91,7 @@ class ChatMathDistill(MapOperator):
                     user(question),
                     assistant(model_answer),
                 ]
-                _item.metadata[MATADATA_REASONING_COUNT] = retry_count + 1
+                _item.metadata[METADATA_REASONING_COUNT] = retry_count + 1
                 return self._cast_base(_item)
             except Exception as e:
                 logger.info(f"Validation failed: {question}, {e}")
@@ -145,9 +144,8 @@ class ChatMathDistill(MapOperator):
 
         return True
 
-    def _validate_model_answer_regex(
-        self, reference_answer: str, model_answer: str
-    ) -> bool:
+    @staticmethod
+    def _validate_model_answer_regex(reference_answer: str, model_answer: str) -> bool:
         matches = re.findall(LAST_NUMBER_REGEX, model_answer)
         last_number = float(matches[-1]) if matches else None
         answer_number = float(reference_answer.lower())

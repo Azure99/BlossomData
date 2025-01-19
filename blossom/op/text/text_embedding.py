@@ -1,6 +1,6 @@
 from typing import Any, Optional
-from blossom.log import logger
 
+from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_embedder import TextEmbedder
 from blossom.schema.base_schema import BaseSchema

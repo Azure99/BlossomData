@@ -27,10 +27,10 @@ class ChatLengthFilter(FilterOperator):
 
         total_len = 0
         for message in _item.messages:
+            content_len = 0
             if isinstance(message.content, str):
                 content_len = self.len_func(message.content)
             elif isinstance(message.content, list):
-                content_len = 0
                 for part in message.content:
                     if isinstance(part, ChatMessageContentText):
                         content_len += self.len_func(part.text)

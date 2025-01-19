@@ -7,11 +7,13 @@ class FailedItemFilter(BaseOperator):
         self,
         reverse: bool = False,
     ):
+        super().__init__()
         self.reverse = reverse
 
     def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
         results = list(map(self.process_item, data))
         return [item for item, passed in zip(data, results) if passed ^ self.reverse]
 
-    def process_item(self, item: BaseSchema) -> bool:
+    @staticmethod
+    def process_item(item: BaseSchema) -> bool:
         return not item.failed

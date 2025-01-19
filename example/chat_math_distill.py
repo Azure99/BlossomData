@@ -2,12 +2,12 @@ from blossom.op import ChatMathDistill
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
-
 data = [
     ChatSchema(
         messages=[
             user(
-                "Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas."
+                "Find all roots of the polynomial $x^3+x^2-4x-4$. "
+                "Enter your answer as a list of numbers separated by commas."
             ),
             assistant("answer: −2,−1,2"),
         ]

@@ -1,13 +1,13 @@
 from enum import Enum
 from typing import Any, Optional
-from blossom.log import logger
 
+from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessage, ChatRole
 
-MATADATA_RESPONSE_TRUNCATED = "response_truncated"
+METADATA_RESPONSE_TRUNCATED = "response_truncated"
 
 
 class ChatDistill(MapOperator):
@@ -42,7 +42,7 @@ class ChatDistill(MapOperator):
             try:
                 new_messages, truncated = self._process_item_messages(_item.messages)
                 if truncated:
-                    _item.metadata[MATADATA_RESPONSE_TRUNCATED] = True
+                    _item.metadata[METADATA_RESPONSE_TRUNCATED] = True
                 break
             except Exception as e:
                 logger.exception(f"Failed to distill chat: {e}")

@@ -1,6 +1,6 @@
 from typing import Callable, Optional
-from blossom.context import Context
 
+from blossom.context import Context
 from blossom.op.base_operator import BaseOperator
 from blossom.schema.base_schema import BaseSchema
 

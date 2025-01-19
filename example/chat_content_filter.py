@@ -2,7 +2,6 @@ from blossom.op import ChatContentFilter
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatRole, ChatSchema, user, assistant
 
-
 data = [
     ChatSchema(
         messages=[

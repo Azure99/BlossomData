@@ -2,7 +2,6 @@ from blossom.op import ChatEmbedding
 from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
-
 data = [
     ChatSchema(
         messages=[

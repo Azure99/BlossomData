@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
@@ -13,15 +14,15 @@ class ChatInvalidFilter(FilterOperator):
 
     def __init__(
         self,
-        rules: list[Rule] = [
-            Rule.EMPTY_MESSAGES,
-            Rule.EMPTY_CONTENT,
-            Rule.INVALID_ROLE_ORDER,
-        ],
+        rules: Optional[list[Rule]] = None,
         reverse: bool = False,
     ):
         super().__init__(reverse=reverse)
-        self.rules = rules
+        self.rules = rules or [
+            self.Rule.EMPTY_MESSAGES,
+            self.Rule.EMPTY_CONTENT,
+            self.Rule.INVALID_ROLE_ORDER,
+        ]
 
     def process_item(self, item: BaseSchema) -> bool:
         _item = self._cast_chat(item)

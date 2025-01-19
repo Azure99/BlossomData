@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional
+
 from pydantic import BaseModel
 
 from blossom.schema.chat_schema import ChatMessage

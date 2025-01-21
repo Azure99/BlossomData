@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from PIL import Image
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from blossom.schema.base_schema import BaseSchema, SchemaType
 from blossom.util.image import encode_image_file_to_url, encode_image_to_url
@@ -48,10 +48,34 @@ class ChatMessage(BaseModel):
     role: ChatRole
     content: Union[str, list[ChatMessageContent]]
 
+    @field_validator("content", mode="before")
+    def messages_deserialization(cls, v: Any) -> Any:
+        if isinstance(v, list):
+            if all(isinstance(item, dict) for item in v):
+                content: list[ChatMessageContent] = []
+                for item in v:
+                    if item["type"] == ChatMessageContentType.TEXT.value:
+                        content.append(ChatMessageContentText(**item))
+                    elif item["type"] == ChatMessageContentType.IMAGE_URL.value:
+                        content.append(ChatMessageContentImage(**item))
+                return content
+        return v
+
+    def model_dump(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        data = super().model_dump(*args, **kwargs)
+        if isinstance(self.content, list):
+            data["content"] = [content.model_dump() for content in self.content]
+        return data
+
 
 class ChatSchema(BaseSchema):
     type: SchemaType = SchemaType.CHAT
     messages: list[ChatMessage]
+
+    def model_dump(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        data = super().model_dump(*args, **kwargs)
+        data["messages"] = [message.model_dump() for message in self.messages]
+        return data
 
     def add_message(self, role: ChatRole, content: str) -> "ChatSchema":
         self.messages.append(ChatMessage(role=role, content=content))

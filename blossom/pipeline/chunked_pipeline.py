@@ -35,20 +35,20 @@ class ChunkedPipeline(BasePipeline):
         result = []
         for i in range(chunk_count):
             result_file = os.path.join(self.output_path, f"{i}.json")
-            with open(result_file, "r") as f:
+            with open(result_file, "r", encoding="utf-8") as f:
                 result.extend(load_schema_dict_list(json.loads(f.read())))
         return result
 
     def _process_chunk(self, index: int) -> None:
         chunk_file = os.path.join(self.input_path, f"{index}.json")
-        with open(chunk_file, "r") as f:
+        with open(chunk_file, "r", encoding="utf-8") as f:
             chunk = load_schema_dict_list(json.loads(f.read()))
 
         for operator in self.operators:
             chunk = operator.process(chunk)
 
         result_file = os.path.join(self.output_path, f"{index}.json")
-        with open(result_file, "w") as f:
+        with open(result_file, "w", encoding="utf-8") as f:
             f.write(json_dumps(chunk))
 
     def _chunk_data(self, data: list[BaseSchema]) -> tuple[int, int]:
@@ -63,9 +63,9 @@ class ChunkedPipeline(BasePipeline):
         for i in range(0, len(data), self.chunk_size):
             chunk = data[i : i + self.chunk_size]
             chunk_file = os.path.join(self.input_path, f"{i // self.chunk_size}.json")
-            with open(chunk_file, "w") as f:
+            with open(chunk_file, "w", encoding="utf-8") as f:
                 f.write(json_dumps(chunk))
 
-        with open(os.path.join(self.input_path, ".done"), "w") as f:
+        with open(os.path.join(self.input_path, ".done"), "w", encoding="utf-8") as f:
             f.write("")
         return 0, math.ceil(len(data) / self.chunk_size)

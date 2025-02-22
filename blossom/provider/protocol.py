@@ -12,6 +12,11 @@ class ChatCompletionFinishReason(Enum):
     CONTENT_FILTER = "content_filter"
     TOOL_CALLS = "tool_calls"
     FUNCTION_CALL = "function_call"
+    UNKNOWN = "unknown"
+
+    @classmethod
+    def _missing_(cls, value: object) -> "ChatCompletionFinishReason":
+        return cls.UNKNOWN
 
 
 class ChatCompletionResponseChoice(BaseModel):

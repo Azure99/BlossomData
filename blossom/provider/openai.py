@@ -12,6 +12,7 @@ from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 from blossom.util.json import json_dumps
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_TIMEOUT = 600
 
 MAX_TOO_MANY_REQUESTS_RETRIES = 12
 TOO_MANY_REQUESTS_BACKOFF_FACTOR = 1.5
@@ -21,6 +22,7 @@ class OpenAI(BaseProvider):
     def __init__(self, model_config: ModelConfig):
         super().__init__(model_config)
         self.base_url = model_config.config.get("base_url", DEFAULT_BASE_URL)
+        self.timeout = model_config.config.get("timeout", DEFAULT_TIMEOUT)
         self.default_system = model_config.config.get("default_system", None)
         self.api_keys = self._load_api_keys(model_config)
 
@@ -102,7 +104,7 @@ class OpenAI(BaseProvider):
 
             response = requests.post(
                 url,
-                timeout=600,
+                timeout=self.timeout,
                 headers=headers,
                 data=json_dumps(data, ensure_ascii=True),
             )

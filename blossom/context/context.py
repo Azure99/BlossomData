@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from blossom.conf.config import Config
+from blossom.conf.config import Config, load_config
 from blossom.context.provider_manager import ProviderManager
 from blossom.provider.base_provider import BaseProvider
 from blossom.provider.protocol import ChatCompletionResponse
@@ -8,9 +8,9 @@ from blossom.schema.chat_schema import ChatMessage
 
 
 class Context:
-    def __init__(self, config: Config) -> None:
-        self.config = config
-        self.provider_manager = ProviderManager(config=config)
+    def __init__(self, config: Optional[Config] = None) -> None:
+        self.config = config or load_config()
+        self.provider_manager = ProviderManager(config=self.config)
 
     def get_config(self) -> Config:
         return self.config

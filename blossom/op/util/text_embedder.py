@@ -1,10 +1,10 @@
 from typing import Any, Optional
 
-from blossom.provider.base_provider import BaseProvider
+from blossom.provider.provider import Provider
 
 
 class TextEmbedder:
-    def __init__(self, provider: BaseProvider) -> None:
+    def __init__(self, provider: Provider) -> None:
         self.provider = provider
 
     def embedding(

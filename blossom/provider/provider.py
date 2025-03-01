@@ -5,7 +5,7 @@ from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage
 
 
-class BaseProvider:
+class Provider:
     def __init__(self, model_config: ModelConfig):
         self.api_model_name = (
             model_config.api_model_name

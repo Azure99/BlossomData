@@ -1,4 +1,4 @@
-from .base_operator import BaseOperator
+from .operator import Operator
 from .chat.chat_content_filter import ChatContentFilter
 from .chat.chat_content_replacer import ChatContentReplacer
 from .chat.chat_distill import ChatDistill
@@ -25,7 +25,7 @@ from .transform_operator import (
 )
 
 __all__ = [
-    "BaseOperator",
+    "Operator",
     "FailedItemFilter",
     "FilterOperator",
     "MapOperator",

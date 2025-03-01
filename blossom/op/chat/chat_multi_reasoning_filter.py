@@ -2,7 +2,7 @@ from typing import Optional
 
 from blossom.log import logger
 from blossom.op.filter_operator import FilterOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatSchema, assistant, user
 from blossom.util.json import loads_markdown_first_json
 
@@ -41,7 +41,7 @@ class ChatMultiReasoningFilter(FilterOperator):
         if self.reasoning_model is None and self.reference_field is None:
             raise ValueError("reasoning_model or reference_field must be provided")
 
-    def process_item(self, item: BaseSchema) -> bool:
+    def process_item(self, item: Schema) -> bool:
         _item = self._cast_chat(item)
 
         for _ in range(self.max_retry):

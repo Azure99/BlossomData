@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 from blossom.conf.config import Config, load_config
 from blossom.context.provider_manager import ProviderManager
-from blossom.provider.base_provider import BaseProvider
+from blossom.provider.provider import Provider
 from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage
 
@@ -18,7 +18,7 @@ class Context:
     def get_provider_manager(self) -> ProviderManager:
         return self.provider_manager
 
-    def get_model(self, model_name: str) -> BaseProvider:
+    def get_model(self, model_name: str) -> Provider:
         return self.provider_manager.get_model(model_name)
 
     def chat_completion(

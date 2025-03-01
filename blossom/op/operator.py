@@ -1,32 +1,32 @@
 from typing import Any, cast
 
 from blossom.context.context import Context
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatSchema
 from blossom.schema.custom_schema import CustomSchema
 from blossom.schema.text_schema import TextSchema
 
 
-class BaseOperator:
+class Operator:
     def __init__(self) -> None:
         self.context: Context
 
-    def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
+    def process(self, data: list[Schema]) -> list[Schema]:
         raise NotImplementedError("Operator not implemented")
 
     def init_context(self, context: Context) -> None:
         self.context = context
 
     @staticmethod
-    def _cast_base(data: Any) -> BaseSchema:
-        assert isinstance(data, BaseSchema)
+    def _cast_base(data: Any) -> Schema:
+        assert isinstance(data, Schema)
         return data
 
     @staticmethod
-    def _cast_base_list(data: list[Any]) -> list[BaseSchema]:
+    def _cast_base_list(data: list[Any]) -> list[Schema]:
         for d in data:
-            assert isinstance(d, BaseSchema)
-        return cast(list[BaseSchema], data)
+            assert isinstance(d, Schema)
+        return cast(list[Schema], data)
 
     @staticmethod
     def _cast_chat(data: Any) -> ChatSchema:
@@ -34,7 +34,7 @@ class BaseOperator:
         return data
 
     @staticmethod
-    def _cast_chat_list(data: list[BaseSchema]) -> list[ChatSchema]:
+    def _cast_chat_list(data: list[Schema]) -> list[ChatSchema]:
         for d in data:
             assert isinstance(d, ChatSchema)
         return cast(list[ChatSchema], data)
@@ -45,7 +45,7 @@ class BaseOperator:
         return data
 
     @staticmethod
-    def _cast_custom_list(data: list[BaseSchema]) -> list[CustomSchema]:
+    def _cast_custom_list(data: list[Schema]) -> list[CustomSchema]:
         for d in data:
             assert isinstance(d, CustomSchema)
         return cast(list[CustomSchema], data)
@@ -56,7 +56,7 @@ class BaseOperator:
         return data
 
     @staticmethod
-    def _cast_text_list(data: list[BaseSchema]) -> list[TextSchema]:
+    def _cast_text_list(data: list[Schema]) -> list[TextSchema]:
         for d in data:
             assert isinstance(d, TextSchema)
         return cast(list[TextSchema], data)

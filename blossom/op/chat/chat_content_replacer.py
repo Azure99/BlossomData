@@ -1,7 +1,7 @@
 from typing import Optional
 
 from blossom.op.map_operator import MapOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatRole, ChatMessageContentText
 from blossom.util.text import replace_text
 
@@ -25,7 +25,7 @@ class ChatContentReplacer(MapOperator):
             case_sensitive=self.case_sensitive,
         )
 
-    def process_item(self, item: BaseSchema) -> BaseSchema:
+    def process_item(self, item: Schema) -> Schema:
         _item = self._cast_chat(item)
         for message in _item.messages:
             if message.role in self.roles:

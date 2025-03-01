@@ -3,7 +3,7 @@ from typing import Any, Optional
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_translator import TextTranslator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 
 
@@ -36,7 +36,7 @@ class ChatTranslate(MapOperator):
             extra_params=self.extra_params,
         )
 
-    def process_item(self, item: BaseSchema) -> BaseSchema:
+    def process_item(self, item: Schema) -> Schema:
         _item = self._cast_chat(item)
 
         for message in _item.messages:

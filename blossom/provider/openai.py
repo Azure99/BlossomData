@@ -7,7 +7,7 @@ import requests
 
 from blossom.conf import ModelConfig
 from blossom.log import logger
-from blossom.provider.base_provider import BaseProvider
+from blossom.provider.provider import Provider
 from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 
@@ -18,7 +18,7 @@ MAX_TOO_MANY_REQUESTS_RETRIES = 12
 TOO_MANY_REQUESTS_BACKOFF_FACTOR = 1.5
 
 
-class OpenAI(BaseProvider):
+class OpenAI(Provider):
     def __init__(self, model_config: ModelConfig):
         super().__init__(model_config)
         self.base_url = model_config.config.get("base_url", DEFAULT_BASE_URL)

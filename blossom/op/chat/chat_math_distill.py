@@ -4,7 +4,7 @@ from typing import Any, Optional, Union
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import (
     ChatMessage,
     ChatMessageContent,
@@ -63,7 +63,7 @@ class ChatMathDistill(MapOperator):
         self.max_retry = max_retry
         self.extra_params = extra_params
 
-    def process_item(self, item: BaseSchema) -> BaseSchema:
+    def process_item(self, item: Schema) -> Schema:
         _item = self._cast_chat(item)
 
         question = self._first_message_content(_item.messages, ChatRole.USER)

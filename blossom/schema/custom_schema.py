@@ -1,8 +1,8 @@
 from typing import Any
 
-from blossom.schema.base_schema import BaseSchema, SchemaType
+from blossom.schema.schema import Schema, SchemaType
 
 
-class CustomSchema(BaseSchema):
+class CustomSchema(Schema):
     type: str = SchemaType.CUSTOM
     data: Any

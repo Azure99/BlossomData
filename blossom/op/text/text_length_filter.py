@@ -1,7 +1,7 @@
 from typing import Callable
 
 from blossom.op.filter_operator import FilterOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 
 
 class TextLengthFilter(FilterOperator):
@@ -15,6 +15,6 @@ class TextLengthFilter(FilterOperator):
         self.len_func = len_func
         self.max_len = max_len
 
-    def process_item(self, item: BaseSchema) -> bool:
+    def process_item(self, item: Schema) -> bool:
         _item = self._cast_text(item)
         return self.len_func(_item.content) <= self.max_len

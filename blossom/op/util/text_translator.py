@@ -1,7 +1,7 @@
 import json
 from typing import Any, Optional
 
-from blossom.provider.base_provider import BaseProvider
+from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import user
 from blossom.util.json import extract_markdown_first_json
 
@@ -18,7 +18,7 @@ TRANSLATE_PROMPT_PART_INSTRUCTION_ONLY = '4. Just translate the instructions in 
 
 
 class TextTranslator:
-    def __init__(self, provider: BaseProvider) -> None:
+    def __init__(self, provider: Provider) -> None:
         self.provider = provider
 
     def translate(

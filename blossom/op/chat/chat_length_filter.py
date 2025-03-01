@@ -1,7 +1,7 @@
 from typing import Callable
 
 from blossom.op.filter_operator import FilterOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 
 
@@ -22,7 +22,7 @@ class ChatLengthFilter(FilterOperator):
         self.assistant_max_len = assistant_max_len
         self.total_max_len = total_max_len
 
-    def process_item(self, item: BaseSchema) -> bool:
+    def process_item(self, item: Schema) -> bool:
         _item = self._cast_chat(item)
 
         total_len = 0

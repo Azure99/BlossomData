@@ -1,8 +1,8 @@
-from blossom.op.base_operator import BaseOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.op.operator import Operator
+from blossom.schema.schema import Schema
 
 
-class FailedItemFilter(BaseOperator):
+class FailedItemFilter(Operator):
     def __init__(
         self,
         reverse: bool = False,
@@ -10,10 +10,10 @@ class FailedItemFilter(BaseOperator):
         super().__init__()
         self.reverse = reverse
 
-    def process(self, data: list[BaseSchema]) -> list[BaseSchema]:
+    def process(self, data: list[Schema]) -> list[Schema]:
         results = list(map(self.process_item, data))
         return [item for item, passed in zip(data, results) if passed ^ self.reverse]
 
     @staticmethod
-    def process_item(item: BaseSchema) -> bool:
+    def process_item(item: Schema) -> bool:
         return not item.failed

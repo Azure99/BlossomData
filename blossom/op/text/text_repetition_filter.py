@@ -1,6 +1,6 @@
 from blossom.op.filter_operator import FilterOperator
 from blossom.op.util.char_repetition_filter import CharRepetitionFilter
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 
 
 class TextRepetitionFilter(FilterOperator):
@@ -16,6 +16,6 @@ class TextRepetitionFilter(FilterOperator):
             n=n, min_ratio=min_ratio, max_ratio=max_ratio
         )
 
-    def process_item(self, item: BaseSchema) -> bool:
+    def process_item(self, item: Schema) -> bool:
         _item = self._cast_text(item)
         return self.char_repetition_filter.filter(_item.content)

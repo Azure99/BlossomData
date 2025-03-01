@@ -1,7 +1,7 @@
 from typing import Optional
 
 from blossom.op.filter_operator import FilterOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import (
     ChatMessageContentText,
     ChatRole,
@@ -23,7 +23,7 @@ class ChatContentFilter(FilterOperator):
         if not case_sensitive:
             self.contents = [content.lower() for content in contents]
 
-    def process_item(self, item: BaseSchema) -> bool:
+    def process_item(self, item: Schema) -> bool:
         _item = self._cast_chat(item)
         for message in _item.messages:
             if message.role in self.roles:

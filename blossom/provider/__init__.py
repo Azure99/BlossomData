@@ -1,4 +1,4 @@
-from .base_provider import BaseProvider
+from .provider import Provider
 from .openai import OpenAI
 from .protocol import (
     ChatCompletionFinishReason,
@@ -8,7 +8,7 @@ from .protocol import (
 )
 
 __all__ = [
-    "BaseProvider",
+    "Provider",
     "OpenAI",
     "ChatCompletionFinishReason",
     "ChatCompletionResponse",

@@ -1,6 +1,6 @@
-from blossom.schema.base_schema import BaseSchema, SchemaType
+from blossom.schema.schema import Schema, SchemaType
 
 
-class TextSchema(BaseSchema):
+class TextSchema(Schema):
     type: str = SchemaType.TEXT
     content: str

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from blossom.op.filter_operator import FilterOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatRole
 from blossom.util.type import StrEnum
 
@@ -24,7 +24,7 @@ class ChatInvalidFilter(FilterOperator):
             self.Rule.INVALID_ROLE_ORDER,
         ]
 
-    def process_item(self, item: BaseSchema) -> bool:
+    def process_item(self, item: Schema) -> bool:
         _item = self._cast_chat(item)
         if self.Rule.EMPTY_MESSAGES in self.rules:
             if len(_item.messages) == 0:

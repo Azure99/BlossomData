@@ -6,11 +6,11 @@ from typing import Optional
 
 from blossom.conf import Config
 from blossom.io.schema import load_schema_dict_list
-from blossom.pipeline.base_pipeline import BasePipeline
-from blossom.schema.base_schema import BaseSchema
+from blossom.pipeline.pipeline import Pipeline
+from blossom.schema.schema import Schema
 
 
-class ChunkedPipeline(BasePipeline):
+class ChunkedPipeline(Pipeline):
     def __init__(
         self,
         config: Optional[Config] = None,
@@ -25,7 +25,7 @@ class ChunkedPipeline(BasePipeline):
         os.makedirs(self.input_path, exist_ok=True)
         os.makedirs(self.output_path, exist_ok=True)
 
-    def execute(self, data: list[BaseSchema]) -> list[BaseSchema]:
+    def execute(self, data: list[Schema]) -> list[Schema]:
         index, chunk_count = self._chunk_data(data)
 
         for i in range(index, chunk_count):
@@ -51,7 +51,7 @@ class ChunkedPipeline(BasePipeline):
             chunk_data = [item.to_dict() for item in chunk]
             f.write(json.dumps(chunk_data, ensure_ascii=False))
 
-    def _chunk_data(self, data: list[BaseSchema]) -> tuple[int, int]:
+    def _chunk_data(self, data: list[Schema]) -> tuple[int, int]:
         if os.path.exists(os.path.join(self.input_path, ".done")):
             chunk_count = len(os.listdir(self.input_path)) - 1
             next_index = len(os.listdir(self.output_path))

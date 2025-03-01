@@ -1,5 +1,5 @@
 from blossom.op.map_operator import MapOperator
-from blossom.schema.base_schema import BaseSchema
+from blossom.schema.schema import Schema
 from blossom.util.text import replace_text
 
 
@@ -13,7 +13,7 @@ class TextContentReplacer(MapOperator):
         self.replacements = replacements
         self.case_sensitive = case_sensitive
 
-    def process_item(self, item: BaseSchema) -> BaseSchema:
+    def process_item(self, item: Schema) -> Schema:
         _item = self._cast_text(item)
         _item.content = replace_text(
             text=_item.content,

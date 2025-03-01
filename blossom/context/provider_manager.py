@@ -4,7 +4,7 @@ import pkgutil
 from typing import Type
 
 from blossom.conf.config import Config, ModelConfig
-from blossom.provider.base_provider import BaseProvider
+from blossom.provider.provider import Provider
 
 PROVIDER_PACKAGE = "blossom.provider"
 
@@ -14,9 +14,9 @@ class ProviderManager:
         self.config = config
         self.providers = self._load_providers()
         self.models = self._load_models()
-        self.provider_instances: dict[str, BaseProvider] = {}
+        self.provider_instances: dict[str, Provider] = {}
 
-    def get_model(self, model_name: str) -> BaseProvider:
+    def get_model(self, model_name: str) -> Provider:
         if model_name in self.provider_instances:
             return self.provider_instances[model_name]
 
@@ -39,13 +39,13 @@ class ProviderManager:
         return models
 
     @staticmethod
-    def _load_providers() -> dict[str, Type[BaseProvider]]:
+    def _load_providers() -> dict[str, Type[Provider]]:
         providers = {}
         for module_info in pkgutil.walk_packages(
             importlib.import_module(PROVIDER_PACKAGE).__path__, f"{PROVIDER_PACKAGE}."
         ):
             module = importlib.import_module(module_info.name)
             for name, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, BaseProvider) and obj is not BaseProvider:
+                if issubclass(obj, Provider) and obj is not Provider:
                     providers[name.lower()] = obj
         return providers

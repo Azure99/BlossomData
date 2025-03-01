@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
 from blossom.conf import Config
@@ -10,7 +11,7 @@ from blossom.op.transform_operator import TransformOperator
 from blossom.schema.schema import Schema
 
 
-class Pipeline:
+class Pipeline(ABC):
     def __init__(self, config: Optional[Config] = None):
         self.config: Config = load_config() if config is None else config
         self.context = Context(self.config)
@@ -26,8 +27,9 @@ class Pipeline:
             self.add_operator(operator)
         return self
 
+    @abstractmethod
     def execute(self, data: list[Schema]) -> list[Schema]:
-        raise NotImplementedError("Pipeline not implemented")
+        pass
 
     def filter(
         self, filter_func: Callable[[Schema], bool], parallel: int = 1

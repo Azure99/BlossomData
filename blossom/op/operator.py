@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any, cast
 
 from blossom.context.context import Context
@@ -7,12 +8,13 @@ from blossom.schema.custom_schema import CustomSchema
 from blossom.schema.text_schema import TextSchema
 
 
-class Operator:
+class Operator(ABC):
     def __init__(self) -> None:
         self.context: Context
 
+    @abstractmethod
     def process(self, data: list[Schema]) -> list[Schema]:
-        raise NotImplementedError("Operator not implemented")
+        pass
 
     def init_context(self, context: Context) -> None:
         self.context = context

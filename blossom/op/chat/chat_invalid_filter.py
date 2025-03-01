@@ -1,16 +1,16 @@
-from enum import Enum
 from typing import Optional
 
 from blossom.op.filter_operator import FilterOperator
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatRole
+from blossom.util.type import StrEnum
 
 
 class ChatInvalidFilter(FilterOperator):
-    class Rule(Enum):
-        EMPTY_MESSAGES = 0
-        EMPTY_CONTENT = 1
-        INVALID_ROLE_ORDER = 2
+    class Rule(StrEnum):
+        EMPTY_MESSAGES = "empty_messages"
+        EMPTY_CONTENT = "empty_content"
+        INVALID_ROLE_ORDER = "invalid_role_order"
 
     def __init__(
         self,

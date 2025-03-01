@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Any, Optional
 
 from blossom.log import logger
@@ -6,13 +5,14 @@ from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_embedder import TextEmbedder
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
+from blossom.util.type import StrEnum
 
 
 class ChatEmbedding(MapOperator):
-    class Strategy(Enum):
-        FIRST = 0
-        LAST = 1
-        FULL = 2
+    class Strategy(StrEnum):
+        FIRST = "first"
+        LAST = "last"
+        FULL = "full"
 
     def __init__(
         self,

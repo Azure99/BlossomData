@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Any, Optional
 
 from blossom.log import logger
@@ -6,15 +5,16 @@ from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
 from blossom.schema.base_schema import BaseSchema
 from blossom.schema.chat_schema import ChatMessage, ChatRole
+from blossom.util.type import StrEnum
 
 METADATA_RESPONSE_TRUNCATED = "response_truncated"
 
 
 class ChatDistill(MapOperator):
-    class Strategy(Enum):
-        FIRST_TURN = 0
-        LAST_TURN = 1
-        MULTI_TURN = 2
+    class Strategy(StrEnum):
+        FIRST_TURN = "first_turn"
+        LAST_TURN = "last_turn"
+        MULTI_TURN = "multi_turn"
 
     def __init__(
         self,

@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Any, Optional, Union
 
 from PIL import Image
@@ -6,15 +5,16 @@ from pydantic import BaseModel, field_validator
 
 from blossom.schema.base_schema import BaseSchema, SchemaType
 from blossom.util.image import encode_image_file_to_url, encode_image_to_url
+from blossom.util.type import StrEnum
 
 
-class ChatRole(Enum):
+class ChatRole(StrEnum):
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
 
 
-class ChatMessageContentType(Enum):
+class ChatMessageContentType(StrEnum):
     TEXT = "text"
     IMAGE_URL = "image_url"
 
@@ -23,7 +23,7 @@ class ChatMessageContent(BaseModel):
     type: ChatMessageContentType
 
 
-class ChatMessageContentImageDetail(Enum):
+class ChatMessageContentImageDetail(StrEnum):
     AUTO = "auto"
     LOW = "low"
     HIGH = "high"
@@ -69,7 +69,7 @@ class ChatMessage(BaseModel):
 
 
 class ChatSchema(BaseSchema):
-    type: SchemaType = SchemaType.CHAT
+    type: str = SchemaType.CHAT
     messages: list[ChatMessage]
 
     def model_dump(self, *args: Any, **kwargs: Any) -> dict[str, Any]:

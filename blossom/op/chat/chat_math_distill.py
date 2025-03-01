@@ -1,5 +1,4 @@
 import re
-from enum import Enum
 from typing import Any, Optional, Union
 
 from blossom.log import logger
@@ -15,6 +14,7 @@ from blossom.schema.chat_schema import (
     assistant,
 )
 from blossom.util.json import loads_markdown_first_json
+from blossom.util.type import StrEnum
 
 LAST_NUMBER_REGEX = r"-?\d+(?:\.\d+)?"
 
@@ -38,10 +38,10 @@ METADATA_REASONING_COUNT = "reasoning_count"
 
 
 class ChatMathDistill(MapOperator):
-    class ValidateMode(Enum):
-        NONE = 0
-        REGEX = 1
-        LLM = 2
+    class ValidateMode(StrEnum):
+        NONE = "none"
+        REGEX = "regex"
+        LLM = "llm"
 
     def __init__(
         self,

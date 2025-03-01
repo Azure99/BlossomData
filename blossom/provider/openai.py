@@ -57,7 +57,7 @@ class OpenAI(BaseProvider):
 
         data = {
             "model": self.api_model_name,
-            "messages": [message.model_dump(mode="json") for message in messages],
+            "messages": [message.model_dump() for message in messages],
         }
 
         response = self._request("/chat/completions", data, extra_params)

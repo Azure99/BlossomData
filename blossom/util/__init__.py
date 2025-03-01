@@ -10,6 +10,7 @@ from .json import (
     loads_markdown_first_json_array,
 )
 from .text import calculate_edit_distance, replace_text
+from .type import StrEnum
 
 __all__ = [
     "extract_markdown_first_json",
@@ -21,4 +22,5 @@ __all__ = [
     "encode_image_to_url",
     "encode_image_file_to_base64",
     "encode_image_file_to_url",
+    "StrEnum",
 ]

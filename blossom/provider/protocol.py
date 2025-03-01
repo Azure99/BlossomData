@@ -1,12 +1,11 @@
-from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
-
 from blossom.schema.chat_schema import ChatMessage
+from blossom.util.type import StrEnum
 
 
-class ChatCompletionFinishReason(Enum):
+class ChatCompletionFinishReason(StrEnum):
     STOP = "stop"
     LENGTH = "length"
     CONTENT_FILTER = "content_filter"

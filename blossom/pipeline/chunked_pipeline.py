@@ -8,7 +8,6 @@ from blossom.conf import Config
 from blossom.io.schema import load_schema_dict_list
 from blossom.pipeline.base_pipeline import BasePipeline
 from blossom.schema.base_schema import BaseSchema
-from blossom.util.json import json_dumps
 
 
 class ChunkedPipeline(BasePipeline):
@@ -49,7 +48,8 @@ class ChunkedPipeline(BasePipeline):
 
         result_file = os.path.join(self.output_path, f"{index}.json")
         with open(result_file, "w", encoding="utf-8") as f:
-            f.write(json_dumps(chunk))
+            chunk_data = [item.to_dict() for item in chunk]
+            f.write(json.dumps(chunk_data, ensure_ascii=False))
 
     def _chunk_data(self, data: list[BaseSchema]) -> tuple[int, int]:
         if os.path.exists(os.path.join(self.input_path, ".done")):
@@ -64,7 +64,8 @@ class ChunkedPipeline(BasePipeline):
             chunk = data[i : i + self.chunk_size]
             chunk_file = os.path.join(self.input_path, f"{i // self.chunk_size}.json")
             with open(chunk_file, "w", encoding="utf-8") as f:
-                f.write(json_dumps(chunk))
+                chunk_data = [item.to_dict() for item in chunk]
+                f.write(json.dumps(chunk_data, ensure_ascii=False))
 
         with open(os.path.join(self.input_path, ".done"), "w", encoding="utf-8") as f:
             f.write("")

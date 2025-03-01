@@ -5,7 +5,6 @@ from .image import (
     encode_image_file_to_url,
 )
 from .json import (
-    json_dumps,
     extract_markdown_first_json,
     loads_markdown_first_json,
     loads_markdown_first_json_array,
@@ -13,7 +12,6 @@ from .json import (
 from .text import calculate_edit_distance, replace_text
 
 __all__ = [
-    "json_dumps",
     "extract_markdown_first_json",
     "loads_markdown_first_json",
     "loads_markdown_first_json_array",

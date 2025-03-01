@@ -1,3 +1,4 @@
+import json
 import random
 import time
 from typing import Any, Optional
@@ -9,7 +10,6 @@ from blossom.log import logger
 from blossom.provider.base_provider import BaseProvider
 from blossom.provider.protocol import ChatCompletionResponse
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
-from blossom.util.json import json_dumps
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_TIMEOUT = 600
@@ -57,10 +57,7 @@ class OpenAI(BaseProvider):
 
         data = {
             "model": self.api_model_name,
-            "messages": [
-                {"role": message.role, "content": message.content}
-                for message in messages
-            ],
+            "messages": [message.model_dump(mode="json") for message in messages],
         }
 
         response = self._request("/chat/completions", data, extra_params)
@@ -106,7 +103,7 @@ class OpenAI(BaseProvider):
                 url,
                 timeout=self.timeout,
                 headers=headers,
-                data=json_dumps(data, ensure_ascii=True),
+                data=json.dumps(data, ensure_ascii=False),
             )
             logger.info(f"OpenAI response: {response.text}")
 

@@ -5,7 +5,6 @@ from pyspark.sql import SparkSession
 from blossom.context.context import Context
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
-from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.dataframe.spark_dataframe import SparkDataFrame
 from blossom.dataset.dataset import Dataset
@@ -26,7 +25,7 @@ def load_dataset(
     path: str,
     type: str = DatasetType.LOCAL,
     file_type: str = FileType.JSON,
-    data_handler: DataHandler = DefaultDataHandler(),
+    data_handler: Optional[DataHandler] = None,
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:

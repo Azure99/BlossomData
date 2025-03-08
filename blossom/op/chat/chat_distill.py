@@ -122,7 +122,7 @@ class ChatDistill(MapOperator):
         )
         choice = response.choices[0]
 
-        new_messages = messages + [choice.message]
+        new_messages = [*messages, choice.message]
         response_truncated = choice.finish_reason == ChatCompletionFinishReason.LENGTH
         total_tokens = response.usage.total_tokens
 

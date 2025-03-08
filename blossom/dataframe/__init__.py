@@ -6,8 +6,8 @@ from .spark_dataframe import SparkDataFrame
 
 __all__ = [
     "DataFrame",
-    "LocalDataFrame",
-    "SparkDataFrame",
     "DataHandler",
     "DefaultDataHandler",
+    "LocalDataFrame",
+    "SparkDataFrame",
 ]

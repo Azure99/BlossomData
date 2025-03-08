@@ -8,10 +8,10 @@ from .protocol import (
 from .provider import Provider
 
 __all__ = [
-    "Provider",
-    "OpenAI",
     "ChatCompletionFinishReason",
     "ChatCompletionResponse",
     "ChatCompletionResponseChoice",
+    "OpenAI",
+    "Provider",
     "UsageInfo",
 ]

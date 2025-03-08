@@ -42,20 +42,19 @@ class LocalDataFrame(DataFrame):
     def collect(self) -> list[Schema]:
         return self.data
 
-    def read_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> "DataFrame":
+    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "DataFrame":
         file_list = self._list_files(path, [".json", ".jsonl"], True)
+        data_handler = data_handler or DefaultDataHandler()
 
         rows = []
         for file in file_list:
-            with open(file, "r", encoding="utf-8") as f:
+            with open(file, encoding="utf-8") as f:
                 rows.extend([json.loads(line) for line in f])
         return LocalDataFrame([data_handler.from_dict(row) for row in rows])
 
-    def write_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
+        data_handler = data_handler or DefaultDataHandler()
+
         with open(path, "w", encoding="utf-8") as f:
             for schema in self.data:
                 json_data = data_handler.to_dict(schema)

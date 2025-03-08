@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Optional
 
 from blossom.dataframe.data_handler import DataHandler
-from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.schema.schema import Schema
 
 
@@ -44,13 +43,9 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
-    def read_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> "DataFrame":
+    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "DataFrame":
         pass
 
     @abstractmethod
-    def write_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
         pass

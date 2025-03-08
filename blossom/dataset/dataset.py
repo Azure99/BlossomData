@@ -3,7 +3,6 @@ from typing import Callable, Optional
 from blossom.context.context import Context
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
-from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
@@ -52,12 +51,8 @@ class Dataset:
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         return Dataset(self.dataframe.from_list(schemas))
 
-    def read_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> "Dataset":
+    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "Dataset":
         return Dataset(self.dataframe.read_json(path, data_handler), self.context)
 
-    def write_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
         self.dataframe.write_json(path, data_handler)

@@ -1,6 +1,7 @@
 import json
 import random
-from typing import Callable, Iterable, Optional, Any
+from typing import Callable, Optional, Any
+from collections.abc import Iterable
 
 from pyspark.rdd import RDD
 from pyspark.sql import SparkSession
@@ -80,9 +81,9 @@ class SparkDataFrame(DataFrame):
     def collect(self) -> list[Schema]:
         return [Schema.from_dict(row_dict) for row_dict in self.spark_rdd.collect()]
 
-    def read_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> "DataFrame":
+    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "DataFrame":
+        data_handler = data_handler or DefaultDataHandler()
+
         def load_json_line(line: str) -> dict[str, Any]:
             data_dict = json.loads(line)
             schema = data_handler.from_dict(data_dict)
@@ -91,9 +92,9 @@ class SparkDataFrame(DataFrame):
         rdd = self.spark_session.sparkContext.textFile(path).map(load_json_line)
         return SparkDataFrame(rdd, self.spark_session)
 
-    def write_json(
-        self, path: str, data_handler: DataHandler = DefaultDataHandler()
-    ) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
+        data_handler = data_handler or DefaultDataHandler()
+
         def serialize_row(row_dict: dict[str, Any]) -> str:
             schema = Schema.from_dict(row_dict)
             return json.dumps(data_handler.to_dict(schema), ensure_ascii=False)

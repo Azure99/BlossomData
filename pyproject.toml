@@ -22,6 +22,13 @@ mypy = "^1.13.0"
 types-pyyaml = "^6.0.12.20240917"
 types-requests = "^2.32.0.20241016"
 
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "C4", "RUF", "ICN", "UP", "PL"]
+ignore = ["E501", "PLR0913", "UP006", "UP035"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

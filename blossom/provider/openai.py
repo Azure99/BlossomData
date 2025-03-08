@@ -11,6 +11,11 @@ from blossom.provider.protocol import ChatCompletionResponse
 from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 
+
+HTTP_SUCCESS = 200
+HTTP_TOO_MANY_REQUESTS = 429
+HTTP_INTERNAL_SERVER_ERROR = 500
+
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_TIMEOUT = 600
 
@@ -53,7 +58,7 @@ class OpenAI(Provider):
         if len(messages) == 0:
             raise ValueError("No messages provided")
         if messages[0].role != ChatRole.SYSTEM and self.default_system:
-            messages = [system(self.default_system)] + messages
+            messages = [system(self.default_system), *messages]
 
         data = {
             "model": self.api_model_name,
@@ -107,10 +112,13 @@ class OpenAI(Provider):
             )
             logger.info(f"OpenAI response: {response.text}")
 
-            if response.status_code == 200:
+            if response.status_code == HTTP_SUCCESS:
                 return response.json()
 
-            if response.status_code == 429 or response.status_code >= 500:
+            if (
+                response.status_code == HTTP_TOO_MANY_REQUESTS
+                or response.status_code >= HTTP_INTERNAL_SERVER_ERROR
+            ):
                 logger.warning(
                     f"Rate limit exceeded, retrying in {rate_limit_backoff} seconds"
                 )

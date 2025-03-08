@@ -125,9 +125,9 @@ dataset.execute([
 
 ```python
 # 基于已有数据创建Dataset，仅适合少量数据
-dataset = load_dataset(data, type=DatasetType.SPARK)
+dataset = create_dataset(data, type=DatasetType.SPARK)
 # 从本地文件创建Dataset
-dataset = create_dataset("/path/to/data.json", type=DatasetType.SPARK)
+dataset = load_dataset("/path/to/data.json", type=DatasetType.SPARK)
 (
     # 可以使用map、filter、transform等底层操作
     dataset.filter(lambda x: x.metadata["language"] == "en")

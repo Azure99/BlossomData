@@ -3,8 +3,8 @@ from typing import Any, Optional
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
-from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatMessage, ChatRole
+from blossom.schema.schema import Schema
 from blossom.util.type import StrEnum
 
 METADATA_RESPONSE_TRUNCATED = "response_truncated"

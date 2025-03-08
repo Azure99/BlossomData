@@ -2,8 +2,8 @@ from typing import Optional
 
 from blossom.log import logger
 from blossom.op.filter_operator import FilterOperator
-from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatSchema, assistant, user
+from blossom.schema.schema import Schema
 from blossom.util.json import loads_markdown_first_json
 
 LLM_CHECK_PROMPT = """For the given "Question," "Response_1" and "Response_2" please analyze step by step whether the answers of  "Response_1" and "Response_2" are obviously inconsistent.

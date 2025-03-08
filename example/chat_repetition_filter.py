@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import ChatRepetitionFilter
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -17,9 +18,9 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     ChatRepetitionFilter(n=10, min_ratio=0.0, max_ratio=0.5),
-)
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

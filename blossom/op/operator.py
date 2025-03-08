@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Any, cast
 
 from blossom.context.context import Context
-from blossom.schema.schema import Schema
+from blossom.dataframe.dataframe import DataFrame
 from blossom.schema.chat_schema import ChatSchema
 from blossom.schema.custom_schema import CustomSchema
+from blossom.schema.schema import Schema
 from blossom.schema.text_schema import TextSchema
 
 
@@ -13,7 +14,7 @@ class Operator(ABC):
         self.context: Context
 
     @abstractmethod
-    def process(self, data: list[Schema]) -> list[Schema]:
+    def process(self, dataframe: DataFrame) -> DataFrame:
         pass
 
     def init_context(self, context: Context) -> None:

@@ -1,6 +1,7 @@
 from typing import Callable, Optional
 
 from blossom.context import Context
+from blossom.dataframe.dataframe import DataFrame
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
 
@@ -13,10 +14,13 @@ class TransformOperator(Operator):
         super().__init__()
         self.transform_func = transform_func
 
-    def process(self, data: list[Schema]) -> list[Schema]:
+    def process(self, dataframe: DataFrame) -> DataFrame:
+        return dataframe.transform(self.process_items)
+
+    def process_items(self, items: list[Schema]) -> list[Schema]:
         if self.transform_func is None:
             raise NotImplementedError("transform function not implemented")
-        return self.transform_func(data)
+        return self.transform_func(items)
 
 
 def transform_operator() -> Callable[..., TransformOperator]:
@@ -31,7 +35,7 @@ def context_transform_operator() -> Callable[..., TransformOperator]:
         func: Callable[[Context, list[Schema]], list[Schema]]
     ) -> TransformOperator:
         class WrappedTransformOperator(TransformOperator):
-            def process(self, data: list[Schema]) -> list[Schema]:
+            def process_items(self, data: list[Schema]) -> list[Schema]:
                 return func(self.context, data)
 
         return WrappedTransformOperator()

@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
 
 from blossom.context import Context
+from blossom.dataframe.dataframe import DataFrame
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
 
@@ -16,12 +17,14 @@ class MapOperator(Operator):
         self.map_func = map_func
         self.parallel = parallel
 
-    def process(self, data: list[Schema]) -> list[Schema]:
-        if self.parallel > 1:
+    def process(self, dataframe: DataFrame) -> DataFrame:
+        def batch_map(data: list[Schema]) -> list[Schema]:
             with ThreadPoolExecutor(max_workers=self.parallel) as executor:
                 return list(executor.map(self.process_skip_failed, data))
 
-        return list(map(self.process_skip_failed, data))
+        if self.parallel > 1:
+            return dataframe.transform(batch_map)
+        return dataframe.map(self.process_skip_failed)
 
     def process_skip_failed(self, item: Schema) -> Schema:
         if item.failed:

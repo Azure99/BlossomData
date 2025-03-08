@@ -2,8 +2,8 @@ from typing import Any, Optional
 
 from blossom.conf.config import Config, load_config
 from blossom.context.provider_manager import ProviderManager
-from blossom.provider.provider import Provider
 from blossom.provider.protocol import ChatCompletionResponse
+from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import ChatMessage
 
 

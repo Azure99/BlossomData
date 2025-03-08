@@ -7,8 +7,8 @@ import requests
 
 from blossom.conf import ModelConfig
 from blossom.log import logger
-from blossom.provider.provider import Provider
 from blossom.provider.protocol import ChatCompletionResponse
+from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"

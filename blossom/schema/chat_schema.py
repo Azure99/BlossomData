@@ -3,9 +3,11 @@ from typing import Any, Optional, Union
 from PIL import Image
 from pydantic import BaseModel, field_validator
 
-from blossom.schema.schema import Schema, SchemaType
+from blossom.schema.schema import Schema
 from blossom.util.image import encode_image_file_to_url, encode_image_to_url
 from blossom.util.type import StrEnum
+
+SCHEMA_TYPE_CHAT = "chat"
 
 
 class ChatRole(StrEnum):
@@ -69,7 +71,7 @@ class ChatMessage(BaseModel):
 
 
 class ChatSchema(Schema):
-    type: str = SchemaType.CHAT
+    type: str = SCHEMA_TYPE_CHAT
     messages: list[ChatMessage]
 
     def model_dump(self, *args: Any, **kwargs: Any) -> dict[str, Any]:

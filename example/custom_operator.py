@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import MapOperator, TextTranslate
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, TextSchema, user, assistant
 from blossom.util import loads_markdown_first_json
 
@@ -31,7 +32,7 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     # 翻译英文文本
     TextTranslate(
         model="gpt-4o-mini",
@@ -39,8 +40,10 @@ pipeline = SimplePipeline().add_operators(
     ),
     # 基于翻译后的文本，生成问题和答案
     SelfQA(),
-)
-print(pipeline.execute(data))
+]
+
+result = create_dataset(data).execute(ops).collect()
+print(result)
 
 # 示例输出
 # User: 为什么厨房新手喜欢做番茄炒蛋？

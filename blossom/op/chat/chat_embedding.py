@@ -3,8 +3,8 @@ from typing import Any, Optional
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.op.util.text_embedder import TextEmbedder
-from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
+from blossom.schema.schema import Schema
 from blossom.util.type import StrEnum
 
 

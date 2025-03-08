@@ -1,12 +1,12 @@
 import copy
 
+from blossom.dataset import create_dataset
 from blossom.op import (
     filter_operator,
     map_operator,
     transform_operator,
     context_map_operator,
 )
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatRole, ChatSchema, user, assistant
 
 data = [
@@ -50,9 +50,12 @@ def generate_response(context, item):
     return item.add_assistant(response)
 
 
-pipeline = SimplePipeline().add_operators(
-    duplicate_data, remove_assistant, filter_hi_prompt, generate_response
-)
+ops = [
+    duplicate_data,
+    remove_assistant,
+    filter_hi_prompt,
+    generate_response,
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

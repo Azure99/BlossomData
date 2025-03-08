@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import ChatContentFilter
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatRole, ChatSchema, user, assistant
 
 data = [
@@ -17,11 +18,11 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     ChatContentFilter(
         contents=["openai"], roles=[ChatRole.ASSISTANT], case_sensitive=False
     ),
-)
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

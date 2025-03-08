@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import ChatLengthFilter
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
 tokenizer = None
@@ -31,9 +32,9 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     ChatLengthFilter(len_func=llama_tokenizer_len, assistant_max_len=9),
-)
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import ChatMathDistill
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -18,14 +19,14 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     ChatMathDistill(
         model="gpt-4o-mini",
         validate_mode=ChatMathDistill.ValidateMode.LLM,
         reference_field="reference",
         max_retry=3,
     ),
-)
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

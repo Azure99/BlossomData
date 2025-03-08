@@ -1,4 +1,3 @@
-from .provider import Provider
 from .openai import OpenAI
 from .protocol import (
     ChatCompletionFinishReason,
@@ -6,6 +5,7 @@ from .protocol import (
     ChatCompletionResponseChoice,
     UsageInfo,
 )
+from .provider import Provider
 
 __all__ = [
     "Provider",

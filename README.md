@@ -12,7 +12,7 @@ BlossomData是一个用于处理大型语言模型（LLM）训练数据的框架
 pip3 install git+https://github.com/Azure99/BlossomData.git
 ```
 
-在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。
+在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。（可参考`config.yaml.example`）
 
 ## 翻译数据
 
@@ -28,26 +28,30 @@ data = [
         ]
     ),
 ]
-# 定义Pipeline
-pipeline = SimplePipeline().add_operators(
+
+# 创建数据集
+dataset = create_dataset(data)
+
+# 执行算子并收集结果
+result = dataset.execute([
     # 对话翻译，使用gpt-4o将对话数据翻译为中文
     ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
-)
-# 执行并打印结果
-print(pipeline.execute(data))
+]).collect()
+
+print(result)
 ```
 
 配置参数即可实现仅翻译数据中的指令部分，不翻译代码或其他内容，并开启并行处理。
 
 ```python
-pipeline = SimplePipeline().add_operators(
+dataset.execute([
     ChatTranslate(
         model="gpt-4o-mini",
         target_language="Chinese",
         instruction_only=True,
         parallel=4,
     ),
-)
+]).collect()
 ```
 
 ## 翻译并重新蒸馏数据
@@ -55,7 +59,7 @@ pipeline = SimplePipeline().add_operators(
 直接翻译的模型回复质量可能不佳，因此可以先翻译用户指令，再使用ChatDistill重新生成Assistant回复以提高质量。
 
 ```python
-pipeline = SimplePipeline().add_operators(
+dataset.execute([
     ChatTranslate(
         model="gpt-4o-mini",
         target_language="Chinese",
@@ -64,7 +68,7 @@ pipeline = SimplePipeline().add_operators(
     ),
     # 提供多种蒸馏模式，第一轮、最后一轮、所有轮次
     ChatDistill(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
-)
+]).collect()
 ```
 
 ## 根据答案校验
@@ -80,13 +84,14 @@ data = [
         ]
     )
 ]
-pipeline = SimplePipeline().add_operators(
+dataset = create_dataset(data)
+dataset.execute([
     ChatMathDistill(
         model="gpt-4o-mini",
         validate_mode=ChatMathDistill.ValidateMode.LLM,
         max_retry=3,
     ),
-)
+]).collect()
 ```
 
 ## 多模型推理校验
@@ -108,8 +113,55 @@ data = [
         ]
     ),
 ]
-pipeline = SimplePipeline().add_operators(
+dataset = create_dataset(data)
+dataset.execute([
     ChatMultiReasoningFilter(review_model="gpt-4o-mini", reasoning_model="gpt-4o-mini"),
+]).collect()
+```
+
+## 分布式数据处理
+
+框架支持本地执行和分布式执行（Spark）两张模式，算子不需要感知实际的执行环境。
+
+```python
+# 基于已有数据创建Dataset，仅适合少量数据
+dataset = load_dataset(data, type=DatasetType.SPARK)
+# 从本地文件创建Dataset
+dataset = create_dataset("/path/to/data.json", type=DatasetType.SPARK)
+(
+    # 可以使用map、filter、transform等底层操作
+    dataset.filter(lambda x: x.metadata["language"] == "en")
+    # 随机打乱数据并取前10条
+    .shuffle()
+    .limit(10)
+    .execute([ChatTranslate(model="gpt-4o-mini", target_language="Chinese")])
+    # 将数据写入本地文件
+    .write_json("/path/to/output")
+)
+```
+
+## 自定义数据加载
+
+对于已经存在/需要使用的数据，我们可能有特定的格式要求，因此可以通过`DataHandler`来实现自定义的数据加载/保存逻辑。
+
+`from_dict`将自定义数据字典转换为框架内部的Schema，而`to_dict`反向将框架内部的Schema转换为自定义数据字典。
+
+```python
+# 自定义加载/保存逻辑
+class CustomDataHandler(DataHandler):
+    def from_dict(self, data):
+        return TextSchema(content=data["your_text_field"])
+
+    def to_dict(self, schema):
+        return {"your_text_field": schema.content}
+
+
+ops = [TextContentFilter(contents="bad_word")]
+
+dataset = load_dataset(path="your_data.json", data_handler=CustomDataHandler())
+dataset.execute(ops).write_json(
+    "filtered_data.json",
+    data_handler=CustomDataHandler(),
 )
 ```
 
@@ -145,7 +197,9 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+dataset = create_dataset(data)
+
+result = dataset.execute([
     # 翻译英文文本
     TextTranslate(
         model="gpt-4o-mini",
@@ -153,8 +207,8 @@ pipeline = SimplePipeline().add_operators(
     ),
     # 基于翻译后的文本，生成问题和答案
     self_qa_op,
-)
-print(pipeline.execute(data))
+]).collect()
+print(result)
 ```
 
 你可能会得到这样的输出：
@@ -169,4 +223,3 @@ print(pipeline.execute(data))
 # 此外，这道菜还可以根据个人口味进行简易的调味调整，无需严格遵循复杂的配方。
 # 这些因素使得番茄炒蛋成为新手下厨时的首选之一。
 ```
-

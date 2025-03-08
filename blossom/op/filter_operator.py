@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
 
 from blossom.context import Context
+from blossom.dataframe.dataframe import DataFrame
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
 
@@ -18,13 +19,19 @@ class FilterOperator(Operator):
         self.reverse = reverse
         self.parallel = parallel
 
-    def process(self, data: list[Schema]) -> list[Schema]:
-        if self.parallel > 1:
+    def process(self, dataframe: DataFrame) -> DataFrame:
+        def batch_filter(data: list[Schema]) -> list[Schema]:
             with ThreadPoolExecutor(max_workers=self.parallel) as executor:
                 results = list(executor.map(self.process_skip_failed, data))
-        else:
-            results = list(map(self.process_skip_failed, data))
-        return [item for item, passed in zip(data, results) if passed ^ self.reverse]
+                return [
+                    item for item, passed in zip(data, results) if passed ^ self.reverse
+                ]
+
+        if self.parallel > 1:
+            return dataframe.transform(batch_filter)
+        return dataframe.filter(
+            lambda item: self.process_skip_failed(item) ^ self.reverse
+        )
 
     def process_skip_failed(self, item: Schema) -> bool:
         if item.failed:

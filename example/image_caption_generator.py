@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import ChatDistill
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, text_content, image_content
 
 data = [
@@ -19,9 +20,9 @@ data = [
     )
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     ChatDistill(model="gpt-4o-mini"),
-)
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

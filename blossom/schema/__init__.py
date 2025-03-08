@@ -1,5 +1,5 @@
-from .schema import SchemaType, Schema
 from .chat_schema import (
+    SCHEMA_TYPE_CHAT,
     ChatSchema,
     ChatMessage,
     ChatMessageContentType,
@@ -15,11 +15,17 @@ from .chat_schema import (
     text_content,
     image_content,
 )
-from .custom_schema import CustomSchema
-from .text_schema import TextSchema
+from .custom_schema import (
+    SCHEMA_TYPE_CUSTOM,
+    CustomSchema,
+)
+from .schema import Schema
+from .text_schema import (
+    SCHEMA_TYPE_TEXT,
+    TextSchema,
+)
 
 __all__ = [
-    "SchemaType",
     "Schema",
     "ChatSchema",
     "ChatMessage",
@@ -37,9 +43,11 @@ __all__ = [
     "image_content",
     "CustomSchema",
     "TextSchema",
+    "SCHEMA_TYPE_CHAT",
+    "SCHEMA_TYPE_CUSTOM",
+    "SCHEMA_TYPE_TEXT",
 ]
 
-Schema.register_schema(SchemaType.BASE, ChatSchema)
-Schema.register_schema(SchemaType.CHAT, ChatSchema)
-Schema.register_schema(SchemaType.CUSTOM, CustomSchema)
-Schema.register_schema(SchemaType.TEXT, TextSchema)
+Schema.register_schema(SCHEMA_TYPE_CHAT, ChatSchema)
+Schema.register_schema(SCHEMA_TYPE_CUSTOM, CustomSchema)
+Schema.register_schema(SCHEMA_TYPE_TEXT, TextSchema)

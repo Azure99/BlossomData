@@ -1,5 +1,6 @@
+from blossom.dataset import create_dataset
+
 from blossom.op import ChatEmbedding
-from blossom.pipeline import SimplePipeline
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -17,9 +18,9 @@ data = [
     ),
 ]
 
-pipeline = SimplePipeline().add_operators(
+ops = [
     ChatEmbedding(model="text-embedding-3-small"),
-)
+]
 
-result = pipeline.execute(data)
+result = create_dataset(data).execute(ops).collect()
 print(result)

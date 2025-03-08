@@ -4,7 +4,6 @@ from typing import Any, Optional, Union
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
 from blossom.provider.protocol import ChatCompletionFinishReason
-from blossom.schema.schema import Schema
 from blossom.schema.chat_schema import (
     ChatMessage,
     ChatMessageContent,
@@ -13,6 +12,7 @@ from blossom.schema.chat_schema import (
     user,
     assistant,
 )
+from blossom.schema.schema import Schema
 from blossom.util.json import loads_markdown_first_json
 from blossom.util.type import StrEnum
 

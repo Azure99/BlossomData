@@ -1,4 +1,3 @@
-from .operator import Operator
 from .chat.chat_content_filter import ChatContentFilter
 from .chat.chat_content_replacer import ChatContentReplacer
 from .chat.chat_distill import ChatDistill
@@ -12,6 +11,7 @@ from .chat.chat_translate import ChatTranslate
 from .failed_item_filter import FailedItemFilter
 from .filter_operator import FilterOperator, context_filter_operator, filter_operator
 from .map_operator import MapOperator, context_map_operator, map_operator
+from .operator import Operator
 from .text.text_content_filter import TextContentFilter
 from .text.text_content_replacer import TextContentReplacer
 from .text.text_embedding import TextEmbedding

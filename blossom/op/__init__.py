@@ -23,8 +23,13 @@ from .transform_operator import (
     context_transform_operator,
     transform_operator,
 )
+from .util.char_repetition_filter import CharRepetitionFilter
+from .util.text_embedder import TextEmbedder
+from .util.text_translator import TextTranslator
+
 
 __all__ = [
+    "CharRepetitionFilter",
     "ChatContentFilter",
     "ChatContentReplacer",
     "ChatDistill",
@@ -41,10 +46,12 @@ __all__ = [
     "Operator",
     "TextContentFilter",
     "TextContentReplacer",
+    "TextEmbedder",
     "TextEmbedding",
     "TextLengthFilter",
     "TextRepetitionFilter",
     "TextTranslate",
+    "TextTranslator",
     "TransformOperator",
     "context_filter_operator",
     "context_map_operator",

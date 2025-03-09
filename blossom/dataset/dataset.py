@@ -6,6 +6,16 @@ from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
+from blossom.util.type import StrEnum
+
+
+class FileType(StrEnum):
+    JSON = "json"
+
+
+class DatasetType(StrEnum):
+    LOCAL = "local"
+    SPARK = "spark"
 
 
 class Dataset:

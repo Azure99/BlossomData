@@ -14,6 +14,8 @@ from .chat_schema import (
     assistant,
     text_content,
     image_content,
+    image_content_from_file,
+    image_content_from_image,
 )
 from .custom_schema import (
     SCHEMA_TYPE_CUSTOM,
@@ -43,6 +45,8 @@ __all__ = [
     "TextSchema",
     "assistant",
     "image_content",
+    "image_content_from_file",
+    "image_content_from_image",
     "system",
     "text_content",
     "user",

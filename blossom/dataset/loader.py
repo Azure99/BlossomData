@@ -7,18 +7,8 @@ from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.dataframe.spark_dataframe import SparkDataFrame
-from blossom.dataset.dataset import Dataset
+from blossom.dataset.dataset import Dataset, FileType, DatasetType
 from blossom.schema.schema import Schema
-from blossom.util.type import StrEnum
-
-
-class FileType(StrEnum):
-    JSON = "json"
-
-
-class DatasetType(StrEnum):
-    LOCAL = "local"
-    SPARK = "spark"
 
 
 def load_dataset(

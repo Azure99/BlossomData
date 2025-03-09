@@ -16,6 +16,7 @@ class FileType(StrEnum):
 class DatasetType(StrEnum):
     LOCAL = "local"
     SPARK = "spark"
+    RAY = "ray"
 
 
 class Dataset:
@@ -61,8 +62,10 @@ class Dataset:
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         return Dataset(self.dataframe.from_list(schemas))
 
-    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "Dataset":
+    def read_json(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> "Dataset":
         return Dataset(self.dataframe.read_json(path, data_handler), self.context)
 
-    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         self.dataframe.write_json(path, data_handler)

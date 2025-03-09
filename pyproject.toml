@@ -14,6 +14,9 @@ requests = "^2.0"
 transformers = "^4.0"
 pillow = "^10.0"
 pyspark = "^3.0"
+ray = {version = "^2.0", extras = ["data"]}
+pyarrow = ">=15.0.0"
+numpy = "^2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

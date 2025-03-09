@@ -81,7 +81,9 @@ class SparkDataFrame(DataFrame):
     def collect(self) -> list[Schema]:
         return [Schema.from_dict(row_dict) for row_dict in self.spark_rdd.collect()]
 
-    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "DataFrame":
+    def read_json(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> "DataFrame":
         data_handler = data_handler or DefaultDataHandler()
 
         def load_json_line(line: str) -> dict[str, Any]:
@@ -92,7 +94,7 @@ class SparkDataFrame(DataFrame):
         rdd = self.spark_session.sparkContext.textFile(path).map(load_json_line)
         return SparkDataFrame(rdd, self.spark_session)
 
-    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         data_handler = data_handler or DefaultDataHandler()
 
         def serialize_row(row_dict: dict[str, Any]) -> str:

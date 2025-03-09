@@ -43,9 +43,11 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
-    def read_json(self, path: str, data_handler: Optional[DataHandler]) -> "DataFrame":
+    def read_json(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> "DataFrame":
         pass
 
     @abstractmethod
-    def write_json(self, path: str, data_handler: Optional[DataHandler]) -> None:
+    def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         pass

@@ -6,6 +6,7 @@ from blossom.context.context import Context
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
+from blossom.dataframe.ray_dataframe import RayDataFrame
 from blossom.dataframe.spark_dataframe import SparkDataFrame
 from blossom.dataset.dataset import Dataset, FileType, DatasetType
 from blossom.schema.schema import Schema
@@ -22,6 +23,8 @@ def load_dataset(
     dataframe: DataFrame = LocalDataFrame()
     if type == DatasetType.LOCAL:
         dataframe = LocalDataFrame()
+    elif type == DatasetType.RAY:
+        dataframe = RayDataFrame()
     elif type == DatasetType.SPARK:
         dataframe = SparkDataFrame(spark_session=spark_session)
     else:
@@ -44,6 +47,8 @@ def create_dataset(
     dataframe: DataFrame = LocalDataFrame()
     if type == DatasetType.LOCAL:
         dataframe = LocalDataFrame()
+    elif type == DatasetType.RAY:
+        dataframe = RayDataFrame()
     elif type == DatasetType.SPARK:
         dataframe = SparkDataFrame(spark_session=spark_session)
     else:

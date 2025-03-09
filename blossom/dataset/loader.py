@@ -9,6 +9,7 @@ from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.dataframe.ray_dataframe import RayDataFrame
 from blossom.dataframe.spark_dataframe import SparkDataFrame
 from blossom.dataset.dataset import Dataset
+from blossom.dataset.standard_dataset import StandardDataset
 from blossom.schema.schema import Schema
 from blossom.util.type import StrEnum
 
@@ -46,7 +47,7 @@ def load_dataset(
     else:
         raise ValueError(f"Invalid file type: {data_type}")
 
-    return Dataset(dataframe, context)
+    return StandardDataset(context, dataframe)
 
 
 def create_dataset(
@@ -66,4 +67,4 @@ def create_dataset(
         raise ValueError(f"Invalid dataset engine: {engine}")
 
     dataframe = dataframe.from_list(data)
-    return Dataset(dataframe, context)
+    return StandardDataset(context, dataframe)

@@ -1,4 +1,4 @@
-from .dataset import Dataset, DatasetType, FileType
-from .loader import load_dataset, create_dataset
+from .loader import load_dataset, create_dataset, DatasetEngine, DataType
+from .dataset import Dataset
 
-__all__ = ["Dataset", "DatasetType", "FileType", "create_dataset", "load_dataset"]
+__all__ = ["DataType", "Dataset", "DatasetEngine", "create_dataset", "load_dataset"]

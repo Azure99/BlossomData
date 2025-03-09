@@ -1,7 +1,7 @@
 import random
 from blossom.dataset import create_dataset
 
-from blossom.dataset import DatasetType, load_dataset
+from blossom.dataset import DatasetEngine, load_dataset
 from blossom.op.chat.chat_distill import ChatDistill
 from blossom.op.chat.chat_translate import ChatTranslate
 from blossom.schema import ChatSchema, user, assistant
@@ -22,7 +22,7 @@ example_data = [
 
 create_dataset(example_data).write_json("example_data.jsonl")
 (
-    load_dataset("example_data.jsonl", type=DatasetType.RAY)
+    load_dataset("example_data.jsonl", engine=DatasetEngine.RAY)
     .filter(lambda x: x.metadata["country"] == "US")
     .shuffle()
     .limit(8)

@@ -8,51 +8,62 @@ from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.dataframe.ray_dataframe import RayDataFrame
 from blossom.dataframe.spark_dataframe import SparkDataFrame
-from blossom.dataset.dataset import Dataset, FileType, DatasetType
+from blossom.dataset.dataset import Dataset
 from blossom.schema.schema import Schema
+from blossom.util.type import StrEnum
+
+
+class DataType(StrEnum):
+    JSON = "json"
+
+
+class DatasetEngine(StrEnum):
+    LOCAL = "local"
+    SPARK = "spark"
+    RAY = "ray"
 
 
 def load_dataset(
     path: str,
-    type: str = DatasetType.LOCAL,
-    file_type: str = FileType.JSON,
+    engine: str = DatasetEngine.LOCAL,
+    data_type: str = DataType.JSON,
     data_handler: Optional[DataHandler] = None,
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:
     dataframe: DataFrame = LocalDataFrame()
-    if type == DatasetType.LOCAL:
+    if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
-    elif type == DatasetType.RAY:
+    elif engine == DatasetEngine.RAY:
         dataframe = RayDataFrame()
-    elif type == DatasetType.SPARK:
+    elif engine == DatasetEngine.SPARK:
         dataframe = SparkDataFrame(spark_session=spark_session)
     else:
-        raise ValueError(f"Invalid dataset type: {type}")
+        raise ValueError(f"Invalid dataset engine: {engine}")
 
-    if file_type == FileType.JSON:
+    if data_type == DataType.JSON:
         dataframe = dataframe.read_json(path, data_handler)
     else:
-        raise ValueError(f"Invalid file type: {file_type}")
+        raise ValueError(f"Invalid file type: {data_type}")
 
     return Dataset(dataframe, context)
 
 
 def create_dataset(
     data: list[Schema],
-    type: str = DatasetType.LOCAL,
+    engine: str = DatasetEngine.LOCAL,
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:
     dataframe: DataFrame = LocalDataFrame()
-    if type == DatasetType.LOCAL:
+    if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
-    elif type == DatasetType.RAY:
+    elif engine == DatasetEngine.RAY:
         dataframe = RayDataFrame()
-    elif type == DatasetType.SPARK:
+    elif engine == DatasetEngine.SPARK:
         dataframe = SparkDataFrame(spark_session=spark_session)
     else:
-        raise ValueError(f"Invalid dataset type: {type}")
+        raise ValueError(f"Invalid dataset engine: {engine}")
 
     dataframe = dataframe.from_list(data)
     return Dataset(dataframe, context)

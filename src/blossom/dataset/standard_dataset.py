@@ -68,6 +68,9 @@ class StandardDataset(Dataset):
 
         return StandardDataset(self.context, self.dataframe.union(dataframes))
 
+    def cache(self) -> "Dataset":
+        return StandardDataset(self.context, self.dataframe.cache())
+
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.from_list(schemas))
 

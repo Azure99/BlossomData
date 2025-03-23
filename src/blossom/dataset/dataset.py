@@ -64,6 +64,10 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
+    def cache(self) -> "Dataset":
+        pass
+
+    @abstractmethod
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         pass
 

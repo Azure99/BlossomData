@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import random
@@ -63,6 +64,9 @@ class LocalDataFrame(DataFrame):
             unioned_data.extend(other.data)
 
         return LocalDataFrame(unioned_data)
+
+    def cache(self) -> "DataFrame":
+        return LocalDataFrame(copy.deepcopy(self.data))
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         return LocalDataFrame(schemas)

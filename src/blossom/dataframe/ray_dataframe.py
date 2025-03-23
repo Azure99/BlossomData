@@ -169,6 +169,9 @@ class RayDataFrame(DataFrame):
 
         return RayDataFrame(self.ray_dataset.union(other_datasets))
 
+    def cache(self) -> "DataFrame":
+        return RayDataFrame(self.ray_dataset.materialize())
+
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         rows = [schema_to_row(schema) for schema in schemas]
         dataset = ray.data.from_items(rows)

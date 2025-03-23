@@ -105,6 +105,9 @@ class SparkDataFrame(DataFrame):
 
         return SparkDataFrame(unioned_rdd, self.spark_session)
 
+    def cache(self) -> "DataFrame":
+        return SparkDataFrame(self.spark_rdd.cache(), self.spark_session)
+
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         row_dicts = [schema.to_dict() for schema in schemas]
         return SparkDataFrame(

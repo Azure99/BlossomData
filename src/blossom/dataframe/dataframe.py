@@ -57,6 +57,10 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
+    def cache(self) -> "DataFrame":
+        pass
+
+    @abstractmethod
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         pass
 

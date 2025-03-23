@@ -1,7 +1,7 @@
 from typing import Any
 
 from blossom.dataframe.data_handler import DataHandler
-from blossom.schema.custom_schema import CustomSchema
+from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import FIELD_TYPE, Schema
 
 
@@ -11,7 +11,7 @@ class DefaultDataHandler(DataHandler):
         if schema_type:
             return Schema.from_dict(data)
 
-        return CustomSchema(data=data)
+        return RowSchema(data=data)
 
     def to_dict(self, schema: Schema) -> dict[str, Any]:
         return schema.to_dict()

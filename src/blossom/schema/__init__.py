@@ -22,6 +22,10 @@ from .custom_schema import (
     CustomSchema,
 )
 from .schema import Schema
+from .row_schema import (
+    SCHEMA_TYPE_ROW,
+    RowSchema,
+)
 from .text_schema import (
     SCHEMA_TYPE_TEXT,
     TextSchema,
@@ -55,3 +59,4 @@ __all__ = [
 Schema.register_schema(SCHEMA_TYPE_CHAT, ChatSchema)
 Schema.register_schema(SCHEMA_TYPE_CUSTOM, CustomSchema)
 Schema.register_schema(SCHEMA_TYPE_TEXT, TextSchema)
+Schema.register_schema(SCHEMA_TYPE_ROW, RowSchema)

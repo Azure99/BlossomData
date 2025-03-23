@@ -25,6 +25,7 @@ ruff = "^0.8.2"
 mypy = "^1.13.0"
 types-pyyaml = "^6.0.12.20240917"
 types-requests = "^2.32.0.20241016"
+pyarrow-stubs = "^17.19"
 
 [tool.ruff]
 target-version = "py39"

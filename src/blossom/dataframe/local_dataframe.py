@@ -30,8 +30,9 @@ class LocalDataFrame(DataFrame):
         return LocalDataFrame(self.data[:num_rows])
 
     def shuffle(self) -> "DataFrame":
-        random.shuffle(self.data)
-        return LocalDataFrame(self.data)
+        shuffled_data = self.data[:]
+        random.shuffle(shuffled_data)
+        return LocalDataFrame(shuffled_data)
 
     def repartition(self, num_partitions: int) -> "DataFrame":
         logger.warning("LocalDataFrame does not support repartition.")

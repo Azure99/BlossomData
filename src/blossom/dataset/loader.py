@@ -51,7 +51,7 @@ def load_dataset(
 
 
 def create_dataset(
-    data: list[Schema],
+    data: Optional[list[Schema]] = None,
     engine: str = DatasetEngine.LOCAL,
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
@@ -66,5 +66,5 @@ def create_dataset(
     else:
         raise ValueError(f"Invalid dataset engine: {engine}")
 
-    dataframe = dataframe.from_list(data)
+    dataframe = dataframe.from_list(data or [])
     return StandardDataset(context, dataframe)

@@ -52,7 +52,7 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
-    def union(self, other: "Dataset") -> "Dataset":
+    def union(self, others: Union["Dataset", list["Dataset"]]) -> "Dataset":
         pass
 
     @abstractmethod

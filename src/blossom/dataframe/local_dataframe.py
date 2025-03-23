@@ -41,9 +41,16 @@ class LocalDataFrame(DataFrame):
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return sum(func(schema) for schema in self.data)
 
-    def union(self, other: "DataFrame") -> "DataFrame":
-        assert isinstance(other, LocalDataFrame)
-        return LocalDataFrame(self.data + other.data)
+    def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
+        if not isinstance(others, list):
+            others = [others]
+
+        unioned_data = self.data[:]
+        for other in others:
+            assert isinstance(other, LocalDataFrame)
+            unioned_data.extend(other.data)
+
+        return LocalDataFrame(unioned_data)
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         return LocalDataFrame(schemas)

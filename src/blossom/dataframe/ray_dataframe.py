@@ -127,9 +127,16 @@ class RayDataFrame(DataFrame):
         sum_result: Union[int, float] = sum(row["sum"] for row in partial_sums)
         return sum_result
 
-    def union(self, other: "DataFrame") -> "DataFrame":
-        assert isinstance(other, RayDataFrame)
-        return RayDataFrame(self.ray_dataset.union(other.ray_dataset))
+    def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
+        if not isinstance(others, list):
+            others = [others]
+
+        other_datasets = []
+        for other in others:
+            assert isinstance(other, RayDataFrame)
+            other_datasets.append(other.ray_dataset)
+
+        return RayDataFrame(self.ray_dataset.union(other_datasets))
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         rows = [schema_to_row(schema) for schema in schemas]

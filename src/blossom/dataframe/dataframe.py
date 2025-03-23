@@ -43,7 +43,7 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
-    def union(self, other: "DataFrame") -> "DataFrame":
+    def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         pass
 
     @abstractmethod

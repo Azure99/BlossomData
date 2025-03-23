@@ -79,9 +79,16 @@ class SparkDataFrame(DataFrame):
 
         return self.spark_rdd.map(map_row_to_value).sum()
 
-    def union(self, other: "DataFrame") -> "DataFrame":
-        assert isinstance(other, SparkDataFrame)
-        return SparkDataFrame(self.spark_rdd.union(other.spark_rdd), self.spark_session)
+    def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
+        if not isinstance(others, list):
+            others = [others]
+
+        unioned_rdd = self.spark_rdd
+        for other in others:
+            assert isinstance(other, SparkDataFrame)
+            unioned_rdd = unioned_rdd.union(other.spark_rdd)
+
+        return SparkDataFrame(unioned_rdd, self.spark_session)
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         row_dicts = [schema.to_dict() for schema in schemas]

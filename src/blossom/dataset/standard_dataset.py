@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 from blossom.context.context import Context
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
@@ -25,6 +25,9 @@ class StandardDataset(Dataset):
 
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.transform(func))
+
+    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "Dataset":
+        return StandardDataset(self.context, self.dataframe.add_metadata(func))
 
     def execute(self, operators: list[Operator]) -> "Dataset":
         current_df = self.dataframe

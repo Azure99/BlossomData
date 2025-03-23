@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from blossom.dataframe.data_handler import DataHandler
 from blossom.schema.schema import Schema
@@ -16,6 +16,10 @@ class DataFrame(ABC):
 
     @abstractmethod
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "DataFrame":
+        pass
+
+    @abstractmethod
+    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
         pass
 
     @abstractmethod

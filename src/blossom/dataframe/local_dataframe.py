@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
@@ -22,6 +22,13 @@ class LocalDataFrame(DataFrame):
 
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "DataFrame":
         return LocalDataFrame(func(self.data))
+
+    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
+        def add_metadata_to_schema(schema: Schema) -> Schema:
+            schema.metadata.update(func(schema))
+            return schema
+
+        return self.map(add_metadata_to_schema)
 
     def count(self) -> int:
         return len(self.data)

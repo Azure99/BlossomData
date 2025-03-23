@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 from abc import ABC, abstractmethod
 
 from blossom.context.context import Context
@@ -21,6 +21,10 @@ class Dataset(ABC):
 
     @abstractmethod
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "Dataset":
         pass
 
     @abstractmethod

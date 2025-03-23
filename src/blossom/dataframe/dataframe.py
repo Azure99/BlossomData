@@ -19,6 +19,12 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
+    def sort(
+        self, func: Callable[[Schema], Any], ascending: bool = True
+    ) -> "DataFrame":
+        pass
+
+    @abstractmethod
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
         pass
 

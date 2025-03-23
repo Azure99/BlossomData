@@ -26,6 +26,9 @@ class StandardDataset(Dataset):
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.transform(func))
 
+    def sort(self, func: Callable[[Schema], Any], ascending: bool = True) -> "Dataset":
+        return StandardDataset(self.context, self.dataframe.sort(func, ascending))
+
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.add_metadata(func))
 

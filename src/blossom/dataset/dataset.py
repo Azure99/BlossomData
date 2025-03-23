@@ -24,6 +24,10 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
+    def sort(self, func: Callable[[Schema], Any], ascending: bool = True) -> "Dataset":
+        pass
+
+    @abstractmethod
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "Dataset":
         pass
 

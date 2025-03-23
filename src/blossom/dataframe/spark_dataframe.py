@@ -48,6 +48,14 @@ class SparkDataFrame(DataFrame):
         transformed_rdd = self.spark_rdd.mapPartitions(transform_partition)
         return SparkDataFrame(transformed_rdd, self.spark_session)
 
+    def sort(
+        self, func: Callable[[Schema], Any], ascending: bool = True
+    ) -> "DataFrame":
+        sorted_rdd = self.spark_rdd.sortBy(
+            lambda x: func(Schema.from_dict(x)), ascending=ascending
+        )
+        return SparkDataFrame(sorted_rdd, self.spark_session)
+
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
         def add_metadata_to_schema(schema: Schema) -> Schema:
             schema.metadata.update(func(schema))

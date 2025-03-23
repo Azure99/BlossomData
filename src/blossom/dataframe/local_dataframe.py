@@ -23,6 +23,11 @@ class LocalDataFrame(DataFrame):
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "DataFrame":
         return LocalDataFrame(func(self.data))
 
+    def sort(
+        self, func: Callable[[Schema], Any], ascending: bool = True
+    ) -> "DataFrame":
+        return LocalDataFrame(sorted(self.data, key=func, reverse=not ascending))
+
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
         def add_metadata_to_schema(schema: Schema) -> Schema:
             schema.metadata.update(func(schema))

@@ -22,6 +22,9 @@ from blossom.schema.schema import (
 )
 
 
+SORT_KEY = "__sort_key__"
+
+
 def schema_to_row(schema: Schema) -> dict[str, Any]:
     data = schema.to_dict()
     row = {
@@ -98,6 +101,30 @@ class RayDataFrame(DataFrame):
 
         transformed_dataset = self.ray_dataset.map_batches(transform_partition)
         return RayDataFrame(transformed_dataset)
+
+    def sort(
+        self, func: Callable[[Schema], Any], ascending: bool = True
+    ) -> "DataFrame":
+        def calc_sort_key(
+            batch: dict[str, np.ndarray[Any, Any]]
+        ) -> dict[str, np.ndarray[Any, Any]]:
+            batch_size = len(next(iter(batch.values())))
+            rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
+            rows_with_sort_key = [
+                {**row, SORT_KEY: func(row_to_schema(row))} for row in rows
+            ]
+            result: dict[str, list[Any]] = {}
+            for row in rows_with_sort_key:
+                for k, v in row.items():
+                    result.setdefault(k, []).append(v)
+            return {k: np.array(v) for k, v in result.items()}
+
+        sorted_dataset = (
+            self.ray_dataset.map_batches(calc_sort_key)
+            .sort(SORT_KEY, descending=not ascending)
+            .drop_columns([SORT_KEY])
+        )
+        return RayDataFrame(sorted_dataset)
 
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
         def add_metadata_to_schema(schema: Schema) -> Schema:

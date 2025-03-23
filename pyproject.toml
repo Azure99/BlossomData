@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "blossom"
-version = "0.2.0"
+version = "0.2.1"
 description = "A simple way to synthesize LLM training data."
 repository = "https://github.com/Azure99/BlossomData"
 authors = ["Azure99"]
 readme = "README.md"
+packages = [{ include = "blossom", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"

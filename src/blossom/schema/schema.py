@@ -1,7 +1,7 @@
 import uuid
 from typing import Any, Optional, Type, TypeVar, ClassVar, cast
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 T = TypeVar("T", bound="Schema")
 
@@ -19,8 +19,18 @@ class Schema(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     type: str = SCHEMA_TYPE_BASE
-    failed: bool = False
+    failed: bool = Field(default=False)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("failed", mode="before")
+    @classmethod
+    def convert_null_failed(cls, v: Any) -> bool:
+        return False if v is None else v
+
+    @field_validator("metadata", mode="before")
+    @classmethod
+    def convert_null_metadata(cls, v: Any) -> dict[str, Any]:
+        return {} if v is None else v
 
     def to_dict(self) -> dict[str, Any]:
         return self.model_dump(mode="json")

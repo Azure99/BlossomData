@@ -51,6 +51,15 @@ class StandardDataset(Dataset):
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return self.dataframe.sum(func)
 
+    def union(self, other: "Dataset") -> "Dataset":
+        if not isinstance(other, StandardDataset):
+            raise ValueError(f"Cannot union {type(self)} with {type(other)}")
+        if not isinstance(other.dataframe, type(self.dataframe)):
+            raise ValueError(
+                f"Cannot union {type(self.dataframe)} with {type(other.dataframe)}"
+            )
+        return StandardDataset(self.context, self.dataframe.union(other.dataframe))
+
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.from_list(schemas))
 

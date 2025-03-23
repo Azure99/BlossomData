@@ -52,6 +52,10 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
+    def union(self, other: "Dataset") -> "Dataset":
+        pass
+
+    @abstractmethod
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         pass
 

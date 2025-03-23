@@ -79,6 +79,10 @@ class SparkDataFrame(DataFrame):
 
         return self.spark_rdd.map(map_row_to_value).sum()
 
+    def union(self, other: "DataFrame") -> "DataFrame":
+        assert isinstance(other, SparkDataFrame)
+        return SparkDataFrame(self.spark_rdd.union(other.spark_rdd), self.spark_session)
+
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         row_dicts = [schema.to_dict() for schema in schemas]
         return SparkDataFrame(

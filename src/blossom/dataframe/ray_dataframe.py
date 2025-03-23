@@ -23,6 +23,7 @@ from blossom.schema.schema import (
 
 
 SORT_KEY = "__sort_key__"
+SUM_KEY = "__sum_key__"
 
 
 def schema_to_row(schema: Schema) -> dict[str, Any]:
@@ -44,6 +45,27 @@ def row_to_schema(row: dict[str, Any]) -> Schema:
     data[FIELD_TYPE] = row[FIELD_TYPE]
     data[FIELD_METADATA] = json.loads(row[FIELD_METADATA])
     return Schema.from_dict(data)
+
+
+def _map_batches(
+    dataset: ray.data.Dataset,
+    func: Callable[[list[dict[str, Any]]], list[dict[str, Any]]],
+) -> ray.data.Dataset:
+    def _map_batch(
+        batch: dict[str, np.ndarray[Any, Any]]
+    ) -> dict[str, np.ndarray[Any, Any]]:
+        batch_size = len(next(iter(batch.values())))
+        rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
+        transformed_rows = func(rows)
+
+        result: dict[str, list[Any]] = {}
+        for row in transformed_rows:
+            for k, v in row.items():
+                result.setdefault(k, []).append(v)
+        return {k: np.array(v) for k, v in result.items()}
+
+    result: ray.data.Dataset = dataset.map_batches(_map_batch)
+    return result
 
 
 class SchemaRowDatasink(BlockBasedFileDatasink):
@@ -86,41 +108,21 @@ class RayDataFrame(DataFrame):
         return RayDataFrame(filtered_dataset)
 
     def transform(self, func: Callable[[list[Schema]], list[Schema]]) -> "DataFrame":
-        def transform_partition(
-            batch: dict[str, np.ndarray[Any, Any]]
-        ) -> dict[str, np.ndarray[Any, Any]]:
-            batch_size = len(next(iter(batch.values())))
-            rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
-            transformed_schemas = func([row_to_schema(row) for row in rows])
+        def transform_partition(batch: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            transformed_schemas = func([row_to_schema(row) for row in batch])
+            return [schema_to_row(schema) for schema in transformed_schemas]
 
-            result: dict[str, list[Any]] = {}
-            for schema in transformed_schemas:
-                for k, v in schema_to_row(schema).items():
-                    result.setdefault(k, []).append(v)
-            return {k: np.array(v) for k, v in result.items()}
-
-        transformed_dataset = self.ray_dataset.map_batches(transform_partition)
+        transformed_dataset = _map_batches(self.ray_dataset, transform_partition)
         return RayDataFrame(transformed_dataset)
 
     def sort(
         self, func: Callable[[Schema], Any], ascending: bool = True
     ) -> "DataFrame":
-        def calc_sort_key(
-            batch: dict[str, np.ndarray[Any, Any]]
-        ) -> dict[str, np.ndarray[Any, Any]]:
-            batch_size = len(next(iter(batch.values())))
-            rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
-            rows_with_sort_key = [
-                {**row, SORT_KEY: func(row_to_schema(row))} for row in rows
-            ]
-            result: dict[str, list[Any]] = {}
-            for row in rows_with_sort_key:
-                for k, v in row.items():
-                    result.setdefault(k, []).append(v)
-            return {k: np.array(v) for k, v in result.items()}
+        def calc_sort_key(batch: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return [{**row, SORT_KEY: func(row_to_schema(row))} for row in batch]
 
         sorted_dataset = (
-            self.ray_dataset.map_batches(calc_sort_key)
+            _map_batches(self.ray_dataset, calc_sort_key)
             .sort(SORT_KEY, descending=not ascending)
             .drop_columns([SORT_KEY])
         )
@@ -149,16 +151,11 @@ class RayDataFrame(DataFrame):
         return RayDataFrame(repartitioned_dataset)
 
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        def sum_batch(
-            batch: dict[str, np.ndarray[Any, Any]]
-        ) -> dict[str, np.ndarray[Any, Any]]:
-            batch_size = len(next(iter(batch.values())))
-            rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
-            batch_sum = sum(func(row_to_schema(row)) for row in rows)
-            return {"sum": np.array([batch_sum])}
+        def sum_batch(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return [{SUM_KEY: sum(func(row_to_schema(row)) for row in rows)}]
 
-        partial_sums = self.ray_dataset.map_batches(sum_batch).take_all()
-        sum_result: Union[int, float] = sum(row["sum"] for row in partial_sums)
+        partial_sums = _map_batches(self.ray_dataset, sum_batch).take_all()
+        sum_result: Union[int, float] = sum(row[SUM_KEY] for row in partial_sums)
         return sum_result
 
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":

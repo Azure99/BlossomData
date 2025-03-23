@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Iterator, Optional, Any
+from typing import Callable, Iterator, Optional, Any, Union
 
 import numpy as np
 import pyarrow as pa
@@ -113,6 +113,19 @@ class RayDataFrame(DataFrame):
     def repartition(self, num_partitions: int) -> "DataFrame":
         repartitioned_dataset = self.ray_dataset.repartition(num_partitions)
         return RayDataFrame(repartitioned_dataset)
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        def sum_batch(
+            batch: dict[str, np.ndarray[Any, Any]]
+        ) -> dict[str, np.ndarray[Any, Any]]:
+            batch_size = len(next(iter(batch.values())))
+            rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
+            batch_sum = sum(func(row_to_schema(row)) for row in rows)
+            return {"sum": np.array([batch_sum])}
+
+        partial_sums = self.ray_dataset.map_batches(sum_batch).take_all()
+        sum_result: Union[int, float] = sum(row["sum"] for row in partial_sums)
+        return sum_result
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         rows = [schema_to_row(schema) for schema in schemas]

@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 from blossom.context.context import Context
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
@@ -47,6 +47,9 @@ class StandardDataset(Dataset):
 
     def repartition(self, num_partitions: int) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.repartition(num_partitions))
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.dataframe.sum(func)
 
     def from_list(self, schemas: list[Schema]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.from_list(schemas))

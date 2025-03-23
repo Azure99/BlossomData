@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 from abc import ABC, abstractmethod
 
 from blossom.context.context import Context
@@ -45,6 +45,10 @@ class Dataset(ABC):
 
     @abstractmethod
     def repartition(self, num_partitions: int) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         pass
 
     @abstractmethod

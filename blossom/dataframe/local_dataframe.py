@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
@@ -36,6 +36,9 @@ class LocalDataFrame(DataFrame):
     def repartition(self, num_partitions: int) -> "DataFrame":
         logger.warning("LocalDataFrame does not support repartition.")
         return LocalDataFrame(self.data)
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return sum(func(schema) for schema in self.data)
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         return LocalDataFrame(schemas)

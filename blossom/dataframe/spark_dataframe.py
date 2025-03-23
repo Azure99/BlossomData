@@ -1,6 +1,6 @@
 import json
 import random
-from typing import Callable, Optional, Any
+from typing import Callable, Optional, Any, Union
 from collections.abc import Iterable
 
 from pyspark.rdd import RDD
@@ -71,6 +71,13 @@ class SparkDataFrame(DataFrame):
         return SparkDataFrame(
             self.spark_rdd.repartition(num_partitions), self.spark_session
         )
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        def map_row_to_value(row_dict: dict[str, Any]) -> Union[int, float]:
+            schema = Schema.from_dict(row_dict)
+            return func(schema)
+
+        return self.spark_rdd.map(map_row_to_value).sum()
 
     def from_list(self, schemas: list[Schema]) -> "DataFrame":
         row_dicts = [schema.to_dict() for schema in schemas]

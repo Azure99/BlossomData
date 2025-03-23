@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
 from blossom.dataframe.data_handler import DataHandler
 from blossom.schema.schema import Schema
@@ -36,6 +36,10 @@ class DataFrame(ABC):
 
     @abstractmethod
     def repartition(self, num_partitions: int) -> "DataFrame":
+        pass
+
+    @abstractmethod
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         pass
 
     @abstractmethod

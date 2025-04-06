@@ -35,7 +35,7 @@ dataset = create_dataset(data)
 # 执行算子并收集结果
 result = dataset.execute([
     # 对话翻译，使用gpt-4o将对话数据翻译为中文
-    ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
+    ChatTranslator(model="gpt-4o-mini", target_language="Chinese"),
 ]).collect()
 
 print(result)
@@ -45,7 +45,7 @@ print(result)
 
 ```python
 dataset.execute([
-    ChatTranslate(
+    ChatTranslator(
         model="gpt-4o-mini",
         target_language="Chinese",
         instruction_only=True,
@@ -60,14 +60,14 @@ dataset.execute([
 
 ```python
 dataset.execute([
-    ChatTranslate(
+    ChatTranslator(
         model="gpt-4o-mini",
         target_language="Chinese",
         # 由于Assistant的回复会被蒸馏覆盖，此处可以仅翻译USER的消息
         roles=[ChatRole.USER],
     ),
     # 提供多种蒸馏模式，第一轮、最后一轮、所有轮次
-    ChatDistill(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
+    ChatDistiller(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
 ]).collect()
 ```
 
@@ -86,7 +86,7 @@ data = [
 ]
 dataset = create_dataset(data)
 dataset.execute([
-    ChatMathDistill(
+    ChatMathDistiller(
         model="gpt-4o-mini",
         validate_mode=ChatMathDistill.ValidateMode.LLM,
         max_retry=3,
@@ -134,7 +134,7 @@ dataset = load_dataset("/path/to/data.json", type=DatasetEngine.SPARK)
     # 随机打乱数据并取前10条
     .shuffle()
     .limit(10)
-    .execute([ChatTranslate(model="gpt-4o-mini", target_language="Chinese")])
+    .execute([ChatTranslator(model="gpt-4o-mini", target_language="Chinese")])
     # 将数据写入本地文件
     .write_json("/path/to/output")
 )
@@ -201,7 +201,7 @@ dataset = create_dataset(data)
 
 result = dataset.execute([
     # 翻译英文文本
-    TextTranslate(
+    TextTranslator(
         model="gpt-4o-mini",
         target_language="Chinese",
     ),

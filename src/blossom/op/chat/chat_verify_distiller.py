@@ -37,7 +37,7 @@ Please output only a JSON without any explanation or other irrelevant content.""
 METADATA_REASONING_COUNT = "reasoning_count"
 
 
-class ChatMathDistill(MapOperator):
+class ChatVerifyDistiller(MapOperator):
     class ValidateMode(StrEnum):
         NONE = "none"
         REGEX = "regex"

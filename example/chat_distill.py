@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatDistill, ChatTranslate
+from blossom.op import ChatDistiller, ChatTranslator
 from blossom.schema import ChatSchema, system, user, assistant
 
 data = [
@@ -16,8 +16,8 @@ data = [
 ]
 
 ops = [
-    ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
-    ChatDistill(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
+    ChatTranslator(model="gpt-4o-mini", target_language="Chinese"),
+    ChatDistiller(model="gpt-4o-mini", strategy=ChatDistiller.Strategy.MULTI_TURN),
 ]
 
 result = create_dataset(data).execute(ops).collect()

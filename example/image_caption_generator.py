@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatDistill
+from blossom.op import ChatDistiller
 from blossom.schema import ChatSchema, user, text_content, image_content
 
 data = [
@@ -21,7 +21,7 @@ data = [
 ]
 
 ops = [
-    ChatDistill(model="gpt-4o-mini"),
+    ChatDistiller(model="gpt-4o-mini"),
 ]
 
 result = create_dataset(data).execute(ops).collect()

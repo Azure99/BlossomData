@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatEmbedding
+from blossom.op import ChatEmbedder
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -19,7 +19,7 @@ data = [
 ]
 
 ops = [
-    ChatEmbedding(model="text-embedding-3-small"),
+    ChatEmbedder(model="text-embedding-3-small"),
 ]
 
 result = create_dataset(data).execute(ops).collect()

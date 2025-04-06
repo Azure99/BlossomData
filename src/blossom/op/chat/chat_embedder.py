@@ -2,13 +2,13 @@ from typing import Any, Optional
 
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
-from blossom.op.util.text_embedder import TextEmbedder
+from blossom.op.util.content_embedder import ContentEmbedder
 from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 from blossom.schema.schema import Schema
 from blossom.util.type import StrEnum
 
 
-class ChatEmbedding(MapOperator):
+class ChatEmbedder(MapOperator):
     class Strategy(StrEnum):
         FIRST = "first"
         LAST = "last"
@@ -35,7 +35,7 @@ class ChatEmbedding(MapOperator):
         self.extra_params = extra_params
 
     def _embedding(self, text: str) -> list[float]:
-        embedder = TextEmbedder(self.context.get_model(self.model))
+        embedder = ContentEmbedder(self.context.get_model(self.model))
         return embedder.embedding(
             content=text,
             max_retry=self.max_retry,
@@ -49,9 +49,9 @@ class ChatEmbedding(MapOperator):
             return self._cast_base(_item)
 
         messages = list(filter(lambda x: x.role in self.roles, _item.messages))
-        if self.strategy == ChatEmbedding.Strategy.FIRST:
+        if self.strategy == ChatEmbedder.Strategy.FIRST:
             messages = [messages[0]]
-        elif self.strategy == ChatEmbedding.Strategy.LAST:
+        elif self.strategy == ChatEmbedder.Strategy.LAST:
             messages = [messages[-1]]
 
         embeddings = []

@@ -2,12 +2,12 @@ from typing import Any, Optional
 
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
-from blossom.op.util.text_translator import TextTranslator
+from blossom.op.util.content_translator import ContentTranslator
 from blossom.schema.chat_schema import ChatMessageContentText, ChatRole
 from blossom.schema.schema import Schema
 
 
-class ChatTranslate(MapOperator):
+class ChatTranslator(MapOperator):
     def __init__(
         self,
         model: str,
@@ -27,7 +27,7 @@ class ChatTranslate(MapOperator):
         self.extra_params = extra_params
 
     def _translate(self, content: str) -> str:
-        translator = TextTranslator(self.context.get_model(self.model))
+        translator = ContentTranslator(self.context.get_model(self.model))
         return translator.translate(
             content=content,
             target_language=self.target_language,

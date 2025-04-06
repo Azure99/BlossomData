@@ -10,7 +10,7 @@ from blossom.util.type import StrEnum
 METADATA_RESPONSE_TRUNCATED = "response_truncated"
 
 
-class ChatDistill(MapOperator):
+class ChatDistiller(MapOperator):
     class Strategy(StrEnum):
         FIRST_TURN = "first_turn"
         LAST_TURN = "last_turn"
@@ -57,11 +57,11 @@ class ChatDistill(MapOperator):
     def _process_item_messages(
         self, messages: list[ChatMessage]
     ) -> tuple[list[ChatMessage], bool]:
-        if self.strategy == ChatDistill.Strategy.FIRST_TURN:
+        if self.strategy == ChatDistiller.Strategy.FIRST_TURN:
             return self._process_first_turn(messages)
-        elif self.strategy == ChatDistill.Strategy.LAST_TURN:
+        elif self.strategy == ChatDistiller.Strategy.LAST_TURN:
             return self._process_last_turn(messages)
-        elif self.strategy == ChatDistill.Strategy.MULTI_TURN:
+        elif self.strategy == ChatDistiller.Strategy.MULTI_TURN:
             return self._process_multi_turn(messages)
 
         raise NotImplementedError("Distill strategy not implemented")

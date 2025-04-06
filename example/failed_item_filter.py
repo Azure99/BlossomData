@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatDistill, ChatTranslate, FailedItemFilter
+from blossom.op import ChatDistiller, ChatTranslator, FailedItemFilter
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -17,8 +17,8 @@ data = [
 ]
 
 ops = [
-    ChatDistill(model="gpt-4o-mini"),
-    ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
+    ChatDistiller(model="gpt-4o-mini"),
+    ChatTranslator(model="gpt-4o-mini", target_language="Chinese"),
     FailedItemFilter(),
 ]
 

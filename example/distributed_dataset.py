@@ -2,8 +2,8 @@ import random
 from blossom.dataset import create_dataset
 
 from blossom.dataset import DatasetEngine, load_dataset
-from blossom.op.chat.chat_distill import ChatDistill
-from blossom.op.chat.chat_translate import ChatTranslate
+from blossom.op.chat.chat_distiller import ChatDistiller
+from blossom.op.chat.chat_translator import ChatTranslator
 from blossom.schema import ChatSchema, user, assistant
 from blossom.schema.text_schema import TextSchema
 
@@ -29,8 +29,8 @@ create_dataset(example_data).write_json("example_data.jsonl")
     .repartition(2)
     .execute(
         [
-            ChatTranslate(model="gpt-4o-mini", target_language="Chinese"),
-            ChatDistill(model="gpt-4o-mini", parallel=4),
+            ChatTranslator(model="gpt-4o-mini", target_language="Chinese"),
+            ChatDistiller(model="gpt-4o-mini", parallel=4),
         ]
     )
     .map(

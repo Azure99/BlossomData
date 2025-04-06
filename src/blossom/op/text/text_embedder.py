@@ -2,11 +2,11 @@ from typing import Any, Optional
 
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
-from blossom.op.util.text_embedder import TextEmbedder
+from blossom.op.util.content_embedder import ContentEmbedder
 from blossom.schema.schema import Schema
 
 
-class TextEmbedding(MapOperator):
+class TextEmbedder(MapOperator):
     def __init__(
         self,
         model: str,
@@ -29,7 +29,7 @@ class TextEmbedding(MapOperator):
         if not self.overwrite_field and _item.metadata.get(self.embedding_field):
             return self._cast_base(_item)
 
-        embedder = TextEmbedder(self.context.get_model(self.model))
+        embedder = ContentEmbedder(self.context.get_model(self.model))
         try:
             _item.metadata[self.embedding_field] = [
                 embedder.embedding(

@@ -17,7 +17,7 @@ TRANSLATE_PROMPT_TEMPLATE = """Your task is to translate the text into {target_l
 TRANSLATE_PROMPT_PART_INSTRUCTION_ONLY = '4. Just translate the instructions in the text and output "code, script, data," etc., as is without translating them.'
 
 
-class TextTranslator:
+class ContentTranslator:
     def __init__(self, provider: Provider) -> None:
         self.provider = provider
 

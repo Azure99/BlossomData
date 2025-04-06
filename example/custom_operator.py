@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import MapOperator, TextTranslate
+from blossom.op import MapOperator, TextTranslator
 from blossom.schema import ChatSchema, TextSchema, user, assistant
 from blossom.util import loads_markdown_first_json
 
@@ -34,7 +34,7 @@ data = [
 
 ops = [
     # 翻译英文文本
-    TextTranslate(
+    TextTranslator(
         model="gpt-4o-mini",
         target_language="Chinese",
     ),

@@ -3,7 +3,7 @@ from typing import Any, Optional
 from blossom.provider.provider import Provider
 
 
-class TextEmbedder:
+class ContentEmbedder:
     def __init__(self, provider: Provider) -> None:
         self.provider = provider
 

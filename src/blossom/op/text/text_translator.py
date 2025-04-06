@@ -2,11 +2,11 @@ from typing import Any, Optional
 
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
-from blossom.op.util.text_translator import TextTranslator
+from blossom.op.util.content_translator import ContentTranslator
 from blossom.schema.schema import Schema
 
 
-class TextTranslate(MapOperator):
+class TextTranslator(MapOperator):
     def __init__(
         self,
         model: str,
@@ -24,7 +24,7 @@ class TextTranslate(MapOperator):
     def process_item(self, item: Schema) -> Schema:
         _item = self._cast_text(item)
 
-        translator = TextTranslator(self.context.get_model(self.model))
+        translator = ContentTranslator(self.context.get_model(self.model))
         try:
             _item.content = translator.translate(
                 content=_item.content,

@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
@@ -18,7 +18,7 @@ from blossom.util.type import StrEnum
 
 LAST_NUMBER_REGEX = r"-?\d+(?:\.\d+)?"
 
-LLM_CHECK_PROMPT = """For the given "Question," "Reference answer," and "Response," please analyze step by step whether the "reference answer" and "response" are consistent.
+LLM_VERIFY_PROMPT = """For the given "Question," "Reference answer," and "Response," please analyze step by step whether the "reference answer" and "response" are consistent.
 
 ### Question:
 {question}
@@ -30,7 +30,7 @@ LLM_CHECK_PROMPT = """For the given "Question," "Reference answer," and "Respons
 {model_answer}
 """
 
-LLM_CHECK_JSON_PROMPT = """Please output your conclusion directly in JSON format.
+LLM_VERIFY_JSON_PROMPT = """Please output your conclusion directly in JSON format.
 The JSON should contain only one boolean field named "consistent," which indicates whether the "reference answer" and the "response" are consistent.
 Please output only a JSON without any explanation or other irrelevant content."""
 
@@ -38,28 +38,33 @@ METADATA_REASONING_COUNT = "reasoning_count"
 
 
 class ChatVerifyDistiller(MapOperator):
-    class ValidateMode(StrEnum):
+    class Mode(StrEnum):
         NONE = "none"
         REGEX = "regex"
         LLM = "llm"
+        FUNCTION = "function"
 
     def __init__(
         self,
         model: str,
-        validate_mode: ValidateMode = ValidateMode.NONE,
-        validate_model: Optional[str] = None,
+        mode: Mode = Mode.NONE,
         reference_field: Optional[str] = None,
-        check_prompt: Optional[str] = None,
+        validation_model: Optional[str] = None,
+        validation_prompt: Optional[str] = None,
+        validation_function: Optional[Callable[[str, str, str], bool]] = None,
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
     ):
         super().__init__(parallel=parallel)
         self.model = model
-        self.validate_mode = validate_mode
-        self.validate_model = validate_model or model
+        self.mode = mode
         self.reference_field = reference_field
-        self.check_prompt = check_prompt
+        self.validation_model = validation_model or model
+        self.validation_prompt = validation_prompt
+        if self.mode == self.Mode.FUNCTION:
+            assert validation_function is not None
+        self.validation_function = validation_function
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -68,7 +73,7 @@ class ChatVerifyDistiller(MapOperator):
 
         question = self._first_message_content(_item.messages, ChatRole.USER)
         reference = ""
-        if self.validate_mode != self.ValidateMode.NONE:
+        if self.mode != self.Mode.NONE:
             if self.reference_field:
                 if self.reference_field in _item.metadata:
                     reference = _item.metadata[self.reference_field]
@@ -79,9 +84,7 @@ class ChatVerifyDistiller(MapOperator):
                 assert isinstance(chat_reference, str)
                 reference = chat_reference
 
-        if not question or (
-            not reference and self.validate_mode != self.ValidateMode.NONE
-        ):
+        if not question or (not reference and self.mode != self.Mode.NONE):
             return self._cast_base(_item)
 
         for retry_count in range(self.max_retry):
@@ -112,7 +115,7 @@ class ChatVerifyDistiller(MapOperator):
         # model answer is not complete
         if finish_reason != ChatCompletionFinishReason.STOP:
             # cannot validate incomplete model answer
-            if self.validate_mode != self.ValidateMode.NONE:
+            if self.mode != self.Mode.NONE:
                 raise ValueError("Model answer is not complete")
 
         model_message = response.choices[0].message
@@ -134,13 +137,18 @@ class ChatVerifyDistiller(MapOperator):
                     break
         assert isinstance(question, str)
 
-        if self.validate_mode == self.ValidateMode.REGEX:
+        if self.mode == self.Mode.REGEX:
             return self._validate_answer_by_regex(reference_answer, model_answer)
 
-        if self.validate_mode == self.ValidateMode.LLM:
+        if self.mode == self.Mode.LLM:
             return self._validate_answer_by_llm(
                 question, reference_answer, model_answer
             )
+
+        if self.mode == self.Mode.FUNCTION:
+            if not self.validation_function:
+                raise ValueError("validation_function must be provided.")
+            return self.validation_function(question, reference_answer, model_answer)
 
         return True
 
@@ -154,28 +162,28 @@ class ChatVerifyDistiller(MapOperator):
     def _validate_answer_by_llm(
         self, question: str, reference_answer: str, model_answer: str
     ) -> bool:
-        prompt_template = self.check_prompt or LLM_CHECK_PROMPT
-        validate_prompt = prompt_template.format(
+        prompt_template = self.validation_prompt or LLM_VERIFY_PROMPT
+        validation_prompt = prompt_template.format(
             question=question,
             reference_answer=reference_answer,
             model_answer=model_answer,
         )
-        validate_messages = [user(validate_prompt)]
+        validation_messages = [user(validation_prompt)]
 
-        validate_messages.append(
+        validation_messages.append(
             assistant(
                 self.context.chat_completion(
-                    model=self.validate_model,
-                    messages=validate_messages,
+                    model=self.validation_model,
+                    messages=validation_messages,
                 )
             )
         )
 
-        validate_messages.append(user(LLM_CHECK_JSON_PROMPT))
-        validate_json_result = self.context.chat_completion(
-            model=self.validate_model, messages=validate_messages
+        validation_messages.append(user(LLM_VERIFY_JSON_PROMPT))
+        validation_json_result = self.context.chat_completion(
+            model=self.validation_model, messages=validation_messages
         )
-        consistent = loads_markdown_first_json(validate_json_result).get(
+        consistent = loads_markdown_first_json(validation_json_result).get(
             "consistent", False
         )
         assert isinstance(consistent, bool)

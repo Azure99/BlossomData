@@ -88,7 +88,7 @@ dataset = create_dataset(data)
 dataset.execute([
     ChatMathDistiller(
         model="gpt-4o-mini",
-        validate_mode=ChatMathDistill.ValidateMode.LLM,
+        mode=ChatMathDistiller.Mode.LLM,
         max_retry=3,
     ),
 ]).collect()

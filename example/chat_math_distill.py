@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatVerificationDistiller
+from blossom.op import ChatVerifyDistiller
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -20,9 +20,9 @@ data = [
 ]
 
 ops = [
-    ChatVerificationDistiller(
+    ChatVerifyDistiller(
         model="gpt-4o-mini",
-        validate_mode=ChatVerificationDistiller.ValidateMode.LLM,
+        mode=ChatVerifyDistiller.Mode.LLM,
         reference_field="reference",
         max_retry=3,
     ),

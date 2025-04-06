@@ -6,7 +6,7 @@ from blossom.schema.chat_schema import ChatSchema, assistant, user
 from blossom.schema.schema import Schema
 from blossom.util.json import loads_markdown_first_json
 
-LLM_CHECK_PROMPT = """For the given "Question," "Response_1" and "Response_2" please analyze step by step whether the answers of  "Response_1" and "Response_2" are obviously inconsistent.
+LLM_VERIFY_PROMPT = """For the given "Question," "Response_1" and "Response_2" please analyze step by step whether the answers of  "Response_1" and "Response_2" are obviously inconsistent.
 
 ### Question:
 {question}
@@ -18,7 +18,7 @@ LLM_CHECK_PROMPT = """For the given "Question," "Response_1" and "Response_2" pl
 {response_2}
 """
 
-LLM_CHECK_JSON_PROMPT = """Please output your conclusion directly in JSON format.
+LLM_VERIFY_JSON_PROMPT = """Please output your conclusion directly in JSON format.
 The JSON should contain only one boolean field named "inconsistent," which indicates whether the "reference answer" and the "response" are obviously inconsistent.
 Please output only a JSON without any explanation or other irrelevant content."""
 
@@ -29,6 +29,7 @@ class ChatMultiReasoningFilter(FilterOperator):
         review_model: str,
         reasoning_model: Optional[str] = None,
         reference_field: Optional[str] = None,
+        validation_prompt: Optional[str] = None,
         max_retry: int = 1,
         reverse: bool = False,
         parallel: int = 1,
@@ -37,6 +38,7 @@ class ChatMultiReasoningFilter(FilterOperator):
         self.review_model = review_model
         self.reasoning_model = reasoning_model
         self.reference_field = reference_field
+        self.validation_prompt = validation_prompt
         self.max_retry = max_retry
         if self.reasoning_model is None and self.reference_field is None:
             raise ValueError("reasoning_model or reference_field must be provided")
@@ -69,26 +71,27 @@ class ChatMultiReasoningFilter(FilterOperator):
         if not reference:
             return False
 
-        validate_messages = [
+        validation_prompt = self.validation_prompt or LLM_VERIFY_PROMPT
+        validation_messages = [
             user(
-                LLM_CHECK_PROMPT.format(
+                validation_prompt.format(
                     question=question, response_1=model_answer, response_2=reference
                 )
             )
         ]
-        validate_messages.append(
+        validation_messages.append(
             assistant(
                 self.context.chat_completion(
-                    model=self.review_model, messages=validate_messages
+                    model=self.review_model, messages=validation_messages
                 )
             )
         )
-        validate_messages.append(user(LLM_CHECK_JSON_PROMPT))
+        validation_messages.append(user(LLM_VERIFY_JSON_PROMPT))
 
-        validate_json_result = self.context.chat_completion(
-            model=self.review_model, messages=validate_messages
+        validation_json_result = self.context.chat_completion(
+            model=self.review_model, messages=validation_messages
         )
-        inconsistent = loads_markdown_first_json(validate_json_result).get(
+        inconsistent = loads_markdown_first_json(validation_json_result).get(
             "inconsistent", False
         )
         consistent = not inconsistent

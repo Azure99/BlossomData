@@ -150,6 +150,9 @@ class RayDataFrame(DataFrame):
         repartitioned_dataset = self.ray_dataset.repartition(num_partitions)
         return RayDataFrame(repartitioned_dataset)
 
+    def split(self, n: int) -> list["DataFrame"]:
+        return [RayDataFrame(dataset) for dataset in self.ray_dataset.split(n)]
+
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         def sum_batch(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             return [{SUM_KEY: sum(func(row_to_schema(row)) for row in rows)}]

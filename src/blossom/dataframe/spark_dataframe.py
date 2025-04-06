@@ -87,6 +87,26 @@ class SparkDataFrame(DataFrame):
             self.spark_rdd.repartition(num_partitions), self.spark_session
         )
 
+    def split(self, n: int) -> list["DataFrame"]:
+        rdd = self.spark_rdd.zipWithIndex().cache()
+        total = rdd.count()
+        chunk_size = total // n
+        remainder = total % n
+        dataframes: list[DataFrame] = []
+        start = 0
+        for i in range(n):
+            end = start + chunk_size + (1 if i < remainder else 0)
+
+            def make_filter(
+                s: int, e: int
+            ) -> Callable[[tuple[dict[str, Any], int]], bool]:
+                return lambda x: x[1] >= s and x[1] < e
+
+            chunk_rdd = rdd.filter(make_filter(start, end)).map(lambda x: x[0])
+            dataframes.append(SparkDataFrame(chunk_rdd, self.spark_session))
+            start = end
+        return dataframes
+
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         def map_row_to_value(row_dict: dict[str, Any]) -> Union[int, float]:
             schema = Schema.from_dict(row_dict)

@@ -51,6 +51,19 @@ class LocalDataFrame(DataFrame):
         logger.warning("LocalDataFrame does not support repartition.")
         return LocalDataFrame(self.data)
 
+    def split(self, n: int) -> list["DataFrame"]:
+        total = len(self.data)
+        chunk_size = total // n
+        remainder = total % n
+
+        start = 0
+        dataframes: list[DataFrame] = []
+        for i in range(n):
+            end = start + chunk_size + (1 if i < remainder else 0)
+            dataframes.append(LocalDataFrame(self.data[start:end]))
+            start = end
+        return dataframes
+
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return sum(func(schema) for schema in self.data)
 

@@ -54,6 +54,12 @@ class StandardDataset(Dataset):
     def repartition(self, num_partitions: int) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.repartition(num_partitions))
 
+    def split(self, n: int) -> list["Dataset"]:
+        return [
+            StandardDataset(self.context, dataframe)
+            for dataframe in self.dataframe.split(n)
+        ]
+
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return self.dataframe.sum(func)
 

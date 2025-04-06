@@ -56,6 +56,10 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
+    def split(self, n: int) -> list["Dataset"]:
+        pass
+
+    @abstractmethod
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         pass
 

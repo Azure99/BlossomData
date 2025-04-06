@@ -24,9 +24,20 @@ class DataFrame(ABC):
     ) -> "DataFrame":
         pass
 
-    @abstractmethod
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
-        pass
+        def add_metadata_to_schema(schema: Schema) -> Schema:
+            schema.metadata.update(func(schema))
+            return schema
+
+        return self.map(add_metadata_to_schema)
+
+    def drop_metadata(self, keys: list[str]) -> "DataFrame":
+        def drop_metadata_from_schema(schema: Schema) -> Schema:
+            for key in keys:
+                schema.metadata.pop(key, None)
+            return schema
+
+        return self.map(drop_metadata_from_schema)
 
     @abstractmethod
     def collect(self) -> list[Schema]:

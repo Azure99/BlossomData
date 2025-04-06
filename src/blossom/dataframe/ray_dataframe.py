@@ -128,13 +128,6 @@ class RayDataFrame(DataFrame):
         )
         return RayDataFrame(sorted_dataset)
 
-    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
-        def add_metadata_to_schema(schema: Schema) -> Schema:
-            schema.metadata.update(func(schema))
-            return schema
-
-        return self.map(add_metadata_to_schema)
-
     def count(self) -> int:
         return int(self.ray_dataset.count())
 

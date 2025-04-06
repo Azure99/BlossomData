@@ -32,6 +32,10 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
+    def drop_metadata(self, keys: list[str]) -> "Dataset":
+        pass
+
+    @abstractmethod
     def execute(self, operators: list[Operator]) -> "Dataset":
         pass
 

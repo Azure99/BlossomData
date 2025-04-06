@@ -56,13 +56,6 @@ class SparkDataFrame(DataFrame):
         )
         return SparkDataFrame(sorted_rdd, self.spark_session)
 
-    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
-        def add_metadata_to_schema(schema: Schema) -> Schema:
-            schema.metadata.update(func(schema))
-            return schema
-
-        return self.map(add_metadata_to_schema)
-
     def count(self) -> int:
         return self.spark_rdd.count()
 

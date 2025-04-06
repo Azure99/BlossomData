@@ -32,6 +32,9 @@ class StandardDataset(Dataset):
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.add_metadata(func))
 
+    def drop_metadata(self, keys: list[str]) -> "Dataset":
+        return StandardDataset(self.context, self.dataframe.drop_metadata(keys))
+
     def execute(self, operators: list[Operator]) -> "Dataset":
         current_df = self.dataframe
         for operator in operators:

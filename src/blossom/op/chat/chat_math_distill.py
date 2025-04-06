@@ -86,10 +86,10 @@ class ChatMathDistill(MapOperator):
 
         for retry_count in range(self.max_retry):
             try:
-                model_answer = self._distill_with_validate(question, reference)
+                model_message = self._distill_with_validate(question, reference)
                 _item.messages = [
                     user(question),
-                    assistant(model_answer),
+                    model_message,
                 ]
                 _item.metadata[METADATA_REASONING_COUNT] = retry_count + 1
                 return self._cast_base(_item)
@@ -101,7 +101,7 @@ class ChatMathDistill(MapOperator):
 
     def _distill_with_validate(
         self, question: Union[str, list[ChatMessageContent]], reference: str
-    ) -> str:
+    ) -> ChatMessage:
         response = self.context.chat_completion_with_details(
             model=self.model,
             messages=[user(question)],
@@ -115,10 +115,10 @@ class ChatMathDistill(MapOperator):
             if self.validate_mode != self.ValidateMode.NONE:
                 raise ValueError("Model answer is not complete")
 
-        model_answer = response.choices[0].message.content
-        assert isinstance(model_answer, str)
-        if self._validate_model_answer(question, reference, model_answer):
-            return model_answer
+        model_message = response.choices[0].message
+        assert isinstance(model_message.content, str)
+        if self._validate_model_answer(question, reference, model_message.content):
+            return model_message
         raise ValueError("Model answer is not consistent with the reference answer")
 
     def _validate_model_answer(
@@ -135,23 +135,23 @@ class ChatMathDistill(MapOperator):
         assert isinstance(question, str)
 
         if self.validate_mode == self.ValidateMode.REGEX:
-            return self._validate_model_answer_regex(reference_answer, model_answer)
+            return self._validate_answer_by_regex(reference_answer, model_answer)
 
         if self.validate_mode == self.ValidateMode.LLM:
-            return self._validate_model_answer_llm(
+            return self._validate_answer_by_llm(
                 question, reference_answer, model_answer
             )
 
         return True
 
     @staticmethod
-    def _validate_model_answer_regex(reference_answer: str, model_answer: str) -> bool:
+    def _validate_answer_by_regex(reference_answer: str, model_answer: str) -> bool:
         matches = re.findall(LAST_NUMBER_REGEX, model_answer)
         last_number = float(matches[-1]) if matches else None
         answer_number = float(reference_answer.lower())
         return last_number == answer_number
 
-    def _validate_model_answer_llm(
+    def _validate_answer_by_llm(
         self, question: str, reference_answer: str, model_answer: str
     ) -> bool:
         prompt_template = self.check_prompt or LLM_CHECK_PROMPT

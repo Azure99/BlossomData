@@ -49,6 +49,7 @@ class ChatMessageContentText(ChatMessageContent):
 class ChatMessage(BaseModel):
     role: ChatRole
     content: Union[str, list[ChatMessageContent]]
+    reasoning_content: Optional[str] = None
 
     @field_validator("content", mode="before")
     def messages_deserialization(cls, v: Any) -> Any:

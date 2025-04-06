@@ -10,10 +10,12 @@ class ChatContentTrimmer(MapOperator):
         self,
         roles: Optional[list[ChatRole]] = None,
         strip_chars: Optional[str] = None,
+        trim_reasoning: bool = True,
     ):
         super().__init__()
         self.roles = roles or [ChatRole.ASSISTANT]
         self.strip_chars = strip_chars
+        self.trim_reasoning = trim_reasoning
 
     def process_item(self, item: Schema) -> Schema:
         _item = self._cast_chat(item)
@@ -28,5 +30,8 @@ class ChatContentTrimmer(MapOperator):
                 for part in message.content:
                     if isinstance(part, ChatMessageContentText):
                         part.text = part.text.strip(self.strip_chars)
+            
+            if self.trim_reasoning and message.reasoning_content:
+                message.reasoning_content = message.reasoning_content.strip(self.strip_chars)
 
         return self._cast_base(_item)

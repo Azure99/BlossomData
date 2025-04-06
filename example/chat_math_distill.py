@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatVerifyDistiller
+from blossom.op import ChatReasoningContentMerger, ChatVerifyDistiller
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -21,11 +21,13 @@ data = [
 
 ops = [
     ChatVerifyDistiller(
-        model="gpt-4o-mini",
+        model="deepseek-reasoner",
         mode=ChatVerifyDistiller.Mode.LLM,
+        validation_model="gpt-4o-mini",
         reference_field="reference",
         max_retry=3,
     ),
+    ChatReasoningContentMerger()
 ]
 
 result = create_dataset(data).execute(ops).collect()

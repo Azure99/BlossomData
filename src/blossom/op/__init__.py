@@ -1,5 +1,6 @@
 from .chat.chat_content_filter import ChatContentFilter
 from .chat.chat_content_replacer import ChatContentReplacer
+from .chat.chat_content_trimmer import ChatContentTrimmer
 from .chat.chat_distiller import ChatDistiller
 from .chat.chat_embedder import ChatEmbedder
 from .chat.chat_invalid_filter import ChatInvalidFilter
@@ -18,6 +19,7 @@ from .text.text_embedder import TextEmbedder
 from .text.text_length_filter import TextLengthFilter
 from .text.text_repetition_filter import TextRepetitionFilter
 from .text.text_translator import TextTranslator
+from .text.text_trimmer import TextTrimmer
 from .transform_operator import (
     TransformOperator,
     context_transform_operator,
@@ -32,6 +34,7 @@ __all__ = [
     "CharRepetitionFilter",
     "ChatContentFilter",
     "ChatContentReplacer",
+    "ChatContentTrimmer",
     "ChatDistiller",
     "ChatEmbedder",
     "ChatInvalidFilter",
@@ -52,6 +55,7 @@ __all__ = [
     "TextLengthFilter",
     "TextRepetitionFilter",
     "TextTranslator",
+    "TextTrimmer",
     "TransformOperator",
     "context_filter_operator",
     "context_map_operator",

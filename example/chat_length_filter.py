@@ -1,20 +1,13 @@
+import re
 from blossom.dataset import create_dataset
 
 from blossom.op import ChatLengthFilter
 from blossom.schema import ChatSchema, user, assistant
 
-tokenizer = None
 
-
-def llama_tokenizer_len(text):
-    global tokenizer
-    from transformers import AutoTokenizer
-
-    if not tokenizer:
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-1.5B")
-    length = len(tokenizer.encode(text))
-    print(f"'{text}' tokenized length: {length}")
-    return length
+def count_words(text):
+    tokens = re.findall(r"\w+|[^\w\s]", text)
+    return len(tokens)
 
 
 data = [
@@ -33,7 +26,7 @@ data = [
 ]
 
 ops = [
-    ChatLengthFilter(len_func=llama_tokenizer_len, assistant_max_len=9),
+    ChatLengthFilter(len_func=count_words, assistant_max_len=9),
 ]
 
 result = create_dataset(data).execute(ops).collect()

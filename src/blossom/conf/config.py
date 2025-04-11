@@ -9,7 +9,7 @@ DEFAULT_CONFIG_FILE = "config.yaml"
 class ModelConfig(BaseModel):
     name: str
     provider: str
-    api_model_name: Optional[str]
+    api_model_name: Optional[str] = None
     config: dict[str, Any]
     extra_params: Optional[dict[str, Any]] = None
 

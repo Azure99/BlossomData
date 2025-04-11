@@ -30,8 +30,10 @@ class ChatContentTrimmer(MapOperator):
                 for part in message.content:
                     if isinstance(part, ChatMessageContentText):
                         part.text = part.text.strip(self.strip_chars)
-            
+
             if self.trim_reasoning and message.reasoning_content:
-                message.reasoning_content = message.reasoning_content.strip(self.strip_chars)
+                message.reasoning_content = message.reasoning_content.strip(
+                    self.strip_chars
+                )
 
         return self._cast_base(_item)

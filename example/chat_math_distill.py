@@ -27,7 +27,7 @@ ops = [
         reference_field="reference",
         max_retry=3,
     ),
-    ChatReasoningContentMerger()
+    ChatReasoningContentMerger(),
 ]
 
 result = create_dataset(data).execute(ops).collect()

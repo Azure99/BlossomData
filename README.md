@@ -1,8 +1,8 @@
 # BlossomData
 
-BlossomData是一个用于处理大型语言模型（LLM）训练数据的框架。它提供了一系列工具，用于合成训练数据，包括但不限于生成、翻译、蒸馏、校验等，帮助用户快速构建高质量的训练数据集。
+BlossomData是一个专为大模型训练打造的数据处理框架，旨在提供灵活、高效的数据处理解决方案。它内置丰富的算子库，支持不同模态、不同训练阶段的数据处理与合成。能够从单机环境无缝迁移到分布式环境，允许用户灵活扩展自定义算子，从而大幅降低数据处理流程的开发和计算成本。
 
-⚠注意：该项目仍处于原型阶段，算子正在快速更新，并且可能存在大量未知问题。建议在实验环境中进行测试。
+⚠注意：该项目仍处于原型阶段，API正在快速迭代，建议在实验环境中测试使用。
 
 # 使用示例
 
@@ -14,109 +14,40 @@ pip3 install git+https://github.com/Azure99/BlossomData.git
 
 在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。（可参考`config.yaml.example`）
 
-## 翻译数据
+## 灵活处理数据
 
-下面是一个最简单的示例，用于将对话数据从英文翻译为中文。
+下面是一个非常实用的示例，仅依赖数学题目和参考答案，即可合成经过验证的长推理中文训练数据。
+
+框架提供了大量内置算子，可以在[blossom.op](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/__init__.py)中查看。例如，当原始数据缺失答案时，可以使用[ChatDistiller](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/chat/chat_distiller.py)生成回答，然后通过[ChatMultiReasoningFilter](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/chat/chat_multi_reasoning_filter.py)基于投票方式过滤掉潜在错误样本。
 
 ```python
-# 示例对话数据
+# 示例数学指令数据
 data = [
     ChatSchema(
         messages=[
-            user("hello"),
-            assistant("Hello."),
+            user("Suppose that $wz = 12-8i$, and $|w| = \\sqrt{13}$. What is $|z|$?"),
+            assistant("4"),
         ]
     ),
 ]
 
-# 创建数据集
+# 定义要使用的算子
+ops = [
+    # 利用非推理模型将指令数据翻译为中文
+    ChatTranslator(model="deepseek-chat", target_language="Chinese"),
+    # 使用推理模型生成问题的回答，并使用非推理模型验证回答正确性
+    ChatVerifyDistiller(
+        model="deepseek-reasoner",
+        mode=ChatVerifyDistiller.Mode.LLM,
+        validation_model="deepseek-chat"
+    ),
+    # 将reasoning_content合并到content中，以便用于训练
+    ChatReasoningContentMerger()
+]
+
 dataset = create_dataset(data)
-
-# 执行算子并收集结果
-result = dataset.execute([
-    # 对话翻译，使用gpt-4o将对话数据翻译为中文
-    ChatTranslator(model="gpt-4o-mini", target_language="Chinese"),
-]).collect()
-
+result = dataset.execute(ops).collect()
 print(result)
-```
-
-配置参数即可实现仅翻译数据中的指令部分，不翻译代码或其他内容，并开启并行处理。
-
-```python
-dataset.execute([
-    ChatTranslator(
-        model="gpt-4o-mini",
-        target_language="Chinese",
-        instruction_only=True,
-        parallel=4,
-    ),
-]).collect()
-```
-
-## 翻译并重新蒸馏数据
-
-直接翻译的模型回复质量可能不佳，因此可以先翻译用户指令，再使用ChatDistill重新生成Assistant回复以提高质量。
-
-```python
-dataset.execute([
-    ChatTranslator(
-        model="gpt-4o-mini",
-        target_language="Chinese",
-        # 由于Assistant的回复会被蒸馏覆盖，此处可以仅翻译USER的消息
-        roles=[ChatRole.USER],
-    ),
-    # 提供多种蒸馏模式，第一轮、最后一轮、所有轮次
-    ChatDistiller(model="gpt-4o-mini", strategy=ChatDistill.Strategy.MULTI_TURN),
-]).collect()
-```
-
-## 根据答案校验
-
-对于有确切答案的问题（GSM8K等数学数据集），我们可以蒸馏回答，并基于参考答案检查是否正确。
-
-```python
-data = [
-    ChatSchema(
-        messages=[
-            user("Find all roots of the polynomial $x^3+x^2-4x-4$. Enter your answer as a list of numbers separated by commas."),
-            assistant("−2,−1,2"),
-        ]
-    )
-]
-dataset = create_dataset(data)
-dataset.execute([
-    ChatMathDistiller(
-        model="gpt-4o-mini",
-        mode=ChatMathDistiller.Mode.LLM,
-        max_retry=3,
-    ),
-]).collect()
-```
-
-## 多模型推理校验
-
-对于没有确切答案的问题，我们可以使用另一个模型进行推理，并由第三个模型对两个回答进行检查，过滤掉不一致的结果。
-
-```python
-data = [
-    ChatSchema(
-        messages=[
-            user("Who developed ChatGPT?"),
-            assistant("OpenAI"),
-        ]
-    ),
-    ChatSchema(
-        messages=[
-            user("Who developed ChatGPT?"),
-            assistant("Google"),
-        ]
-    ),
-]
-dataset = create_dataset(data)
-dataset.execute([
-    ChatMultiReasoningFilter(review_model="gpt-4o-mini", reasoning_model="gpt-4o-mini"),
-]).collect()
 ```
 
 ## 分布式数据处理
@@ -125,7 +56,7 @@ dataset.execute([
 
 ```python
 # 基于已有数据创建Dataset，仅适合少量数据
-dataset = create_dataset(data, type=DatasetEngine.SPARK)
+# dataset = create_dataset(data, type=DatasetEngine.SPARK)
 # 从本地文件创建Dataset
 dataset = load_dataset("/path/to/data.json", type=DatasetEngine.SPARK)
 (
@@ -142,7 +73,7 @@ dataset = load_dataset("/path/to/data.json", type=DatasetEngine.SPARK)
 
 ## 自定义数据加载
 
-对于已经存在/需要使用的数据，我们可能有特定的格式要求，因此可以通过`DataHandler`来实现自定义的数据加载/保存逻辑。
+对于已经存在的数据，我们可能有特定的格式要求，因此可以通过`DataHandler`来实现自定义的数据加载/保存逻辑。
 
 `from_dict`将自定义数据字典转换为框架内部的Schema，而`to_dict`反向将框架内部的Schema转换为自定义数据字典。
 
@@ -167,7 +98,7 @@ dataset.execute(ops).write_json(
 
 ## 自定义算子
 
-定义自己的算子，以便灵活处理和生成训练数据。下面的示例中，首先翻译英文文档为中文，然后从中抽取问答对作为训练数据。
+定义自己的算子，更灵活地处理和生成训练数据。下面的示例中，首先翻译英文文档为中文，然后从中抽取问答对作为训练数据。
 
 ```python
 # 自定义Map算子，进行一对一映射

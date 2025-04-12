@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "blossom"
+name = "blossom-data"
 version = "0.3.0"
 description = "A simple way to synthesize LLM training data."
 repository = "https://github.com/Azure99/BlossomData"

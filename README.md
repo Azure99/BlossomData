@@ -6,10 +6,10 @@ BlossomData是一个专为大模型训练打造的数据处理框架，旨在提
 
 # 使用示例
 
-使用pip安装。
-
-```
-pip3 install git+https://github.com/Azure99/BlossomData.git
+```bash
+pip install blossom-data
+# 从源码安装
+# pip install git+https://github.com/Azure99/BlossomData.git
 ```
 
 在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。（可参考`config.yaml.example`）

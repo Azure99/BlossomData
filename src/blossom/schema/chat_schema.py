@@ -68,6 +68,8 @@ class ChatMessage(BaseModel):
         data = super().model_dump(*args, **kwargs)
         if isinstance(self.content, list):
             data["content"] = [content.model_dump() for content in self.content]
+        if self.reasoning_content is None:
+            data.pop("reasoning_content")
         return data
 
 

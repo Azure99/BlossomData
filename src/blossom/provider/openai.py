@@ -21,6 +21,7 @@ DEFAULT_TIMEOUT = 600
 
 MAX_TOO_MANY_REQUESTS_RETRIES = 12
 TOO_MANY_REQUESTS_BACKOFF_FACTOR = 1.5
+BACKOFF_RANDOM_FACTOR = 0.5
 
 
 class OpenAI(Provider):
@@ -93,7 +94,6 @@ class OpenAI(Provider):
             data.update(extra_params)
 
         rate_limit_retry = 0
-        rate_limit_backoff = 1.0
 
         response = None
         while rate_limit_retry < MAX_TOO_MANY_REQUESTS_RETRIES:
@@ -119,11 +119,7 @@ class OpenAI(Provider):
                 response.status_code == HTTP_TOO_MANY_REQUESTS
                 or response.status_code >= HTTP_INTERNAL_SERVER_ERROR
             ):
-                logger.warning(
-                    f"Rate limit exceeded, retrying in {rate_limit_backoff} seconds"
-                )
-                time.sleep(rate_limit_backoff)
-                rate_limit_backoff *= TOO_MANY_REQUESTS_BACKOFF_FACTOR
+                self._sleep_for_rate_limit(rate_limit_retry)
                 rate_limit_retry += 1
             else:
                 break
@@ -136,3 +132,11 @@ class OpenAI(Provider):
 
     def _get_api_key(self) -> str:
         return random.choice(self.api_keys)
+
+    @staticmethod
+    def _sleep_for_rate_limit(retry_count: int) -> None:
+        rate_limit_backoff = TOO_MANY_REQUESTS_BACKOFF_FACTOR**retry_count
+        random_factor = random.uniform(-BACKOFF_RANDOM_FACTOR, BACKOFF_RANDOM_FACTOR)
+        backoff_time = rate_limit_backoff * (1 + random_factor)
+        logger.warning(f"Rate limit exceeded, retrying in {backoff_time:.2f} seconds")
+        time.sleep(backoff_time)

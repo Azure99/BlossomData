@@ -1,8 +1,21 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union, TypeVar
 
+from blossom.dataframe.aggregate import (
+    AggregateFunc,
+    Count,
+    CountByValue,
+    Max,
+    Mean,
+    Min,
+    StdDev,
+    Sum,
+    Variance,
+)
 from blossom.dataframe.data_handler import DataHandler
 from blossom.schema.schema import Schema
+
+T = TypeVar("T")
 
 
 class DataFrame(ABC):
@@ -24,27 +37,8 @@ class DataFrame(ABC):
     ) -> "DataFrame":
         pass
 
-    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
-        def add_metadata_to_schema(schema: Schema) -> Schema:
-            schema.metadata.update(func(schema))
-            return schema
-
-        return self.map(add_metadata_to_schema)
-
-    def drop_metadata(self, keys: list[str]) -> "DataFrame":
-        def drop_metadata_from_schema(schema: Schema) -> Schema:
-            for key in keys:
-                schema.metadata.pop(key, None)
-            return schema
-
-        return self.map(drop_metadata_from_schema)
-
     @abstractmethod
     def collect(self) -> list[Schema]:
-        pass
-
-    @abstractmethod
-    def count(self) -> int:
         pass
 
     @abstractmethod
@@ -64,7 +58,10 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
-    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+    def aggregate(
+        self,
+        aggregate_func: AggregateFunc[T],
+    ) -> T:
         pass
 
     @abstractmethod
@@ -88,3 +85,44 @@ class DataFrame(ABC):
     @abstractmethod
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         pass
+
+    def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
+        def add_metadata_to_schema(schema: Schema) -> Schema:
+            schema.metadata.update(func(schema))
+            return schema
+
+        return self.map(add_metadata_to_schema)
+
+    def drop_metadata(self, keys: list[str]) -> "DataFrame":
+        def drop_metadata_from_schema(schema: Schema) -> Schema:
+            for key in keys:
+                schema.metadata.pop(key, None)
+            return schema
+
+        return self.map(drop_metadata_from_schema)
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.aggregate(Sum(func))
+
+    def mean(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.aggregate(Mean(func))
+
+    def count(self) -> int:
+        return self.aggregate(Count())
+
+    def min(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.aggregate(Min(func))
+
+    def max(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.aggregate(Max(func))
+
+    def variance(
+        self, func: Callable[[Schema], Union[int, float]]
+    ) -> Union[int, float]:
+        return self.aggregate(Variance(func))
+
+    def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.aggregate(StdDev(func))
+
+    def count_by_value(self, func: Callable[[Schema], Any]) -> dict[Any, int]:
+        return self.aggregate(CountByValue(func))

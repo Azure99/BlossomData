@@ -2,13 +2,16 @@ import copy
 import json
 import os
 import random
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union, TypeVar
 
+from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.log import logger
 from blossom.schema.schema import Schema
+
+T = TypeVar("T")
 
 
 class LocalDataFrame(DataFrame):
@@ -28,9 +31,6 @@ class LocalDataFrame(DataFrame):
         self, func: Callable[[Schema], Any], ascending: bool = True
     ) -> "DataFrame":
         return LocalDataFrame(sorted(self.data, key=func, reverse=not ascending))
-
-    def count(self) -> int:
-        return len(self.data)
 
     def limit(self, num_rows: int) -> "DataFrame":
         return LocalDataFrame(self.data[:num_rows])
@@ -57,8 +57,14 @@ class LocalDataFrame(DataFrame):
             start = end
         return dataframes
 
-    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return sum(func(schema) for schema in self.data)
+    def aggregate(
+        self,
+        aggregate_func: AggregateFunc[T],
+    ) -> T:
+        result = aggregate_func.initial_value
+        for schema in self.data:
+            result = aggregate_func.accumulate(result, schema)
+        return aggregate_func.finalize(result)
 
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):

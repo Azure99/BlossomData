@@ -1,11 +1,14 @@
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, TypeVar, Union
 from blossom.context.context import Context
+from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.dataset.dataset import Dataset
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
+
+T = TypeVar("T")
 
 
 class StandardDataset(Dataset):
@@ -45,9 +48,6 @@ class StandardDataset(Dataset):
     def collect(self) -> list[Schema]:
         return self.dataframe.collect()
 
-    def count(self) -> int:
-        return self.dataframe.count()
-
     def limit(self, num_rows: int) -> "Dataset":
         return StandardDataset(self.context, self.dataframe.limit(num_rows))
 
@@ -63,8 +63,8 @@ class StandardDataset(Dataset):
             for dataframe in self.dataframe.split(n)
         ]
 
-    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return self.dataframe.sum(func)
+    def aggregate(self, aggregate_func: AggregateFunc[T]) -> T:
+        return self.dataframe.aggregate(aggregate_func)
 
     def union(self, others: Union["Dataset", list["Dataset"]]) -> "Dataset":
         if not isinstance(others, list):
@@ -92,3 +92,29 @@ class StandardDataset(Dataset):
 
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         self.dataframe.write_json(path, data_handler)
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.dataframe.sum(func)
+
+    def mean(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.dataframe.mean(func)
+
+    def count(self) -> int:
+        return self.dataframe.count()
+
+    def min(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.dataframe.min(func)
+
+    def max(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.dataframe.max(func)
+
+    def variance(
+        self, func: Callable[[Schema], Union[int, float]]
+    ) -> Union[int, float]:
+        return self.dataframe.variance(func)
+
+    def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
+        return self.dataframe.stddev(func)
+
+    def count_by_value(self, func: Callable[[Schema], Any]) -> dict[Any, int]:
+        return self.dataframe.count_by_value(func)

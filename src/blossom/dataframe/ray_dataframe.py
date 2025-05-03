@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Iterator, Optional, Any, Union
+from typing import Callable, Iterator, Optional, Any, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
@@ -7,8 +7,9 @@ import ray
 import ray.data
 from ray.data.block import BlockAccessor
 from ray.data.datasource import BlockBasedFileDatasink
+from ray.data.aggregate import AggregateFn
 
-
+from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
@@ -24,6 +25,9 @@ from blossom.schema.schema import (
 
 SORT_KEY = "__sort_key__"
 SUM_KEY = "__sum_key__"
+AGGREGATE_NAME = "__aggregate_name__"
+
+T = TypeVar("T")
 
 
 def schema_to_row(schema: Schema) -> dict[str, Any]:
@@ -128,9 +132,6 @@ class RayDataFrame(DataFrame):
         )
         return RayDataFrame(sorted_dataset)
 
-    def count(self) -> int:
-        return int(self.ray_dataset.count())
-
     def limit(self, num_rows: int) -> "DataFrame":
         limited_dataset = self.ray_dataset.limit(num_rows)
         return RayDataFrame(limited_dataset)
@@ -146,13 +147,23 @@ class RayDataFrame(DataFrame):
     def split(self, n: int) -> list["DataFrame"]:
         return [RayDataFrame(dataset) for dataset in self.ray_dataset.split(n)]
 
-    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        def sum_batch(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-            return [{SUM_KEY: sum(func(row_to_schema(row)) for row in rows)}]
-
-        partial_sums = _map_batches(self.ray_dataset, sum_batch).take_all()
-        sum_result: Union[int, float] = sum(row[SUM_KEY] for row in partial_sums)
-        return sum_result
+    def aggregate(
+        self,
+        aggregate_func: AggregateFunc[T],
+    ) -> T:
+        result = self.ray_dataset.aggregate(
+            AggregateFn(
+                init=lambda k: schema_to_row(aggregate_func.initial_value),
+                accumulate_row=lambda a, row: schema_to_row(
+                    aggregate_func.accumulate(row_to_schema(a), row_to_schema(row))
+                ),
+                merge=lambda a1, a2: schema_to_row(
+                    aggregate_func.merge(row_to_schema(a1), row_to_schema(a2))
+                ),
+                name=AGGREGATE_NAME,
+            )
+        )
+        return aggregate_func.finalize(row_to_schema(result[AGGREGATE_NAME]))
 
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):

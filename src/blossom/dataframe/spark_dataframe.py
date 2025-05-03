@@ -1,15 +1,18 @@
 import json
 import random
-from typing import Callable, Optional, Any, Union
+from typing import Callable, Optional, Any, TypeVar, Union
 from collections.abc import Iterable
 
 from pyspark.rdd import RDD
 from pyspark.sql import SparkSession
 
+from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.schema.schema import Schema
+
+T = TypeVar("T")
 
 
 class SparkDataFrame(DataFrame):
@@ -56,9 +59,6 @@ class SparkDataFrame(DataFrame):
         )
         return SparkDataFrame(sorted_rdd, self.spark_session)
 
-    def count(self) -> int:
-        return self.spark_rdd.count()
-
     def limit(self, num_rows: int) -> "DataFrame":
         limited_rdd = (
             self.spark_rdd.zipWithIndex()
@@ -100,12 +100,20 @@ class SparkDataFrame(DataFrame):
             start = end
         return dataframes
 
-    def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        def map_row_to_value(row_dict: dict[str, Any]) -> Union[int, float]:
-            schema = Schema.from_dict(row_dict)
-            return func(schema)
-
-        return self.spark_rdd.map(map_row_to_value).sum()
+    def aggregate(
+        self,
+        aggregate_func: AggregateFunc[T],
+    ) -> T:
+        result = self.spark_rdd.aggregate(
+            zeroValue=aggregate_func.initial_value.to_dict(),
+            seqOp=lambda x, y: aggregate_func.accumulate(
+                Schema.from_dict(x), Schema.from_dict(y)
+            ).to_dict(),
+            combOp=lambda x, y: aggregate_func.merge(
+                Schema.from_dict(x), Schema.from_dict(y)
+            ).to_dict(),
+        )
+        return aggregate_func.finalize(Schema.from_dict(result))
 
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):

@@ -63,7 +63,7 @@ print(result)
 # 基于已有数据创建Dataset，仅适合少量数据
 # dataset = create_dataset(data, type=DatasetEngine.SPARK)
 # 从本地文件创建Dataset
-dataset = load_dataset("/path/to/data.json", type=DatasetEngine.SPARK)
+dataset = load_dataset("/path/to/data.json", engine=DatasetEngine.SPARK)
 (
     # 可以使用map、filter、transform等底层操作
     dataset.filter(lambda x: x.metadata["language"] == "en")
@@ -158,4 +158,66 @@ print(result)
 # 再者，番茄炒蛋作为一道家常菜，口味鲜美，营养丰富，成品容易让人满意，能给新手带来成就感。
 # 此外，这道菜还可以根据个人口味进行简易的调味调整，无需严格遵循复杂的配方。
 # 这些因素使得番茄炒蛋成为新手下厨时的首选之一。
+```
+
+## 聚合与分组分析
+
+框架提供数据聚合、分组、分析能力，可以按照实际需求对数据进行分析。
+
+```python
+example_data = [
+    RowSchema(
+        data={
+            "country": random.choice(["US", "CN", "JP", "KR", "TW", "HK"]),
+            "score": random.randint(1, 100),
+        }
+    )
+    for _ in range(1024)
+]
+
+dataset = create_dataset(example_data)
+statistics = {
+    # 直接在dataset上进行聚合统计，返回单一结果
+    "count": dataset.count(),
+    "max": dataset.max(lambda x: x["score"]),
+
+    # 在dataset上进行多重聚合，返回结果字典
+    "agg": dataset.aggregate(
+        Sum(lambda x: x["score"]),
+        # 可以通过name定义结果key
+        Sum(lambda x: x["score"] * 2, name="score_x2"),
+    ),
+
+    # 对country列进行分组，然后进行聚合分析
+    "group_by_country_agg": [
+        agg.data
+        for agg in dataset.group_by(lambda x: x["country"])
+        .aggregate(
+            Count(),
+            Mean(lambda x: x["score"]),
+        )
+        .collect()
+    ],
+
+    # 自定义聚合函数
+    "custom_aggregate_func": dataset.aggregate(
+        RowAggregateFunc(
+            # 初始值
+            initial_value={"cn_count": 0},
+            # 分区内元素聚合
+            accumulate=lambda x, y: {
+                "cn_count": (
+                    x["cn_count"] + 1 if y["country"] == "CN" else x["cn_count"]
+                ),
+            },
+            # 分区聚合
+            merge=lambda x, y: {
+                "cn_count": x["cn_count"] + y["cn_count"],
+            },
+            # 结果转换
+            finalize=lambda x: x["cn_count"],
+        ),
+    ),
+}
+print(statistics)
 ```

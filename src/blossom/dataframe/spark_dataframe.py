@@ -10,7 +10,7 @@ from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
-from blossom.schema.pair_schema import PairSchema
+from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import Schema
 
 
@@ -104,26 +104,36 @@ class SparkDataFrame(DataFrame):
 
     def aggregate(
         self,
-        aggregate_func: AggregateFunc,
-    ) -> Any:
+        *aggs: AggregateFunc,
+    ) -> Union[Any, dict[str, Any]]:
         result = self.spark_rdd.aggregate(
-            zeroValue=aggregate_func.initial_value.to_dict(),
-            seqOp=lambda x, y: aggregate_func.accumulate(
-                Schema.from_dict(x), Schema.from_dict(y)
-            ).to_dict(),
-            combOp=lambda x, y: aggregate_func.merge(
-                Schema.from_dict(x), Schema.from_dict(y)
-            ).to_dict(),
+            zeroValue=[agg.initial_value.to_dict() for agg in aggs],
+            seqOp=lambda x, y: [
+                aggs[i]
+                .accumulate(Schema.from_dict(x[i]), Schema.from_dict(y))
+                .to_dict()
+                for i in range(len(aggs))
+            ],
+            combOp=lambda x, y: [
+                aggs[i].merge(Schema.from_dict(x[i]), Schema.from_dict(y[i])).to_dict()
+                for i in range(len(aggs))
+            ],
         )
-        return aggregate_func.finalize(Schema.from_dict(result))
+        result_dict = {
+            aggs[i].name: aggs[i].finalize(Schema.from_dict(result[i]))
+            for i in range(len(aggs))
+        }
+        return result_dict if len(aggs) > 1 else result_dict[aggs[0].name]
 
-    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataFrame":
+    def group_by(
+        self, func: Callable[[Schema], Any], name: str = "group"
+    ) -> "GroupedDataFrame":
         def calc_group_key(row_dict: dict[str, Any]) -> Any:
             schema = Schema.from_dict(row_dict)
             return func(schema)
 
         rdd_with_group_key = self.spark_rdd.map(lambda x: (calc_group_key(x), x))
-        return GroupedSparkDataFrame(rdd_with_group_key, self.spark_session)
+        return GroupedSparkDataFrame(name, rdd_with_group_key, self.spark_session)
 
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):
@@ -174,26 +184,35 @@ class SparkDataFrame(DataFrame):
 class GroupedSparkDataFrame(GroupedDataFrame):
     def __init__(
         self,
+        name: str,
         rdd_with_group_key: RDD[tuple[Any, dict[str, Any]]],
         spark_session: SparkSession,
     ):
+        super().__init__(name)
         self.rdd_with_group_key = rdd_with_group_key
         self.spark_session = spark_session
 
-    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
+    def aggregate(self, *aggs: AggregateFunc) -> DataFrame:
         aggregated_rdd = self.rdd_with_group_key.aggregateByKey(
-            zeroValue=aggregate_func.initial_value.to_dict(),
-            seqFunc=lambda x, y: aggregate_func.accumulate(
-                Schema.from_dict(x), Schema.from_dict(y)
-            ).to_dict(),
-            combFunc=lambda x, y: aggregate_func.merge(
-                Schema.from_dict(x), Schema.from_dict(y)
-            ).to_dict(),
+            zeroValue=[agg.initial_value.to_dict() for agg in aggs],
+            seqFunc=lambda x, y: [
+                aggs[i]
+                .accumulate(Schema.from_dict(x[i]), Schema.from_dict(y))
+                .to_dict()
+                for i in range(len(aggs))
+            ],
+            combFunc=lambda x, y: [
+                aggs[i].merge(Schema.from_dict(x[i]), Schema.from_dict(y[i])).to_dict()
+                for i in range(len(aggs))
+            ],
         )
 
-        def map_to_schema(x: tuple[Any, dict[str, Any]]) -> dict[str, Any]:
-            key = x[0]
-            value = aggregate_func.finalize(Schema.from_dict(x[1]))
-            return PairSchema(key=key, value=value).to_dict()
+        group_name = self.name
+
+        def map_to_schema(x: tuple[Any, list[dict[str, Any]]]) -> dict[str, Any]:
+            result_row = RowSchema(data={group_name: x[0]})
+            for i in range(len(aggs)):
+                result_row[aggs[i].name] = aggs[i].finalize(Schema.from_dict(x[1][i]))
+            return result_row.to_dict()
 
         return SparkDataFrame(aggregated_rdd.map(map_to_schema), self.spark_session)

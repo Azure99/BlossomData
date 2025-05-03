@@ -53,11 +53,13 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
-    def aggregate(self, aggregate_func: AggregateFunc) -> Any:
+    def aggregate(self, *aggs: AggregateFunc) -> Union[Any, dict[str, Any]]:
         pass
 
     @abstractmethod
-    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataset":
+    def group_by(
+        self, func: Callable[[Schema], Any], name: str = "group"
+    ) -> "GroupedDataset":
         pass
 
     @abstractmethod
@@ -130,7 +132,7 @@ class GroupedDataset(ABC):
         self.context = context
 
     @abstractmethod
-    def aggregate(self, aggregate_func: AggregateFunc) -> "Dataset":
+    def aggregate(self, *aggs: AggregateFunc) -> "Dataset":
         pass
 
     @abstractmethod

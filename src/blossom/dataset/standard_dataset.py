@@ -61,11 +61,13 @@ class StandardDataset(Dataset):
             for dataframe in self.dataframe.split(n)
         ]
 
-    def aggregate(self, aggregate_func: AggregateFunc) -> Any:
-        return self.dataframe.aggregate(aggregate_func)
+    def aggregate(self, *aggs: AggregateFunc) -> Union[Any, dict[str, Any]]:
+        return self.dataframe.aggregate(*aggs)
 
-    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataset":
-        return GroupedStandardDataset(self.context, self.dataframe.group_by(func))
+    def group_by(
+        self, func: Callable[[Schema], Any], name: str = "group"
+    ) -> "GroupedDataset":
+        return GroupedStandardDataset(self.context, self.dataframe.group_by(func, name))
 
     def union(self, others: Union["Dataset", list["Dataset"]]) -> "Dataset":
         if not isinstance(others, list):
@@ -130,10 +132,8 @@ class GroupedStandardDataset(GroupedDataset):
         super().__init__(context)
         self.grouped_dataframe = grouped_dataframe
 
-    def aggregate(self, aggregate_func: AggregateFunc) -> "Dataset":
-        return StandardDataset(
-            self.context, self.grouped_dataframe.aggregate(aggregate_func)
-        )
+    def aggregate(self, *aggs: AggregateFunc) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.aggregate(*aggs))
 
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
         return StandardDataset(self.context, self.grouped_dataframe.sum(func))

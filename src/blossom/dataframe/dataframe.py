@@ -58,12 +58,14 @@ class DataFrame(ABC):
     @abstractmethod
     def aggregate(
         self,
-        aggregate_func: AggregateFunc,
-    ) -> Any:
+        *aggs: AggregateFunc,
+    ) -> Union[Any, dict[str, Any]]:
         pass
 
     @abstractmethod
-    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataFrame":
+    def group_by(
+        self, func: Callable[[Schema], Any], name: str = "group"
+    ) -> "GroupedDataFrame":
         pass
 
     @abstractmethod
@@ -147,8 +149,11 @@ class DataFrame(ABC):
 
 
 class GroupedDataFrame(ABC):
+    def __init__(self, name: str):
+        self.name = name
+
     @abstractmethod
-    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
+    def aggregate(self, *aggs: AggregateFunc) -> DataFrame:
         pass
 
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:

@@ -9,7 +9,7 @@ from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.log import logger
-from blossom.schema.pair_schema import PairSchema
+from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import Schema
 
 
@@ -58,21 +58,26 @@ class LocalDataFrame(DataFrame):
 
     def aggregate(
         self,
-        aggregate_func: AggregateFunc,
-    ) -> Any:
-        result = aggregate_func.initial_value
-        for schema in self.data:
-            result = aggregate_func.accumulate(result, schema)
-        return aggregate_func.finalize(result)
+        *aggs: AggregateFunc,
+    ) -> Union[Any, dict[str, Any]]:
+        results = {}
+        for agg in aggs:
+            result = agg.initial_value
+            for schema in self.data:
+                result = agg.accumulate(result, schema)
+            results[agg.name] = agg.finalize(result)
+        return results if len(aggs) > 1 else results[aggs[0].name]
 
-    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataFrame":
+    def group_by(
+        self, func: Callable[[Schema], Any], name: str = "group"
+    ) -> "GroupedDataFrame":
         grouped_data: dict[Any, list[Schema]] = {}
         for schema in self.data:
             key = func(schema)
             if key not in grouped_data:
                 grouped_data[key] = []
             grouped_data[key].append(schema)
-        return GroupedLocalDataFrame(grouped_data)
+        return GroupedLocalDataFrame(name, grouped_data)
 
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):
@@ -131,16 +136,20 @@ class LocalDataFrame(DataFrame):
 
 
 class GroupedLocalDataFrame(GroupedDataFrame):
-    def __init__(self, grouped_data: dict[Any, list[Schema]]):
+    def __init__(self, name: str, grouped_data: dict[Any, list[Schema]]):
+        super().__init__(name)
         self.grouped_data = grouped_data
 
-    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
+    def aggregate(self, *aggs: AggregateFunc) -> DataFrame:
         grouped_results: list[Schema] = []
-        for key, data in self.grouped_data.items():
-            result = aggregate_func.initial_value
-            for schema in data:
-                result = aggregate_func.accumulate(result, schema)
-            finalized_result = aggregate_func.finalize(result)
-            grouped_results.append(PairSchema(key=key, value=finalized_result))
+
+        for group_value, data in self.grouped_data.items():
+            result_row = RowSchema(data={self.name: group_value})
+            for agg in aggs:
+                result = agg.initial_value
+                for schema in data:
+                    result = agg.accumulate(result, schema)
+                result_row[agg.name] = agg.finalize(result)
+            grouped_results.append(result_row)
 
         return LocalDataFrame(grouped_results)

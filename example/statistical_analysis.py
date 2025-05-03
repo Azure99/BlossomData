@@ -1,5 +1,5 @@
 import random
-from blossom.dataframe import RowAggregateFunc, Sum
+from blossom.dataframe import RowAggregateFunc, Sum, Mean, Count
 from blossom.dataset import create_dataset
 from blossom.schema import RowSchema
 
@@ -17,21 +17,26 @@ example_data = [
 dataset = create_dataset(example_data)
 statistics = {
     "count": dataset.count(),
-    "sum": dataset.sum(lambda x: x["score"]),
-    "mean": dataset.mean(lambda x: x["score"]),
     "min": dataset.min(lambda x: x["score"]),
     "max": dataset.max(lambda x: x["score"]),
-    "variance": dataset.variance(lambda x: x["score"]),
-    "stddev": dataset.stddev(lambda x: x["score"]),
     "unique": dataset.unique(lambda x: x["country"]),
-    "group_by_country_count": [
-        {
-            "country": kv.key,
-            "count": kv.value,
-        }
-        for kv in dataset.group_by(lambda x: x["country"]).count().collect()
+    "agg": dataset.aggregate(
+        Count(),
+        Sum(lambda x: x["score"]),
+        Sum(lambda x: x["score"] * 2, name="score_x2"),
+        Mean(lambda x: x["score"]),
+    ),
+    "group_by_country_agg": [
+        agg.data
+        for agg in dataset.group_by(lambda x: x["country"])
+        .aggregate(
+            Count(),
+            Sum(lambda x: x["score"]),
+            Sum(lambda x: x["score"] * 2, name="score_x2"),
+            Mean(lambda x: x["score"]),
+        )
+        .collect()
     ],
-    "custom_aggregate": dataset.aggregate(Sum(lambda x: x["score"] * 2)),
     "custom_aggregate_func": dataset.aggregate(
         RowAggregateFunc(
             initial_value={"cn_count": 0},

@@ -59,6 +59,10 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
+    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataset":
+        pass
+
+    @abstractmethod
     def union(self, others: Union["Dataset", list["Dataset"]]) -> "Dataset":
         pass
 
@@ -120,4 +124,45 @@ class Dataset(ABC):
 
     @abstractmethod
     def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
+        pass
+
+
+class GroupedDataset(ABC):
+    def __init__(self, context: Context):
+        self.context = context
+
+    @abstractmethod
+    def aggregate(self, aggregate_func: AggregateFunc[T]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def mean(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def count(self) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def min(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def max(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def variance(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def stddev(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        pass
+
+    @abstractmethod
+    def unique(self, func: Callable[[Schema], set[Any]]) -> "Dataset":
         pass

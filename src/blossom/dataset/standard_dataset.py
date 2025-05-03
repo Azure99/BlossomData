@@ -2,9 +2,9 @@ from typing import Any, Callable, Optional, TypeVar, Union
 from blossom.context.context import Context
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
-from blossom.dataframe.dataframe import DataFrame
+from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
-from blossom.dataset.dataset import Dataset
+from blossom.dataset.dataset import Dataset, GroupedDataset
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
 
@@ -66,6 +66,9 @@ class StandardDataset(Dataset):
     def aggregate(self, aggregate_func: AggregateFunc[T]) -> T:
         return self.dataframe.aggregate(aggregate_func)
 
+    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataset":
+        return GroupedStandardDataset(self.context, self.dataframe.group_by(func))
+
     def union(self, others: Union["Dataset", list["Dataset"]]) -> "Dataset":
         if not isinstance(others, list):
             others = [others]
@@ -118,3 +121,42 @@ class StandardDataset(Dataset):
 
     def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
         return self.dataframe.unique(func)
+
+
+class GroupedStandardDataset(GroupedDataset):
+    def __init__(
+        self,
+        context: Context,
+        grouped_dataframe: GroupedDataFrame,
+    ):
+        super().__init__(context)
+        self.grouped_dataframe = grouped_dataframe
+
+    def aggregate(self, aggregate_func: AggregateFunc[T]) -> "Dataset":
+        return StandardDataset(
+            self.context, self.grouped_dataframe.aggregate(aggregate_func)
+        )
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.sum(func))
+
+    def mean(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.mean(func))
+
+    def count(self) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.count())
+
+    def min(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.min(func))
+
+    def max(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.max(func))
+
+    def variance(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.variance(func))
+
+    def stddev(self, func: Callable[[Schema], Union[int, float]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.stddev(func))
+
+    def unique(self, func: Callable[[Schema], set[Any]]) -> "Dataset":
+        return StandardDataset(self.context, self.grouped_dataframe.unique(func))

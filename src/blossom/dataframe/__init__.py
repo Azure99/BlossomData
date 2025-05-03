@@ -11,7 +11,7 @@ from .aggregate import (
     Unique,
 )
 from .data_handler import DataHandler
-from .dataframe import DataFrame
+from .dataframe import DataFrame, GroupedDataFrame
 from .default_data_handler import DefaultDataHandler
 from .local_dataframe import LocalDataFrame
 from .ray_dataframe import RayDataFrame
@@ -23,6 +23,7 @@ __all__ = [
     "DataFrame",
     "DataHandler",
     "DefaultDataHandler",
+    "GroupedDataFrame",
     "LocalDataFrame",
     "Max",
     "Mean",

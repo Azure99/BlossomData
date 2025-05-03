@@ -65,6 +65,10 @@ class DataFrame(ABC):
         pass
 
     @abstractmethod
+    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataFrame":
+        pass
+
+    @abstractmethod
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         pass
 
@@ -125,4 +129,34 @@ class DataFrame(ABC):
         return self.aggregate(StdDev(func))
 
     def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
+        return self.aggregate(Unique(func))
+
+
+class GroupedDataFrame(ABC):
+    @abstractmethod
+    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+        pass
+
+    def sum(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:
+        return self.aggregate(Sum(func))
+
+    def mean(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:
+        return self.aggregate(Mean(func))
+
+    def count(self) -> DataFrame:
+        return self.aggregate(Count())
+
+    def min(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:
+        return self.aggregate(Min(func))
+
+    def max(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:
+        return self.aggregate(Max(func))
+
+    def variance(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:
+        return self.aggregate(Variance(func))
+
+    def stddev(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:
+        return self.aggregate(StdDev(func))
+
+    def unique(self, func: Callable[[Schema], set[Any]]) -> DataFrame:
         return self.aggregate(Unique(func))

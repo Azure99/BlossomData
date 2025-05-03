@@ -6,9 +6,10 @@ from typing import Any, Callable, Optional, Union, TypeVar
 
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
-from blossom.dataframe.dataframe import DataFrame
+from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.log import logger
+from blossom.schema.pair_schema import PairSchema
 from blossom.schema.schema import Schema
 
 T = TypeVar("T")
@@ -66,6 +67,15 @@ class LocalDataFrame(DataFrame):
             result = aggregate_func.accumulate(result, schema)
         return aggregate_func.finalize(result)
 
+    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataFrame":
+        grouped_data: dict[Any, list[Schema]] = {}
+        for schema in self.data:
+            key = func(schema)
+            if key not in grouped_data:
+                grouped_data[key] = []
+            grouped_data[key].append(schema)
+        return GroupedLocalDataFrame(grouped_data)
+
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):
             others = [others]
@@ -120,3 +130,19 @@ class LocalDataFrame(DataFrame):
             elif any(file_lower.endswith(ext) for ext in exts):
                 file_list.append(file)
         return [os.path.join(path, file) for file in file_list]
+
+
+class GroupedLocalDataFrame(GroupedDataFrame):
+    def __init__(self, grouped_data: dict[Any, list[Schema]]):
+        self.grouped_data = grouped_data
+
+    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+        grouped_results: list[Schema] = []
+        for key, data in self.grouped_data.items():
+            result = aggregate_func.initial_value
+            for schema in data:
+                result = aggregate_func.accumulate(result, schema)
+            finalized_result = aggregate_func.finalize(result)
+            grouped_results.append(PairSchema(key=key, value=finalized_result))
+
+        return LocalDataFrame(grouped_results)

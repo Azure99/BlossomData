@@ -22,6 +22,10 @@ from .custom_schema import (
     CustomSchema,
 )
 from .schema import Schema
+from .pair_schema import (
+    SCHEMA_TYPE_PAIR,
+    PairSchema,
+)
 from .row_schema import (
     SCHEMA_TYPE_ROW,
     RowSchema,
@@ -60,3 +64,4 @@ Schema.register_schema(SCHEMA_TYPE_CHAT, ChatSchema)
 Schema.register_schema(SCHEMA_TYPE_CUSTOM, CustomSchema)
 Schema.register_schema(SCHEMA_TYPE_TEXT, TextSchema)
 Schema.register_schema(SCHEMA_TYPE_ROW, RowSchema)
+Schema.register_schema(SCHEMA_TYPE_PAIR, PairSchema)

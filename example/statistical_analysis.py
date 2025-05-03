@@ -14,7 +14,7 @@ example_data = [
 ]
 
 
-dataset = create_dataset(example_data)
+dataset = create_dataset(example_data, engine="spark")
 statistics = {
     "count": dataset.count(),
     "sum": dataset.sum(lambda x: x["score"]),
@@ -24,6 +24,13 @@ statistics = {
     "variance": dataset.variance(lambda x: x["score"]),
     "stddev": dataset.stddev(lambda x: x["score"]),
     "unique": dataset.unique(lambda x: x["country"]),
+    "group_by_country_count": [
+        {
+            "country": kv.key,
+            "count": kv.value,
+        }
+        for kv in dataset.group_by(lambda x: x["country"]).count().collect()
+    ],
     "custom_aggregate": dataset.aggregate(Sum(lambda x: x["score"] * 2)),
     "custom_aggregate_func": dataset.aggregate(
         RowAggregateFunc(

@@ -8,11 +8,13 @@ import ray.data
 from ray.data.block import BlockAccessor
 from ray.data.datasource import BlockBasedFileDatasink
 from ray.data.aggregate import AggregateFn
+import ray.data.grouped_data
 
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
-from blossom.dataframe.dataframe import DataFrame
+from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
+from blossom.schema.pair_schema import PairSchema
 from blossom.schema.schema import (
     FIELD_DATA,
     FIELD_FAILED,
@@ -24,7 +26,7 @@ from blossom.schema.schema import (
 
 
 SORT_KEY = "__sort_key__"
-SUM_KEY = "__sum_key__"
+GROUP_KEY = "__group_key__"
 AGGREGATE_NAME = "__aggregate_name__"
 
 T = TypeVar("T")
@@ -165,6 +167,15 @@ class RayDataFrame(DataFrame):
         )
         return aggregate_func.finalize(row_to_schema(result[AGGREGATE_NAME]))
 
+    def group_by(self, func: Callable[[Schema], Any]) -> "GroupedRayDataFrame":
+        def calc_group_key(batch: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return [{**row, GROUP_KEY: func(row_to_schema(row))} for row in batch]
+
+        grouped_dataset = _map_batches(self.ray_dataset, calc_group_key).groupby(
+            GROUP_KEY
+        )
+        return GroupedRayDataFrame(grouped_dataset)
+
     def union(self, others: Union["DataFrame", list["DataFrame"]]) -> "DataFrame":
         if not isinstance(others, list):
             others = [others]
@@ -205,3 +216,29 @@ class RayDataFrame(DataFrame):
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         data_handler = data_handler or DefaultDataHandler()
         self.ray_dataset.write_datasink(SchemaRowDatasink(path, data_handler))
+
+
+class GroupedRayDataFrame(GroupedDataFrame):
+    def __init__(self, grouped_data: ray.data.grouped_data.GroupedData):
+        self.grouped_data = grouped_data
+
+    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+        aggregated_ds = self.grouped_data.aggregate(
+            AggregateFn(
+                name=AGGREGATE_NAME,
+                init=lambda k: schema_to_row(aggregate_func.initial_value),
+                merge=lambda a1, a2: schema_to_row(
+                    aggregate_func.merge(row_to_schema(a1), row_to_schema(a2))
+                ),
+                accumulate_row=lambda a, row: schema_to_row(
+                    aggregate_func.accumulate(row_to_schema(a), row_to_schema(row))
+                ),
+            )
+        )
+
+        def map_to_schema(row: dict[str, Any]) -> dict[str, Any]:
+            key = row[GROUP_KEY]
+            value = aggregate_func.finalize(row_to_schema(row[AGGREGATE_NAME]))
+            return schema_to_row(PairSchema(key=key, value=value))
+
+        return RayDataFrame(aggregated_ds.map(map_to_schema))

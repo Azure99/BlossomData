@@ -117,3 +117,7 @@ class Dataset(ABC):
     @abstractmethod
     def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         pass
+
+    @abstractmethod
+    def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
+        pass

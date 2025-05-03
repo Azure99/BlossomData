@@ -9,6 +9,7 @@ from blossom.dataframe.aggregate import (
     Min,
     StdDev,
     Sum,
+    Unique,
     Variance,
 )
 from blossom.dataframe.data_handler import DataHandler
@@ -122,3 +123,6 @@ class DataFrame(ABC):
 
     def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return self.aggregate(StdDev(func))
+
+    def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
+        return self.aggregate(Unique(func))

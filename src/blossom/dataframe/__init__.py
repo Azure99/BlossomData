@@ -8,6 +8,7 @@ from .aggregate import (
     StdDev,
     Sum,
     Variance,
+    Unique,
 )
 from .data_handler import DataHandler
 from .dataframe import DataFrame
@@ -31,5 +32,6 @@ __all__ = [
     "SparkDataFrame",
     "StdDev",
     "Sum",
+    "Unique",
     "Variance",
 ]

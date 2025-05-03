@@ -115,3 +115,6 @@ class StandardDataset(Dataset):
 
     def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return self.dataframe.stddev(func)
+
+    def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
+        return self.dataframe.unique(func)

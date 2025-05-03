@@ -236,3 +236,24 @@ class StdDev(RowAggregateFunc[float]):
             merge=_merge,
             finalize=_finalize,
         )
+
+
+class Unique(RowAggregateFunc[list[Any]]):
+    def __init__(self, func: Callable[[Schema], set[Any]]) -> None:
+        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
+            x["unique"][func(y)] = True
+            return x
+
+        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+            x["unique"].update(y["unique"])
+            return x
+
+        def _finalize(x: dict[str, Any]) -> list[Any]:
+            return list(x["unique"].keys())
+
+        super().__init__(
+            initial_value={"unique": {}},
+            accumulate=_accumulate,
+            merge=_merge,
+            finalize=_finalize,
+        )

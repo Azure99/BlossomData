@@ -23,6 +23,7 @@ statistics = {
     "max": dataset.max(lambda x: x["score"]),
     "variance": dataset.variance(lambda x: x["score"]),
     "stddev": dataset.stddev(lambda x: x["score"]),
+    "unique": dataset.unique(lambda x: x["country"]),
     "custom_aggregate": dataset.aggregate(Sum(lambda x: x["score"] * 2)),
     "custom_aggregate_func": dataset.aggregate(
         RowAggregateFunc(

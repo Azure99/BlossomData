@@ -1,5 +1,10 @@
 # BlossomData
 
+![](https://img.shields.io/badge/language-Python-214870)
+![GitHub License](https://img.shields.io/github/license/Azure99/BlossomData)
+[![PyPI - Version](https://img.shields.io/pypi/v/blossom-data)](https://pypi.org/project/blossom-data/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Azure99/BlossomData)
+
 BlossomData是一个专为大模型训练打造的数据处理框架，旨在提供灵活、高效的数据处理解决方案。它内置丰富的算子库，支持不同模态、不同训练阶段的数据处理与合成。能够从单机环境无缝迁移到分布式环境，允许用户灵活扩展自定义算子，从而大幅降低数据处理流程的开发和计算成本。
 
 ⚠注意：该项目仍处于原型阶段，API正在快速迭代，建议在实验环境中测试使用。

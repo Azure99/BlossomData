@@ -236,31 +236,3 @@ class StdDev(RowAggregateFunc[float]):
             merge=_merge,
             finalize=_finalize,
         )
-
-
-class CountByValue(RowAggregateFunc[dict[Any, int]]):
-    def __init__(self, func: Callable[[Schema], Any]) -> None:
-        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
-            val = func(y)
-            if val not in x["counter"]:
-                x["counter"][val] = 0
-            x["counter"][val] += 1
-            return x
-
-        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
-            for val, count in y["counter"].items():
-                if val not in x["counter"]:
-                    x["counter"][val] = 0
-                x["counter"][val] += count
-            return x
-
-        def _finalize(x: dict[str, Any]) -> dict[Any, int]:
-            assert isinstance(x["counter"], dict)
-            return x["counter"]
-
-        super().__init__(
-            initial_value={"counter": {}},
-            accumulate=_accumulate,
-            merge=_merge,
-            finalize=_finalize,
-        )

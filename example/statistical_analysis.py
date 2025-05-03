@@ -16,7 +16,6 @@ example_data = [
 
 dataset = create_dataset(example_data)
 statistics = {
-    "count_by_country": dataset.count_by_value(lambda x: x["country"]),
     "count": dataset.count(),
     "sum": dataset.sum(lambda x: x["score"]),
     "mean": dataset.mean(lambda x: x["score"]),

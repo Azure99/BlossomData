@@ -4,7 +4,6 @@ from typing import Any, Callable, Optional, Union, TypeVar
 from blossom.dataframe.aggregate import (
     AggregateFunc,
     Count,
-    CountByValue,
     Max,
     Mean,
     Min,
@@ -123,6 +122,3 @@ class DataFrame(ABC):
 
     def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return self.aggregate(StdDev(func))
-
-    def count_by_value(self, func: Callable[[Schema], Any]) -> dict[Any, int]:
-        return self.aggregate(CountByValue(func))

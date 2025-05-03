@@ -2,7 +2,6 @@ from .aggregate import (
     AggregateFunc,
     RowAggregateFunc,
     Count,
-    CountByValue,
     Max,
     Mean,
     Min,
@@ -20,7 +19,6 @@ from .spark_dataframe import SparkDataFrame
 __all__ = [
     "AggregateFunc",
     "Count",
-    "CountByValue",
     "DataFrame",
     "DataHandler",
     "DefaultDataHandler",

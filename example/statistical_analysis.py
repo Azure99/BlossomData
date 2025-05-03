@@ -1,5 +1,5 @@
 import random
-from blossom.dataframe import AggregateFunc, Sum
+from blossom.dataframe import RowAggregateFunc, Sum
 from blossom.dataset import create_dataset
 from blossom.schema import RowSchema
 
@@ -13,29 +13,6 @@ example_data = [
     for _ in range(1024)
 ]
 
-count_cn_aggregate_func = AggregateFunc(
-    initial_value=RowSchema(
-        data={
-            "cn_count": 0,
-        }
-    ),
-    accumulate=lambda x, y: RowSchema(
-        data={
-            "cn_count": (
-                x.data["cn_count"] + 1
-                if y.data["country"] == "CN"
-                else x.data["cn_count"]
-            ),
-        }
-    ),
-    merge=lambda x, y: RowSchema(
-        data={
-            "cn_count": x.data["cn_count"] + y.data["cn_count"],
-        }
-    ),
-    finalize=lambda x: x.data["cn_count"],
-)
-
 
 dataset = create_dataset(example_data)
 statistics = {
@@ -48,6 +25,19 @@ statistics = {
     "variance": dataset.variance(lambda x: x["score"]),
     "stddev": dataset.stddev(lambda x: x["score"]),
     "custom_aggregate": dataset.aggregate(Sum(lambda x: x["score"] * 2)),
-    "custom_aggregate_func": dataset.aggregate(count_cn_aggregate_func),
+    "custom_aggregate_func": dataset.aggregate(
+        RowAggregateFunc(
+            initial_value={"cn_count": 0},
+            accumulate=lambda x, y: {
+                "cn_count": (
+                    x["cn_count"] + 1 if y["country"] == "CN" else x["cn_count"]
+                ),
+            },
+            merge=lambda x, y: {
+                "cn_count": x["cn_count"] + y["cn_count"],
+            },
+            finalize=lambda x: x["cn_count"],
+        ),
+    ),
 }
 print(statistics)

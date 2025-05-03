@@ -38,150 +38,156 @@ class AggregateFunc(Generic[T]):
         return self._finalize(accumulator)
 
 
-class Sum(AggregateFunc[Union[int, float]]):
-    def __init__(self, func: Callable[[Schema], Union[int, float]]):
+class RowAggregateFunc(AggregateFunc[T]):
+    def __init__(
+        self,
+        initial_value: dict[str, Any],
+        accumulate: Callable[[dict[str, Any], Schema], dict[str, Any]],
+        merge: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
+        finalize: Optional[Callable[[dict[str, Any]], T]] = None,
+    ):
         def _accumulate(x: Schema, y: Schema) -> Schema:
-            x.metadata["sum"] += func(y)
-            return x
+            assert isinstance(x, RowSchema)
+            return RowSchema(data=accumulate(x.data, y))
 
         def _merge(x: Schema, y: Schema) -> Schema:
-            x.metadata["sum"] += y.metadata["sum"]
-            return x
+            assert isinstance(x, RowSchema)
+            assert isinstance(y, RowSchema)
+            return RowSchema(data=merge(x.data, y.data))
 
+        def _finalize(x: Schema) -> T:
+            assert isinstance(x, RowSchema)
+            if finalize is None:
+                return x.data  # type: ignore
+            return finalize(x.data)
+
+        super().__init__(RowSchema(data=initial_value), _accumulate, _merge, _finalize)
+
+
+class Sum(RowAggregateFunc[Union[int, float]]):
+    def __init__(self, func: Callable[[Schema], Union[int, float]]):
         super().__init__(
-            initial_value=RowSchema(metadata={"sum": 0}),
-            accumulate=_accumulate,
-            merge=_merge,
-            finalize=lambda x: x.metadata["sum"],
+            initial_value={"sum": 0},
+            accumulate=lambda x, y: {"sum": x["sum"] + func(y)},
+            merge=lambda x, y: {"sum": x["sum"] + y["sum"]},
+            finalize=lambda x: x["sum"],
         )
 
 
-class Mean(AggregateFunc[float]):
+class Mean(RowAggregateFunc[float]):
     def __init__(self, func: Callable[[Schema], Union[int, float]]):
-        def _accumulate(x: Schema, y: Schema) -> Schema:
-            x.metadata["sum"] += func(y)
-            x.metadata["count"] += 1
-            return x
-
-        def _merge(x: Schema, y: Schema) -> Schema:
-            x.metadata["sum"] += y.metadata["sum"]
-            x.metadata["count"] += y.metadata["count"]
-            return x
-
-        def _finalize(x: Schema) -> float:
-            if x.metadata["count"] == 0:
+        def _finalize(x: dict[str, Any]) -> float:
+            if x["count"] == 0:
                 raise ValueError("Cannot compute result of empty dataset")
-            return float(x.metadata["sum"]) / int(x.metadata["count"])
+            return float(x["sum"]) / int(x["count"])
 
         super().__init__(
-            initial_value=RowSchema(metadata={"sum": 0.0, "count": 0}),
-            accumulate=_accumulate,
-            merge=_merge,
+            initial_value={"sum": 0.0, "count": 0},
+            accumulate=lambda x, y: {
+                "sum": x["sum"] + func(y),
+                "count": x["count"] + 1,
+            },
+            merge=lambda x, y: {
+                "sum": x["sum"] + y["sum"],
+                "count": x["count"] + y["count"],
+            },
             finalize=_finalize,
         )
 
 
-class Count(AggregateFunc[int]):
+class Count(RowAggregateFunc[int]):
     def __init__(self) -> None:
-        def _accumulate(x: Schema, y: Schema) -> Schema:
-            x.metadata["count"] += 1
-            return x
-
-        def _merge(x: Schema, y: Schema) -> Schema:
-            x.metadata["count"] += y.metadata["count"]
-            return x
-
         super().__init__(
-            initial_value=RowSchema(metadata={"count": 0}),
-            accumulate=_accumulate,
-            merge=_merge,
-            finalize=lambda x: x.metadata["count"],
+            initial_value={"count": 0},
+            accumulate=lambda x, y: {"count": x["count"] + 1},
+            merge=lambda x, y: {"count": x["count"] + y["count"]},
+            finalize=lambda x: x["count"],
         )
 
 
-class Min(AggregateFunc[Union[int, float]]):
+class Min(RowAggregateFunc[Union[int, float]]):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
-        def _accumulate(x: Schema, y: Schema) -> Schema:
-            if x.metadata["min"] is None:
-                x.metadata["min"] = func(y)
+        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
+            if x["min"] is None:
+                x["min"] = func(y)
             else:
-                x.metadata["min"] = min(x.metadata["min"], func(y))
+                x["min"] = min(x["min"], func(y))
             return x
 
-        def _merge(x: Schema, y: Schema) -> Schema:
-            if x.metadata["min"] is None:
-                x.metadata["min"] = y.metadata["min"]
-            elif y.metadata["min"] is None:
-                x.metadata["min"] = x.metadata["min"]
+        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+            if x["min"] is None:
+                x["min"] = y["min"]
+            elif y["min"] is None:
+                x["min"] = x["min"]
             else:
-                x.metadata["min"] = min(x.metadata["min"], y.metadata["min"])
+                x["min"] = min(x["min"], y["min"])
             return x
 
-        def _finalize(x: Schema) -> Union[int, float]:
-            if x.metadata["min"] is None:
+        def _finalize(x: dict[str, Any]) -> Union[int, float]:
+            if x["min"] is None:
                 raise ValueError("Cannot compute result of empty dataset")
-            assert isinstance(x.metadata["min"], (int, float))
-            return x.metadata["min"]
+            assert isinstance(x["min"], (int, float))
+            return x["min"]
 
         super().__init__(
-            initial_value=RowSchema(metadata={"min": None}),
+            initial_value={"min": None},
             accumulate=_accumulate,
             merge=_merge,
             finalize=_finalize,
         )
 
 
-class Max(AggregateFunc[Union[int, float]]):
+class Max(RowAggregateFunc[Union[int, float]]):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
-        def _accumulate(x: Schema, y: Schema) -> Schema:
-            if x.metadata["max"] is None:
-                x.metadata["max"] = func(y)
+        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
+            if x["max"] is None:
+                x["max"] = func(y)
             else:
-                x.metadata["max"] = max(x.metadata["max"], func(y))
+                x["max"] = max(x["max"], func(y))
             return x
 
-        def _merge(x: Schema, y: Schema) -> Schema:
-            if x.metadata["max"] is None:
-                x.metadata["max"] = y.metadata["max"]
-            elif y.metadata["max"] is None:
-                x.metadata["max"] = x.metadata["max"]
+        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+            if x["max"] is None:
+                x["max"] = y["max"]
+            elif y["max"] is None:
+                x["max"] = x["max"]
             else:
-                x.metadata["max"] = max(x.metadata["max"], y.metadata["max"])
+                x["max"] = max(x["max"], y["max"])
             return x
 
-        def _finalize(x: Schema) -> Union[int, float]:
-            if x.metadata["max"] is None:
+        def _finalize(x: dict[str, Any]) -> Union[int, float]:
+            if x["max"] is None:
                 raise ValueError("Cannot compute result of empty dataset")
-            assert isinstance(x.metadata["max"], (int, float))
-            return x.metadata["max"]
+            assert isinstance(x["max"], (int, float))
+            return x["max"]
 
         super().__init__(
-            initial_value=RowSchema(metadata={"max": None}),
+            initial_value={"max": None},
             accumulate=_accumulate,
             merge=_merge,
             finalize=_finalize,
         )
 
 
-class Variance(AggregateFunc[float]):
+class Variance(RowAggregateFunc[float]):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
-        def _accumulate(x: Schema, y: Schema) -> Schema:
+        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             v = func(y)
-            x.metadata["count"] += 1
-            x.metadata["sum"] += v
-            x.metadata["sum_squared"] += v * v
+            x["count"] += 1
+            x["sum"] += v
+            x["sum_squared"] += v * v
             return x
 
-        def _merge(x: Schema, y: Schema) -> Schema:
-            x.metadata["count"] += y.metadata["count"]
-            x.metadata["sum"] += y.metadata["sum"]
-            x.metadata["sum_squared"] += y.metadata["sum_squared"]
+        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+            x["count"] += y["count"]
+            x["sum"] += y["sum"]
+            x["sum_squared"] += y["sum_squared"]
             return x
 
-        def _finalize(x: Schema) -> float:
-            n = int(x.metadata["count"])
-            S = float(x.metadata["sum"])
-            S2 = float(x.metadata["sum_squared"])
+        def _finalize(x: dict[str, Any]) -> float:
+            n = int(x["count"])
+            S = float(x["sum"])
+            S2 = float(x["sum_squared"])
             if n < SAMPLE_VARIANCE_MIN_DATA_POINTS:
                 raise ValueError(
                     "Cannot compute sample variance with fewer than two data points"
@@ -190,32 +196,32 @@ class Variance(AggregateFunc[float]):
             return (S2 - n * mean * mean) / (n - 1)
 
         super().__init__(
-            initial_value=RowSchema(metadata={"sum": 0, "sum_squared": 0, "count": 0}),
+            initial_value={"sum": 0, "sum_squared": 0, "count": 0},
             accumulate=_accumulate,
             merge=_merge,
             finalize=_finalize,
         )
 
 
-class StdDev(AggregateFunc[float]):
+class StdDev(RowAggregateFunc[float]):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
-        def _accumulate(x: Schema, y: Schema) -> Schema:
+        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             v = func(y)
-            x.metadata["count"] += 1
-            x.metadata["sum"] += v
-            x.metadata["sum_squared"] += v * v
+            x["count"] += 1
+            x["sum"] += v
+            x["sum_squared"] += v * v
             return x
 
-        def _merge(x: Schema, y: Schema) -> Schema:
-            x.metadata["count"] += y.metadata["count"]
-            x.metadata["sum"] += y.metadata["sum"]
-            x.metadata["sum_squared"] += y.metadata["sum_squared"]
+        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+            x["count"] += y["count"]
+            x["sum"] += y["sum"]
+            x["sum_squared"] += y["sum_squared"]
             return x
 
-        def _finalize(x: Schema) -> float:
-            n = int(x.metadata["count"])
-            S = float(x.metadata["sum"])
-            S2 = float(x.metadata["sum_squared"])
+        def _finalize(x: dict[str, Any]) -> float:
+            n = int(x["count"])
+            S = float(x["sum"])
+            S2 = float(x["sum_squared"])
             if n < SAMPLE_VARIANCE_MIN_DATA_POINTS:
                 raise ValueError(
                     "Cannot compute sample standard deviation with fewer than two data points"
@@ -225,34 +231,35 @@ class StdDev(AggregateFunc[float]):
             return math.sqrt(sample_var)
 
         super().__init__(
-            initial_value=RowSchema(metadata={"sum": 0, "sum_squared": 0, "count": 0}),
+            initial_value={"sum": 0, "sum_squared": 0, "count": 0},
             accumulate=_accumulate,
             merge=_merge,
             finalize=_finalize,
         )
 
 
-class CountByValue(AggregateFunc[dict[Any, int]]):
+class CountByValue(RowAggregateFunc[dict[Any, int]]):
     def __init__(self, func: Callable[[Schema], Any]) -> None:
-        def _accumulate(x: Schema, y: Schema) -> Schema:
+        def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             val = func(y)
-            if val not in x.metadata:
-                x.metadata[val] = 0
-            x.metadata[val] += 1
+            if val not in x["counter"]:
+                x["counter"][val] = 0
+            x["counter"][val] += 1
             return x
 
-        def _merge(x: Schema, y: Schema) -> Schema:
-            for val, count in y.metadata.items():
-                if val not in x.metadata:
-                    x.metadata[val] = 0
-                x.metadata[val] += count
+        def _merge(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+            for val, count in y["counter"].items():
+                if val not in x["counter"]:
+                    x["counter"][val] = 0
+                x["counter"][val] += count
             return x
 
-        def _finalize(x: Schema) -> dict[Any, int]:
-            return x.metadata
+        def _finalize(x: dict[str, Any]) -> dict[Any, int]:
+            assert isinstance(x["counter"], dict)
+            return x["counter"]
 
         super().__init__(
-            initial_value=RowSchema(),
+            initial_value={"counter": {}},
             accumulate=_accumulate,
             merge=_merge,
             finalize=_finalize,

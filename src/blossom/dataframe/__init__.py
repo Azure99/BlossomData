@@ -1,5 +1,6 @@
 from .aggregate import (
     AggregateFunc,
+    RowAggregateFunc,
     Count,
     CountByValue,
     Max,
@@ -28,6 +29,7 @@ __all__ = [
     "Mean",
     "Min",
     "RayDataFrame",
+    "RowAggregateFunc",
     "SparkDataFrame",
     "StdDev",
     "Sum",

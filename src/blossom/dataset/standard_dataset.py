@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, Union
 from blossom.context.context import Context
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
@@ -7,8 +7,6 @@ from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.dataset.dataset import Dataset, GroupedDataset
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
-
-T = TypeVar("T")
 
 
 class StandardDataset(Dataset):
@@ -63,7 +61,7 @@ class StandardDataset(Dataset):
             for dataframe in self.dataframe.split(n)
         ]
 
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> T:
+    def aggregate(self, aggregate_func: AggregateFunc) -> Any:
         return self.dataframe.aggregate(aggregate_func)
 
     def group_by(self, func: Callable[[Schema], Any]) -> "GroupedDataset":
@@ -132,7 +130,7 @@ class GroupedStandardDataset(GroupedDataset):
         super().__init__(context)
         self.grouped_dataframe = grouped_dataframe
 
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> "Dataset":
+    def aggregate(self, aggregate_func: AggregateFunc) -> "Dataset":
         return StandardDataset(
             self.context, self.grouped_dataframe.aggregate(aggregate_func)
         )

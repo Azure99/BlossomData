@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Iterator, Optional, Any, TypeVar, Union
+from typing import Callable, Iterator, Optional, Any, Union
 
 import numpy as np
 import pyarrow as pa
@@ -28,8 +28,6 @@ from blossom.schema.schema import (
 SORT_KEY = "__sort_key__"
 GROUP_KEY = "__group_key__"
 AGGREGATE_NAME = "__aggregate_name__"
-
-T = TypeVar("T")
 
 
 def schema_to_row(schema: Schema) -> dict[str, Any]:
@@ -151,8 +149,8 @@ class RayDataFrame(DataFrame):
 
     def aggregate(
         self,
-        aggregate_func: AggregateFunc[T],
-    ) -> T:
+        aggregate_func: AggregateFunc,
+    ) -> Any:
         result = self.ray_dataset.aggregate(
             AggregateFn(
                 init=lambda k: schema_to_row(aggregate_func.initial_value),
@@ -222,7 +220,7 @@ class GroupedRayDataFrame(GroupedDataFrame):
     def __init__(self, grouped_data: ray.data.grouped_data.GroupedData):
         self.grouped_data = grouped_data
 
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
         aggregated_ds = self.grouped_data.aggregate(
             AggregateFn(
                 name=AGGREGATE_NAME,

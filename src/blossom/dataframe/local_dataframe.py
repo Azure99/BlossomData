@@ -2,7 +2,7 @@ import copy
 import json
 import os
 import random
-from typing import Any, Callable, Optional, Union, TypeVar
+from typing import Any, Callable, Optional, Union
 
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
@@ -11,8 +11,6 @@ from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.log import logger
 from blossom.schema.pair_schema import PairSchema
 from blossom.schema.schema import Schema
-
-T = TypeVar("T")
 
 
 class LocalDataFrame(DataFrame):
@@ -60,8 +58,8 @@ class LocalDataFrame(DataFrame):
 
     def aggregate(
         self,
-        aggregate_func: AggregateFunc[T],
-    ) -> T:
+        aggregate_func: AggregateFunc,
+    ) -> Any:
         result = aggregate_func.initial_value
         for schema in self.data:
             result = aggregate_func.accumulate(result, schema)
@@ -136,7 +134,7 @@ class GroupedLocalDataFrame(GroupedDataFrame):
     def __init__(self, grouped_data: dict[Any, list[Schema]]):
         self.grouped_data = grouped_data
 
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
         grouped_results: list[Schema] = []
         for key, data in self.grouped_data.items():
             result = aggregate_func.initial_value

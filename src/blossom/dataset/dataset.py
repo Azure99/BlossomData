@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, Union
 from abc import ABC, abstractmethod
 
 from blossom.context.context import Context
@@ -6,8 +6,6 @@ from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler
 from blossom.op.operator import Operator
 from blossom.schema.schema import Schema
-
-T = TypeVar("T")
 
 
 class Dataset(ABC):
@@ -55,7 +53,7 @@ class Dataset(ABC):
         pass
 
     @abstractmethod
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> T:
+    def aggregate(self, aggregate_func: AggregateFunc) -> Any:
         pass
 
     @abstractmethod
@@ -132,7 +130,7 @@ class GroupedDataset(ABC):
         self.context = context
 
     @abstractmethod
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> "Dataset":
+    def aggregate(self, aggregate_func: AggregateFunc) -> "Dataset":
         pass
 
     @abstractmethod

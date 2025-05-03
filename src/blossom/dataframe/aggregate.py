@@ -1,21 +1,20 @@
 import copy
 import math
-from typing import Any, Callable, Optional, Union, TypeVar, Generic
+from typing import Any, Callable, Optional, Union
 from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import Schema
 
-T = TypeVar("T")
 
 SAMPLE_VARIANCE_MIN_DATA_POINTS = 2
 
 
-class AggregateFunc(Generic[T]):
+class AggregateFunc:
     def __init__(
         self,
         initial_value: Schema,
         accumulate: Callable[[Schema, Schema], Schema],
         merge: Callable[[Schema, Schema], Schema],
-        finalize: Optional[Callable[[Schema], T]] = None,
+        finalize: Optional[Callable[[Schema], Any]] = None,
     ):
         self._initial_value = initial_value
         self._accumulate = accumulate
@@ -32,19 +31,19 @@ class AggregateFunc(Generic[T]):
     def merge(self, accumulator1: Schema, accumulator2: Schema) -> Schema:
         return self._merge(accumulator1, accumulator2)
 
-    def finalize(self, accumulator: Schema) -> T:
+    def finalize(self, accumulator: Schema) -> Any:
         if self._finalize is None:
-            return accumulator  # type: ignore
+            return accumulator
         return self._finalize(accumulator)
 
 
-class RowAggregateFunc(AggregateFunc[T]):
+class RowAggregateFunc(AggregateFunc):
     def __init__(
         self,
         initial_value: dict[str, Any],
         accumulate: Callable[[dict[str, Any], Schema], dict[str, Any]],
         merge: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
-        finalize: Optional[Callable[[dict[str, Any]], T]] = None,
+        finalize: Optional[Callable[[dict[str, Any]], Any]] = None,
     ):
         def _accumulate(x: Schema, y: Schema) -> Schema:
             assert isinstance(x, RowSchema)
@@ -55,16 +54,16 @@ class RowAggregateFunc(AggregateFunc[T]):
             assert isinstance(y, RowSchema)
             return RowSchema(data=merge(x.data, y.data))
 
-        def _finalize(x: Schema) -> T:
+        def _finalize(x: Schema) -> Any:
             assert isinstance(x, RowSchema)
             if finalize is None:
-                return x.data  # type: ignore
+                return x.data
             return finalize(x.data)
 
         super().__init__(RowSchema(data=initial_value), _accumulate, _merge, _finalize)
 
 
-class Sum(RowAggregateFunc[Union[int, float]]):
+class Sum(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], Union[int, float]]):
         super().__init__(
             initial_value={"sum": 0},
@@ -74,7 +73,7 @@ class Sum(RowAggregateFunc[Union[int, float]]):
         )
 
 
-class Mean(RowAggregateFunc[float]):
+class Mean(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], Union[int, float]]):
         def _finalize(x: dict[str, Any]) -> float:
             if x["count"] == 0:
@@ -95,7 +94,7 @@ class Mean(RowAggregateFunc[float]):
         )
 
 
-class Count(RowAggregateFunc[int]):
+class Count(RowAggregateFunc):
     def __init__(self) -> None:
         super().__init__(
             initial_value={"count": 0},
@@ -105,7 +104,7 @@ class Count(RowAggregateFunc[int]):
         )
 
 
-class Min(RowAggregateFunc[Union[int, float]]):
+class Min(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             if x["min"] is None:
@@ -137,7 +136,7 @@ class Min(RowAggregateFunc[Union[int, float]]):
         )
 
 
-class Max(RowAggregateFunc[Union[int, float]]):
+class Max(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             if x["max"] is None:
@@ -169,7 +168,7 @@ class Max(RowAggregateFunc[Union[int, float]]):
         )
 
 
-class Variance(RowAggregateFunc[float]):
+class Variance(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             v = func(y)
@@ -203,7 +202,7 @@ class Variance(RowAggregateFunc[float]):
         )
 
 
-class StdDev(RowAggregateFunc[float]):
+class StdDev(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], Union[int, float]]) -> None:
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             v = func(y)
@@ -238,7 +237,7 @@ class StdDev(RowAggregateFunc[float]):
         )
 
 
-class Unique(RowAggregateFunc[list[Any]]):
+class Unique(RowAggregateFunc):
     def __init__(self, func: Callable[[Schema], set[Any]]) -> None:
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             x["unique"][func(y)] = True

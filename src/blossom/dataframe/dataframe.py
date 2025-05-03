@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Union, TypeVar
+from typing import Any, Callable, Optional, Union
 
 from blossom.dataframe.aggregate import (
     AggregateFunc,
@@ -14,8 +14,6 @@ from blossom.dataframe.aggregate import (
 )
 from blossom.dataframe.data_handler import DataHandler
 from blossom.schema.schema import Schema
-
-T = TypeVar("T")
 
 
 class DataFrame(ABC):
@@ -60,8 +58,8 @@ class DataFrame(ABC):
     @abstractmethod
     def aggregate(
         self,
-        aggregate_func: AggregateFunc[T],
-    ) -> T:
+        aggregate_func: AggregateFunc,
+    ) -> Any:
         pass
 
     @abstractmethod
@@ -106,35 +104,51 @@ class DataFrame(ABC):
         return self.map(drop_metadata_from_schema)
 
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return self.aggregate(Sum(func))
+        result = self.aggregate(Sum(func))
+        assert isinstance(result, (int, float))
+        return result
 
     def mean(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return self.aggregate(Mean(func))
+        result = self.aggregate(Mean(func))
+        assert isinstance(result, (int, float))
+        return result
 
     def count(self) -> int:
-        return self.aggregate(Count())
+        result = self.aggregate(Count())
+        assert isinstance(result, int)
+        return result
 
     def min(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return self.aggregate(Min(func))
+        result = self.aggregate(Min(func))
+        assert isinstance(result, (int, float))
+        return result
 
     def max(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return self.aggregate(Max(func))
+        result = self.aggregate(Max(func))
+        assert isinstance(result, (int, float))
+        return result
 
     def variance(
         self, func: Callable[[Schema], Union[int, float]]
     ) -> Union[int, float]:
-        return self.aggregate(Variance(func))
+        result = self.aggregate(Variance(func))
+        assert isinstance(result, (int, float))
+        return result
 
     def stddev(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
-        return self.aggregate(StdDev(func))
+        result = self.aggregate(StdDev(func))
+        assert isinstance(result, (int, float))
+        return result
 
     def unique(self, func: Callable[[Schema], set[Any]]) -> list[Any]:
-        return self.aggregate(Unique(func))
+        result = self.aggregate(Unique(func))
+        assert isinstance(result, list)
+        return result
 
 
 class GroupedDataFrame(ABC):
     @abstractmethod
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
         pass
 
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> DataFrame:

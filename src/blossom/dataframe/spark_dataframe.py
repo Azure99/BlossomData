@@ -1,6 +1,6 @@
 import json
 import random
-from typing import Callable, Optional, Any, TypeVar, Union
+from typing import Callable, Optional, Any, Union
 from collections.abc import Iterable
 
 from pyspark.rdd import RDD
@@ -13,7 +13,6 @@ from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.schema.pair_schema import PairSchema
 from blossom.schema.schema import Schema
 
-T = TypeVar("T")
 
 GROUP_KEY = "__group_key__"
 
@@ -105,8 +104,8 @@ class SparkDataFrame(DataFrame):
 
     def aggregate(
         self,
-        aggregate_func: AggregateFunc[T],
-    ) -> T:
+        aggregate_func: AggregateFunc,
+    ) -> Any:
         result = self.spark_rdd.aggregate(
             zeroValue=aggregate_func.initial_value.to_dict(),
             seqOp=lambda x, y: aggregate_func.accumulate(
@@ -181,7 +180,7 @@ class GroupedSparkDataFrame(GroupedDataFrame):
         self.rdd_with_group_key = rdd_with_group_key
         self.spark_session = spark_session
 
-    def aggregate(self, aggregate_func: AggregateFunc[T]) -> DataFrame:
+    def aggregate(self, aggregate_func: AggregateFunc) -> DataFrame:
         aggregated_rdd = self.rdd_with_group_key.aggregateByKey(
             zeroValue=aggregate_func.initial_value.to_dict(),
             seqFunc=lambda x, y: aggregate_func.accumulate(

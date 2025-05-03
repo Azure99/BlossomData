@@ -14,7 +14,7 @@ example_data = [
 ]
 
 
-dataset = create_dataset(example_data, engine="spark")
+dataset = create_dataset(example_data)
 statistics = {
     "count": dataset.count(),
     "sum": dataset.sum(lambda x: x["score"]),

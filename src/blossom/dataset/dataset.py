@@ -1,5 +1,5 @@
-from typing import Any, Callable, Optional, Union
 from abc import ABC, abstractmethod
+from typing import Any, Callable, Optional, Union
 
 from blossom.context.context import Context
 from blossom.dataframe.aggregate import AggregateFunc

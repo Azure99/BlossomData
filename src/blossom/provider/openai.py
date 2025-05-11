@@ -11,7 +11,6 @@ from blossom.provider.protocol import ChatCompletionResponse, EmbeddingResponse
 from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 
-
 HTTP_SUCCESS = 200
 HTTP_TOO_MANY_REQUESTS = 429
 HTTP_INTERNAL_SERVER_ERROR = 500

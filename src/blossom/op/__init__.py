@@ -5,11 +5,11 @@ from .chat.chat_distiller import ChatDistiller
 from .chat.chat_embedder import ChatEmbedder
 from .chat.chat_invalid_filter import ChatInvalidFilter
 from .chat.chat_length_filter import ChatLengthFilter
-from .chat.chat_verify_distiller import ChatVerifyDistiller
 from .chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
 from .chat.chat_reasoning_content_merger import ChatReasoningContentMerger
 from .chat.chat_repetition_filter import ChatRepetitionFilter
 from .chat.chat_translator import ChatTranslator
+from .chat.chat_verify_distiller import ChatVerifyDistiller
 from .failed_item_filter import FailedItemFilter
 from .filter_operator import FilterOperator, context_filter_operator, filter_operator
 from .map_operator import MapOperator, context_map_operator, map_operator
@@ -29,7 +29,6 @@ from .transform_operator import (
 from .util.char_repetition_filter import CharRepetitionFilter
 from .util.content_embedder import ContentEmbedder
 from .util.content_translator import ContentTranslator
-
 
 __all__ = [
     "CharRepetitionFilter",

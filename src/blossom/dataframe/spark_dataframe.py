@@ -1,7 +1,7 @@
 import json
 import random
-from typing import Callable, Optional, Any, Union
 from collections.abc import Iterable
+from typing import Callable, Optional, Any, Union
 
 from pyspark.rdd import RDD
 from pyspark.sql import SparkSession
@@ -12,7 +12,6 @@ from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import Schema
-
 
 GROUP_KEY = "__group_key__"
 

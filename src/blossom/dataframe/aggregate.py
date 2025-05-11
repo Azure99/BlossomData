@@ -1,9 +1,9 @@
 import copy
 import math
 from typing import Any, Callable, Optional, Union
+
 from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import Schema
-
 
 SAMPLE_VARIANCE_MIN_DATA_POINTS = 2
 

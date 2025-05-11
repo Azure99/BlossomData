@@ -21,11 +21,11 @@ from .custom_schema import (
     SCHEMA_TYPE_CUSTOM,
     CustomSchema,
 )
-from .schema import Schema
 from .row_schema import (
     SCHEMA_TYPE_ROW,
     RowSchema,
 )
+from .schema import Schema
 from .text_schema import (
     SCHEMA_TYPE_TEXT,
     TextSchema,

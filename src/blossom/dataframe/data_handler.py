@@ -117,6 +117,16 @@ class DictDataHandler(DataHandler):
     that doesn't require complex schema transformations.
     """
 
+    def __init__(self, preserve_metadata: bool = False):
+        """
+        Initialize a DictDataHandler.
+
+        Args:
+            preserve_metadata: If True, include schema metadata in the output dictionary
+                               when converting from Schema to dict. Default is False.
+        """
+        self.preserve_metadata = preserve_metadata
+
     def from_dict(self, data: dict[str, Any]) -> Schema:
         """
         Convert a dictionary to a RowSchema object.
@@ -133,16 +143,21 @@ class DictDataHandler(DataHandler):
 
     def to_dict(self, schema: Schema) -> dict[str, Any]:
         """
-        Convert a schema object to a dictionary.
-
-        Extracts the raw data dictionary from a RowSchema object.
-        Asserts that the schema is a RowSchema instance.
+        Convert a Schema object to a dictionary.
 
         Args:
-            schema: RowSchema object to convert
+            schema: Schema object to convert, must be a RowSchema instance
 
         Returns:
-            The raw dictionary data from the RowSchema
+            Dictionary representation. If preserve_metadata is True, the result includes
+            both schema metadata and data. Otherwise, only returns the schema data.
         """
         assert isinstance(schema, RowSchema)
-        return schema.data
+        
+        if not self.preserve_metadata:
+            return schema.data
+        
+        result = {}
+        result.update(schema.metadata)
+        result.update(schema.data)
+        return result

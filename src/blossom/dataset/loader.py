@@ -65,7 +65,7 @@ def load_dataset(
     Raises:
         ValueError: If an invalid engine or data type is specified
     """
-    dataframe: DataFrame = LocalDataFrame()
+    dataframe: DataFrame
     if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
     elif engine == DatasetEngine.RAY:
@@ -104,7 +104,7 @@ def create_dataset(
     Raises:
         ValueError: If an invalid engine is specified
     """
-    dataframe: DataFrame = LocalDataFrame()
+    dataframe: DataFrame
     if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
     elif engine == DatasetEngine.RAY:

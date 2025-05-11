@@ -67,11 +67,11 @@ def _map_batches(
                 result.setdefault(k, []).append(v)
         return {k: np.array(v) for k, v in result.items()}
 
-    result: ray.data.Dataset = dataset.map_batches(_map_batch)
-    return result
+    ds: ray.data.Dataset = dataset.map_batches(_map_batch)
+    return ds
 
 
-class SchemaRowDatasink(BlockBasedFileDatasink):
+class SchemaRowDataSink(BlockBasedFileDatasink):
     def __init__(self, path: str, data_handler: DataHandler):
         super().__init__(path, file_format="jsonl")
         self.data_handler = data_handler
@@ -225,7 +225,7 @@ class RayDataFrame(DataFrame):
 
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         data_handler = data_handler or DefaultDataHandler()
-        self.ray_dataset.write_datasink(SchemaRowDatasink(path, data_handler))
+        self.ray_dataset.write_datasink(SchemaRowDataSink(path, data_handler))
 
 
 class GroupedRayDataFrame(GroupedDataFrame):

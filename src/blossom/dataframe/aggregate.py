@@ -355,14 +355,14 @@ class Variance(RowAggregateFunc):
 
         def _finalize(x: dict[str, Any]) -> float:
             n = int(x["count"])
-            S = float(x["sum"])
-            S2 = float(x["sum_squared"])
+            s = float(x["sum"])
+            s2 = float(x["sum_squared"])
             if n < SAMPLE_VARIANCE_MIN_DATA_POINTS:
                 raise ValueError(
                     "Cannot compute sample variance with fewer than two data points"
                 )
-            mean = S / n
-            return (S2 - n * mean * mean) / (n - 1)
+            mean = s / n
+            return (s2 - n * mean * mean) / (n - 1)
 
         super().__init__(
             initial_value={"sum": 0, "sum_squared": 0, "count": 0},
@@ -404,14 +404,14 @@ class StdDev(RowAggregateFunc):
 
         def _finalize(x: dict[str, Any]) -> float:
             n = int(x["count"])
-            S = float(x["sum"])
-            S2 = float(x["sum_squared"])
+            s = float(x["sum"])
+            s2 = float(x["sum_squared"])
             if n < SAMPLE_VARIANCE_MIN_DATA_POINTS:
                 raise ValueError(
                     "Cannot compute sample standard deviation with fewer than two data points"
                 )
-            mean = S / n
-            sample_var = (S2 - n * mean * mean) / (n - 1)
+            mean = s / n
+            sample_var = (s2 - n * mean * mean) / (n - 1)
             return math.sqrt(sample_var)
 
         super().__init__(

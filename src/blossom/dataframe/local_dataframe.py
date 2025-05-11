@@ -83,12 +83,12 @@ class LocalDataFrame(DataFrame):
         if not isinstance(others, list):
             others = [others]
 
-        unioned_data = self.data[:]
+        union_data = self.data[:]
         for other in others:
             assert isinstance(other, LocalDataFrame)
-            unioned_data.extend(other.data)
+            union_data.extend(other.data)
 
-        return LocalDataFrame(unioned_data)
+        return LocalDataFrame(union_data)
 
     def cache(self) -> "DataFrame":
         return LocalDataFrame(copy.deepcopy(self.data))
@@ -119,8 +119,9 @@ class LocalDataFrame(DataFrame):
                 json_data = data_handler.to_dict(schema)
                 f.write(json.dumps(json_data, ensure_ascii=False) + "\n")
 
+    @staticmethod
     def _list_files(
-        self, path: str, exts: list[str], include_no_ext: bool
+        path: str, extensions: list[str], include_no_ext: bool
     ) -> list[str]:
         if not os.path.isdir(path):
             return [path]
@@ -130,7 +131,7 @@ class LocalDataFrame(DataFrame):
             file_lower = file.lower()
             if include_no_ext and "." not in file_lower:
                 file_list.append(file)
-            elif any(file_lower.endswith(ext) for ext in exts):
+            elif any(file_lower.endswith(ext) for ext in extensions):
                 file_list.append(file)
         return [os.path.join(path, file) for file in file_list]
 

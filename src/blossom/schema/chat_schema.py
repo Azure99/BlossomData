@@ -52,7 +52,7 @@ class ChatMessageContentImageDetail(StrEnum):
 
     Attributes:
         AUTO: Automatically determine the detail level
-        LOW: Low detail level (faster, less tokens)
+        LOW: Low detail level (faster, fewer tokens)
         HIGH: High detail level (slower, more tokens)
     """
 

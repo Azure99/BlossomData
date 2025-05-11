@@ -94,7 +94,7 @@ class SparkDataFrame(DataFrame):
             def make_filter(
                 s: int, e: int
             ) -> Callable[[tuple[dict[str, Any], int]], bool]:
-                return lambda x: x[1] >= s and x[1] < e
+                return lambda x: s <= x[1] < e
 
             chunk_rdd = rdd.filter(make_filter(start, end)).map(lambda x: x[0])
             dataframes.append(SparkDataFrame(chunk_rdd, self.spark_session))
@@ -138,12 +138,12 @@ class SparkDataFrame(DataFrame):
         if not isinstance(others, list):
             others = [others]
 
-        unioned_rdd = self.spark_rdd
+        union_rdd = self.spark_rdd
         for other in others:
             assert isinstance(other, SparkDataFrame)
-            unioned_rdd = unioned_rdd.union(other.spark_rdd)
+            union_rdd = union_rdd.union(other.spark_rdd)
 
-        return SparkDataFrame(unioned_rdd, self.spark_session)
+        return SparkDataFrame(union_rdd, self.spark_session)
 
     def cache(self) -> "DataFrame":
         return SparkDataFrame(self.spark_rdd.cache(), self.spark_session)

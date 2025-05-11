@@ -10,13 +10,40 @@ PROVIDER_PACKAGE = "blossom.provider"
 
 
 class ProviderManager:
+    """
+    Manager for model providers.
+
+    This class is responsible for dynamically loading provider implementations
+    and creating provider instances based on configuration.
+    """
+
     def __init__(self, config: Config):
+        """
+        Initialize a ProviderManager with configuration.
+
+        Args:
+            config: Configuration containing model definitions
+        """
         self.config = config
         self.providers = self._load_providers()
         self.models = self._load_models()
         self.provider_instances: dict[str, Provider] = {}
 
     def get_model(self, model_name: str) -> Provider:
+        """
+        Get a provider instance for a model by name.
+
+        This method creates and caches provider instances as needed.
+
+        Args:
+            model_name: Name of the model to get
+
+        Returns:
+            Provider instance for the specified model
+
+        Raises:
+            ValueError: If the model is not found in configuration or the provider is not found
+        """
         if model_name in self.provider_instances:
             return self.provider_instances[model_name]
 

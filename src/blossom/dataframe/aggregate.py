@@ -9,6 +9,14 @@ SAMPLE_VARIANCE_MIN_DATA_POINTS = 2
 
 
 class AggregateFunc:
+    """
+    Base class for aggregation functions.
+
+    An AggregateFunc defines how to accumulate values across items in a dataset,
+    merge partial results, and finalize the result. This is the foundation for
+    distributed aggregation operations.
+    """
+
     def __init__(
         self,
         initial_value: Schema,
@@ -17,6 +25,16 @@ class AggregateFunc:
         finalize: Optional[Callable[[Schema], Any]] = None,
         name: str = "aggregate",
     ):
+        """
+        Initialize an AggregateFunc.
+
+        Args:
+            initial_value: Initial value for the accumulator
+            accumulate: Function to accumulate a new item into the accumulator
+            merge: Function to merge two accumulators
+            finalize: Optional function to transform the final accumulator (default: None)
+            name: Name of the aggregation function (default: "aggregate")
+        """
         self._initial_value = initial_value
         self._accumulate = accumulate
         self._merge = merge
@@ -25,25 +43,73 @@ class AggregateFunc:
 
     @property
     def initial_value(self) -> Schema:
+        """
+        Get a copy of the initial value.
+
+        Returns:
+            Copy of the initial value
+        """
         return copy.deepcopy(self._initial_value)
 
     @property
     def name(self) -> str:
+        """
+        Get the name of the aggregation function.
+
+        Returns:
+            Name of the aggregation function
+        """
         return self._name
 
     def accumulate(self, accumulator: Schema, item: Schema) -> Schema:
+        """
+        Accumulate a new item into the accumulator.
+
+        Args:
+            accumulator: Current accumulator
+            item: New item to accumulate
+
+        Returns:
+            Updated accumulator
+        """
         return self._accumulate(accumulator, item)
 
     def merge(self, accumulator1: Schema, accumulator2: Schema) -> Schema:
+        """
+        Merge two accumulators.
+
+        Args:
+            accumulator1: First accumulator
+            accumulator2: Second accumulator
+
+        Returns:
+            Merged accumulator
+        """
         return self._merge(accumulator1, accumulator2)
 
     def finalize(self, accumulator: Schema) -> Any:
+        """
+        Finalize the accumulator to produce the result.
+
+        Args:
+            accumulator: Final accumulator
+
+        Returns:
+            Aggregation result
+        """
         if self._finalize is None:
             return accumulator
         return self._finalize(accumulator)
 
 
 class RowAggregateFunc(AggregateFunc):
+    """
+    Aggregation function that uses RowSchema as the accumulator.
+
+    This is a convenience class for creating aggregation functions that use
+    dictionaries as accumulators, wrapped in RowSchema objects.
+    """
+
     def __init__(
         self,
         initial_value: dict[str, Any],
@@ -52,6 +118,17 @@ class RowAggregateFunc(AggregateFunc):
         finalize: Optional[Callable[[dict[str, Any]], Any]] = None,
         name: str = "aggregate",
     ):
+        """
+        Initialize a RowAggregateFunc.
+
+        Args:
+            initial_value: Initial dictionary for the accumulator
+            accumulate: Function to accumulate a new item into the dictionary
+            merge: Function to merge two dictionaries
+            finalize: Optional function to transform the final dictionary (default: None)
+            name: Name of the aggregation function (default: "aggregate")
+        """
+
         def _accumulate(x: Schema, y: Schema) -> Schema:
             assert isinstance(x, RowSchema)
             return RowSchema(data=accumulate(x.data, y))
@@ -77,7 +154,18 @@ class RowAggregateFunc(AggregateFunc):
 
 
 class Sum(RowAggregateFunc):
+    """
+    Aggregation function to calculate the sum of values.
+    """
+
     def __init__(self, func: Callable[[Schema], Union[int, float]], name: str = "sum"):
+        """
+        Initialize a Sum aggregation function.
+
+        Args:
+            func: Function that extracts a numeric value from each item
+            name: Name of the aggregation function (default: "sum")
+        """
         super().__init__(
             initial_value={"sum": 0},
             accumulate=lambda x, y: {"sum": x["sum"] + func(y)},
@@ -88,7 +176,19 @@ class Sum(RowAggregateFunc):
 
 
 class Mean(RowAggregateFunc):
+    """
+    Aggregation function to calculate the mean of values.
+    """
+
     def __init__(self, func: Callable[[Schema], Union[int, float]], name: str = "mean"):
+        """
+        Initialize a Mean aggregation function.
+
+        Args:
+            func: Function that extracts a numeric value from each item
+            name: Name of the aggregation function (default: "mean")
+        """
+
         def _finalize(x: dict[str, Any]) -> float:
             if x["count"] == 0:
                 raise ValueError("Cannot compute result of empty dataset")
@@ -110,7 +210,17 @@ class Mean(RowAggregateFunc):
 
 
 class Count(RowAggregateFunc):
+    """
+    Aggregation function to count the number of items.
+    """
+
     def __init__(self, name: str = "count") -> None:
+        """
+        Initialize a Count aggregation function.
+
+        Args:
+            name: Name of the aggregation function (default: "count")
+        """
         super().__init__(
             initial_value={"count": 0},
             accumulate=lambda x, y: {"count": x["count"] + 1},
@@ -121,9 +231,21 @@ class Count(RowAggregateFunc):
 
 
 class Min(RowAggregateFunc):
+    """
+    Aggregation function to find the minimum value.
+    """
+
     def __init__(
         self, func: Callable[[Schema], Union[int, float]], name: str = "min"
     ) -> None:
+        """
+        Initialize a Min aggregation function.
+
+        Args:
+            func: Function that extracts a numeric value from each item
+            name: Name of the aggregation function (default: "min")
+        """
+
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             if x["min"] is None:
                 x["min"] = func(y)
@@ -156,9 +278,21 @@ class Min(RowAggregateFunc):
 
 
 class Max(RowAggregateFunc):
+    """
+    Aggregation function to find the maximum value.
+    """
+
     def __init__(
         self, func: Callable[[Schema], Union[int, float]], name: str = "max"
     ) -> None:
+        """
+        Initialize a Max aggregation function.
+
+        Args:
+            func: Function that extracts a numeric value from each item
+            name: Name of the aggregation function (default: "max")
+        """
+
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             if x["max"] is None:
                 x["max"] = func(y)
@@ -191,9 +325,21 @@ class Max(RowAggregateFunc):
 
 
 class Variance(RowAggregateFunc):
+    """
+    Aggregation function to calculate the sample variance of values.
+    """
+
     def __init__(
         self, func: Callable[[Schema], Union[int, float]], name: str = "variance"
     ) -> None:
+        """
+        Initialize a Variance aggregation function.
+
+        Args:
+            func: Function that extracts a numeric value from each item
+            name: Name of the aggregation function (default: "variance")
+        """
+
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             v = func(y)
             x["count"] += 1
@@ -228,9 +374,21 @@ class Variance(RowAggregateFunc):
 
 
 class StdDev(RowAggregateFunc):
+    """
+    Aggregation function to calculate the sample standard deviation of values.
+    """
+
     def __init__(
         self, func: Callable[[Schema], Union[int, float]], name: str = "stddev"
     ) -> None:
+        """
+        Initialize a StdDev aggregation function.
+
+        Args:
+            func: Function that extracts a numeric value from each item
+            name: Name of the aggregation function (default: "stddev")
+        """
+
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             v = func(y)
             x["count"] += 1
@@ -266,9 +424,21 @@ class StdDev(RowAggregateFunc):
 
 
 class Unique(RowAggregateFunc):
+    """
+    Aggregation function to find unique values.
+    """
+
     def __init__(
         self, func: Callable[[Schema], set[Any]], name: str = "unique"
     ) -> None:
+        """
+        Initialize a Unique aggregation function.
+
+        Args:
+            func: Function that extracts a set of values from each item
+            name: Name of the aggregation function (default: "unique")
+        """
+
         def _accumulate(x: dict[str, Any], y: Schema) -> dict[str, Any]:
             x["unique"][func(y)] = True
             return x

@@ -15,10 +15,26 @@ from blossom.util.type import StrEnum
 
 
 class DataType(StrEnum):
+    """
+    Enumeration of supported data file types.
+
+    Attributes:
+        JSON: JSON file format
+    """
+
     JSON = "json"
 
 
 class DatasetEngine(StrEnum):
+    """
+    Enumeration of available dataset processing engines.
+
+    Attributes:
+        LOCAL: Local in-memory processing engine
+        SPARK: Apache Spark distributed processing engine
+        RAY: Ray distributed processing engine
+    """
+
     LOCAL = "local"
     SPARK = "spark"
     RAY = "ray"
@@ -32,6 +48,23 @@ def load_dataset(
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:
+    """
+    Load a dataset from a file.
+
+    Args:
+        path: Path to the data file
+        engine: Processing engine to use (default: local)
+        data_type: Type of data file (default: json)
+        data_handler: Optional custom data handler for deserialization
+        context: Optional execution context
+        spark_session: Optional Spark session (required for Spark engine)
+
+    Returns:
+        A dataset containing the loaded data
+
+    Raises:
+        ValueError: If an invalid engine or data type is specified
+    """
     dataframe: DataFrame = LocalDataFrame()
     if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
@@ -56,6 +89,21 @@ def create_dataset(
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:
+    """
+    Create a dataset from a list of schemas.
+
+    Args:
+        data: List of schema objects (default: empty list)
+        engine: Processing engine to use (default: local)
+        context: Optional execution context
+        spark_session: Optional Spark session (required for Spark engine)
+
+    Returns:
+        A dataset containing the provided data
+
+    Raises:
+        ValueError: If an invalid engine is specified
+    """
     dataframe: DataFrame = LocalDataFrame()
     if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()

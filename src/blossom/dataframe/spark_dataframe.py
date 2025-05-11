@@ -7,9 +7,8 @@ from pyspark.rdd import RDD
 from pyspark.sql import SparkSession
 
 from blossom.dataframe.aggregate import AggregateFunc
-from blossom.dataframe.data_handler import DataHandler
+from blossom.dataframe.data_handler import DataHandler, DefaultDataHandler
 from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
-from blossom.dataframe.default_data_handler import DefaultDataHandler
 from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import Schema
 

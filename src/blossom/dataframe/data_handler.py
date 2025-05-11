@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from blossom.schema.schema import Schema
+from blossom.schema.schema import Schema, FIELD_TYPE
+from blossom.schema.row_schema import RowSchema
 
 
 class DataHandler(ABC):
@@ -62,3 +63,86 @@ class DataHandler(ABC):
             Dictionary representation
         """
         pass
+
+
+class DefaultDataHandler(DataHandler):
+    """
+    Default implementation of DataHandler.
+
+    This handler automatically detects schema types from dictionaries and
+    creates appropriate schema objects. If no schema type is specified,
+    it creates a RowSchema with the dictionary data.
+    """
+
+    def from_dict(self, data: dict[str, Any]) -> Schema:
+        """
+        Convert a dictionary to a schema object.
+
+        If the dictionary has a "type" field, uses the appropriate schema class.
+        Otherwise, creates a RowSchema with the dictionary data.
+
+        Args:
+            data: Dictionary to convert
+
+        Returns:
+            Schema object
+        """
+        schema_type = data.get(FIELD_TYPE)
+        if schema_type:
+            return Schema.from_dict(data)
+
+        return RowSchema(data=data)
+
+    def to_dict(self, schema: Schema) -> dict[str, Any]:
+        """
+        Convert a schema object to a dictionary.
+
+        Uses the schema's to_dict method to perform the conversion.
+
+        Args:
+            schema: Schema object to convert
+
+        Returns:
+            Dictionary representation
+        """
+        return schema.to_dict()
+
+
+class DictDataHandler(DataHandler):
+    """
+    Simple data handler that works directly with dictionary data.
+
+    This handler converts between dictionaries and RowSchema objects without
+    any additional processing. It's useful for working with plain dictionary data
+    that doesn't require complex schema transformations.
+    """
+
+    def from_dict(self, data: dict[str, Any]) -> Schema:
+        """
+        Convert a dictionary to a RowSchema object.
+
+        Simply wraps the dictionary in a RowSchema without any transformation.
+
+        Args:
+            data: Dictionary to convert
+
+        Returns:
+            RowSchema containing the input dictionary
+        """
+        return RowSchema(data=data)
+
+    def to_dict(self, schema: Schema) -> dict[str, Any]:
+        """
+        Convert a schema object to a dictionary.
+
+        Extracts the raw data dictionary from a RowSchema object.
+        Asserts that the schema is a RowSchema instance.
+
+        Args:
+            schema: RowSchema object to convert
+
+        Returns:
+            The raw dictionary data from the RowSchema
+        """
+        assert isinstance(schema, RowSchema)
+        return schema.data

@@ -1,11 +1,13 @@
 [tool.poetry]
 name = "blossom-data"
+packages = [{ include = "blossom", from = "src" }]
 version = "0.4.0"
 description = "A simple way to synthesize LLM training data."
 repository = "https://github.com/Azure99/BlossomData"
 authors = ["Azure99"]
 readme = "README.md"
-packages = [{ include = "blossom", from = "src" }]
+license = "MIT"
+keywords = ["llm", "data synthesis", "data processing", "pyspark", "ray", "machine learning", "nlp"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"

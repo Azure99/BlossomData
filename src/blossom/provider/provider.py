@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 from blossom.conf.config import ModelConfig
-from blossom.provider.protocol import ChatCompletionResponse
+from blossom.provider.protocol import ChatCompletionResponse, EmbeddingResponse
 from blossom.schema.chat_schema import ChatMessage
 
 
@@ -30,6 +30,12 @@ class Provider(ABC):
 
     @abstractmethod
     def embedding(
-        self, input_text: str, extra_params: Optional[dict[str, Any]]
+        self, input_text: str, extra_params: Optional[dict[str, Any]] = None
     ) -> list[float]:
+        pass
+
+    @abstractmethod
+    def embedding_with_details(
+        self, input_text: str, extra_params: Optional[dict[str, Any]] = None
+    ) -> EmbeddingResponse:
         pass

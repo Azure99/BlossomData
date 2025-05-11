@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 from blossom.conf.config import Config, load_config
 from blossom.context.provider_manager import ProviderManager
-from blossom.provider.protocol import ChatCompletionResponse
+from blossom.provider.protocol import ChatCompletionResponse, EmbeddingResponse
 from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import ChatMessage
 
@@ -39,4 +39,22 @@ class Context:
     ) -> ChatCompletionResponse:
         return self.get_model(model).chat_completion_with_details(
             messages, extra_params=extra_params
+        )
+
+    def embedding(
+        self,
+        model: str,
+        input_text: str,
+        extra_params: Optional[dict[str, Any]] = None,
+    ) -> list[float]:
+        return self.get_model(model).embedding(input_text, extra_params=extra_params)
+
+    def embedding_with_details(
+        self,
+        model: str,
+        input_text: str,
+        extra_params: Optional[dict[str, Any]] = None,
+    ) -> EmbeddingResponse:
+        return self.get_model(model).embedding_with_details(
+            input_text, extra_params=extra_params
         )

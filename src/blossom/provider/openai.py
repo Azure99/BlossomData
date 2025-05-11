@@ -7,7 +7,7 @@ import requests
 
 from blossom.conf import ModelConfig
 from blossom.log import logger
-from blossom.provider.protocol import ChatCompletionResponse
+from blossom.provider.protocol import ChatCompletionResponse, EmbeddingResponse
 from blossom.provider.provider import Provider
 from blossom.schema.chat_schema import ChatMessage, ChatRole, system
 
@@ -70,17 +70,21 @@ class OpenAI(Provider):
         return ChatCompletionResponse(**response)
 
     def embedding(
-        self, input_text: str, extra_params: Optional[dict[str, Any]]
+        self, input_text: str, extra_params: Optional[dict[str, Any]] = None
     ) -> list[float]:
+        response = self.embedding_with_details(input_text, extra_params)
+        return response.data[0].embedding
+
+    def embedding_with_details(
+        self, input_text: str, extra_params: Optional[dict[str, Any]] = None
+    ) -> EmbeddingResponse:
         if len(input_text) == 0:
             raise ValueError("No input provided")
 
         data = {"model": self.api_model_name, "input": input_text}
 
         response = self._request("/embeddings", data, extra_params)
-        embedding = response["data"][0]["embedding"]
-        assert isinstance(embedding, list)
-        return embedding
+        return EmbeddingResponse(**response)
 
     def _request(
         self,

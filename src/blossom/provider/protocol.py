@@ -6,6 +6,12 @@ from blossom.schema.chat_schema import ChatMessage
 from blossom.util.type import StrEnum
 
 
+class UsageInfo(BaseModel):
+    prompt_tokens: int = 0
+    total_tokens: int = 0
+    completion_tokens: Optional[int] = 0
+
+
 class ChatCompletionFinishReason(StrEnum):
     STOP = "stop"
     LENGTH = "length"
@@ -19,18 +25,22 @@ class ChatCompletionFinishReason(StrEnum):
         return cls.UNKNOWN
 
 
-class ChatCompletionResponseChoice(BaseModel):
+class ChatCompletionChoice(BaseModel):
     index: int
     message: ChatMessage
     finish_reason: ChatCompletionFinishReason
 
 
-class UsageInfo(BaseModel):
-    prompt_tokens: int = 0
-    total_tokens: int = 0
-    completion_tokens: Optional[int] = 0
-
-
 class ChatCompletionResponse(BaseModel):
-    choices: list[ChatCompletionResponseChoice]
+    choices: list[ChatCompletionChoice]
+    usage: UsageInfo
+
+
+class EmbeddingData(BaseModel):
+    index: int
+    embedding: list[float]
+
+
+class EmbeddingResponse(BaseModel):
+    data: list[EmbeddingData]
     usage: UsageInfo

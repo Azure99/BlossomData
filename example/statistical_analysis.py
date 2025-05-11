@@ -2,6 +2,8 @@ import random
 from blossom.dataframe import RowAggregateFunc, Sum, Mean, Count
 from blossom.dataset import create_dataset
 from blossom.schema import RowSchema
+from blossom.op import EqualWidthBinner
+
 
 example_data = [
     RowSchema(
@@ -26,6 +28,14 @@ statistics = {
         Sum(lambda x: x["score"] * 2, name="score_x2"),
         Mean(lambda x: x["score"]),
     ),
+    "bin_score_count": [
+        agg.data
+        for agg in dataset.execute([EqualWidthBinner(lambda x: x["score"])])
+        .group_by(lambda x: x.metadata["bin_label"], name="bin")
+        .count()
+        .sort(lambda x: x["bin"])
+        .collect()
+    ],
     "group_by_country_agg": [
         agg.data
         for agg in dataset.group_by(lambda x: x["country"])

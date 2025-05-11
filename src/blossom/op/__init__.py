@@ -10,6 +10,7 @@ from .chat.chat_reasoning_content_merger import ChatReasoningContentMerger
 from .chat.chat_repetition_filter import ChatRepetitionFilter
 from .chat.chat_translator import ChatTranslator
 from .chat.chat_verify_distiller import ChatVerifyDistiller
+from .common.equal_width_binner import EqualWidthBinner
 from .failed_item_filter import FailedItemFilter
 from .filter_operator import FilterOperator, context_filter_operator, filter_operator
 from .map_operator import MapOperator, context_map_operator, map_operator
@@ -46,6 +47,7 @@ __all__ = [
     "ChatVerifyDistiller",
     "ContentEmbedder",
     "ContentTranslator",
+    "EqualWidthBinner",
     "FailedItemFilter",
     "FilterOperator",
     "MapOperator",

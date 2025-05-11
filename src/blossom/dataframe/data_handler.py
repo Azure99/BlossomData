@@ -153,10 +153,10 @@ class DictDataHandler(DataHandler):
             both schema metadata and data. Otherwise, only returns the schema data.
         """
         assert isinstance(schema, RowSchema)
-        
+
         if not self.preserve_metadata:
             return schema.data
-        
+
         result = {}
         result.update(schema.metadata)
         result.update(schema.data)

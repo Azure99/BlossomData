@@ -34,6 +34,7 @@ from .text_schema import (
 __all__ = [
     "SCHEMA_TYPE_CHAT",
     "SCHEMA_TYPE_CUSTOM",
+    "SCHEMA_TYPE_ROW",
     "SCHEMA_TYPE_TEXT",
     "ChatMessage",
     "ChatMessageContent",
@@ -45,6 +46,7 @@ __all__ = [
     "ChatRole",
     "ChatSchema",
     "CustomSchema",
+    "RowSchema",
     "Schema",
     "TextSchema",
     "assistant",

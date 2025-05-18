@@ -7,8 +7,6 @@
 
 BlossomData是一个专为大模型训练打造的数据处理框架，旨在提供灵活、高效的数据处理解决方案。它内置丰富的算子库，支持不同模态、不同训练阶段的数据处理与合成。能够从单机环境无缝迁移到分布式环境，允许用户灵活扩展自定义算子，从而大幅降低数据处理流程的开发和计算成本。
 
-⚠注意：该项目仍处于原型阶段，API正在快速迭代，建议在实验环境中测试使用。
-
 # 使用示例
 
 ```bash
@@ -19,13 +17,18 @@ pip install blossom-data
 
 在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。（可参考`config.yaml.example`）
 
-## 灵活处理数据
+## 第一个数据合成任务
 
 下面是一个非常实用的示例，仅依赖数学题目和参考答案，即可合成经过验证的长推理中文训练数据。
 
 框架提供了大量内置算子，可以在[blossom.op](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/__init__.py)中查看。例如，当原始数据缺失答案时，可以使用[ChatDistiller](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/chat/chat_distiller.py)生成回答，然后通过[ChatMultiReasoningFilter](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/chat/chat_multi_reasoning_filter.py)基于投票方式过滤掉潜在错误样本。
 
 ```python
+from blossom import *
+from blossom.dataframe import *
+from blossom.op import *
+from blossom.schema import *
+
 # 示例数学指令数据
 data = [
     ChatSchema(
@@ -44,10 +47,10 @@ ops = [
     ChatVerifyDistiller(
         model="deepseek-reasoner",
         mode=ChatVerifyDistiller.Mode.LLM,
-        validation_model="deepseek-chat"
+        validation_model="deepseek-chat",
     ),
     # 将reasoning_content合并到content中，以便用于训练
-    ChatReasoningContentMerger()
+    ChatReasoningContentMerger(),
 ]
 
 dataset = create_dataset(data)
@@ -55,169 +58,178 @@ result = dataset.execute(ops).collect()
 print(result)
 ```
 
-## 分布式数据处理
+# 框架核心概念
 
-框架支持多种执行引擎(Local/Spark/Ray)，以便适应各种规模的数据和任务负载。算子仅需关注最核心的处理逻辑，无需感知实际的执行引擎。
+## Schema
+
+Schema是框架中的基础数据结构，用于表示和处理不同类型的数据。所有Schema都继承自基础Schema类，提供了统一的接口和功能。
 
 ```python
-# 基于已有数据创建Dataset，仅适合少量数据
-# dataset = create_dataset(data, type=DatasetEngine.SPARK)
-# 从本地文件创建Dataset
-dataset = load_dataset("/path/to/data.json", engine=DatasetEngine.SPARK)
-(
-    # 可以使用map、filter、transform等底层操作
-    dataset.filter(lambda x: x.metadata["language"] == "en")
-    # 随机打乱数据并取前10条
-    .shuffle()
-    .limit(10)
-    .execute([ChatTranslator(model="gpt-4o-mini", target_language="Chinese")])
-    # 将数据写入本地文件
-    .write_json("/path/to/output")
+# 文本数据
+text_data = TextSchema(content="这是一段文本内容")
+
+# 对话数据
+chat_data = ChatSchema(
+    messages=[
+        user("你好"),
+        assistant("你好，请问需要什么帮助？")
+    ]
 )
+
+# 结构化数据
+row_data = RowSchema(data={"name": "张三", "age": 30, "score": 95})
+
+# 自定义数据
+custom_data = CustomSchema(data=1)
 ```
 
-## 自定义数据加载
+每个 Schema 实例都包含以下通用字段：
 
-对于已经存在的数据，我们可能有特定的格式要求，因此可以通过`DataHandler`来实现自定义的数据加载/保存逻辑。
+- `id`: 唯一标识符
+- `type`: Schema类型标识
+- `failed`: 处理失败标志
+- `metadata`: dict类型的附加元数据
 
-`from_dict`将自定义数据字典转换为框架内部的Schema，而`to_dict`反向将框架内部的Schema转换为自定义数据字典。
+## DataFrame与Dataset
+
+DataFrame是对数据的抽象表示，提供了对数据进行转换、过滤和聚合的接口。框架支持多种DataFrame实现，包括Local、Spark和Ray，使得同一套代码可以在不同的执行引擎中运行。
+
+Dataset是对DataFrame的高级封装，提供了更加便捷的接口和额外的功能，特别是对算子的支持。Dataset是用户交互的主要接口，隐藏了底层执行引擎的复杂性。
 
 ```python
-# 自定义加载/保存逻辑
-class CustomDataHandler(DataHandler):
-    def from_dict(self, data):
-        return TextSchema(content=data["your_text_field"])
-
-    def to_dict(self, schema):
-        return {"your_text_field": schema.content}
-
-
-ops = [TextContentFilter(contents="bad_word")]
-
-dataset = load_dataset(path="your_data.json", data_handler=CustomDataHandler())
-dataset.execute(ops).write_json(
-    "filtered_data.json",
-    data_handler=CustomDataHandler(),
+# 创建数据集
+dataset = create_dataset(data, engine=DatasetEngine.LOCAL)
+# 或从文件系统加载，并指定执行引擎为Ray，使用默认的数据加载器
+dataset = load_dataset(
+    "example/data/chat.jsonl",
+    engine=DatasetEngine.RAY,
+    data_handler=DefaultDataHandler(),
 )
-```
-
-## 自定义算子
-
-定义自己的算子，更灵活地处理和生成训练数据。下面的示例中，首先翻译英文文档为中文，然后从中抽取问答对作为训练数据。
-
-```python
-# 自定义Map算子，进行一对一映射
-@context_map_operator(parallel=4)
-def self_qa_op(context, item):
-    self_qa_prompt = (
-        "基于给定的文本，随意生成一个问题以及对应的长答案。\n"
-        "你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。\n"
-        f"给定的文本：{item.content}"
-    )
-    raw_result = context.chat_completion("gpt-4o-mini", [user(self_qa_prompt)])
-    result = loads_markdown_first_json(raw_result)
-    return ChatSchema(
-        messages=[
-            user(result["question"]),
-            assistant(result["answer"]),
-        ]
-    )
-
-
-# 纯文本英文数据
-data = [
-    TextSchema(
-        content="""Tomato scrambled eggs is a common dish in Eastern cuisine. 
-        Because its ingredients are easy to obtain and the cooking steps are relatively simple, 
-        it is also loved by beginners in the kitchen."""
-    ),
-]
-
-dataset = create_dataset(data)
-
-result = dataset.execute([
-    # 翻译英文文本
-    TextTranslator(
-        model="gpt-4o-mini",
-        target_language="Chinese",
-    ),
-    # 基于翻译后的文本，生成问题和答案
-    self_qa_op,
-]).collect()
-print(result)
-```
-
-你可能会得到这样的输出：
-
-```
-# User: 为什么厨房新手喜欢做番茄炒蛋？
-# Assistant: 厨房新手喜欢做番茄炒蛋有几个主要原因。
-# 首先，番茄和鸡蛋这两种食材非常容易获得，几乎在所有的超市和市场都可以买到。
-# 其次，番茄炒蛋的烹饪步骤也比较简单，没有复杂的技巧要求，非常适合新手尝试。
-# 步骤通常包括切番茄、打鸡蛋、热锅上油、炒熟等，整个过程比较直观。
-# 再者，番茄炒蛋作为一道家常菜，口味鲜美，营养丰富，成品容易让人满意，能给新手带来成就感。
-# 此外，这道菜还可以根据个人口味进行简易的调味调整，无需严格遵循复杂的配方。
-# 这些因素使得番茄炒蛋成为新手下厨时的首选之一。
-```
-
-## 聚合与分组分析
-
-框架提供数据聚合、分组、分析能力，可以按照实际需求对数据进行分析。
-
-```python
-example_data = [
-    RowSchema(
-        data={
-            "country": random.choice(["US", "CN", "JP", "KR", "TW", "HK"]),
-            "score": random.randint(1, 100),
+dataset = (
+    # 对数据重新分区
+    dataset.repartition(2)
+    # 一对一映射, 取第一轮对话的用户prompt并转换为文本数据
+    # .map(lambda x: TextSchema(content=x.messages[0].content))
+    # 过滤出语言为英文的对话
+    .filter(lambda x: x.metadata["language"] == "en")
+    # 排序，按反馈分数降序
+    .sort(lambda x: x.metadata["feedback"], ascending=False)
+    # 新增元信息，基于对话内容计算总上下文长度
+    .add_metadata(
+        lambda x: {
+            "context_length": sum(len(message.content) for message in x.messages)
         }
     )
-    for _ in range(1024)
-]
+    # 最多保留4条数据
+    .limit(4)
+    # 执行一系列算子
+    .execute(
+        [
+            # 翻译算子，将数据翻译为中文
+            ChatTranslator(model="gpt-4o-mini", target_language="Chinese"),
+            # 蒸馏算子，将翻译后的数据使用模型重新生成回复，并发为4
+            ChatDistiller(model="gpt-4o-mini", parallel=4),
+        ]
+    )
+    # 缓存数据集，避免后续多个分支操作的重复计算
+    .cache()
+)
 
-dataset = create_dataset(example_data)
-statistics = {
-    # 直接在dataset上进行聚合统计，返回单一结果
-    "count": dataset.count(),
-    "max": dataset.max(lambda x: x["score"]),
+# 收集结果（数据量较大时，请使用write_json）
+results = dataset.collect()
+# 将结果写入文件
+dataset.write_json("output.jsonl")
 
-    # 在dataset上进行多重聚合，返回结果字典
-    "agg": dataset.aggregate(
-        Sum(lambda x: x["score"]),
-        # 可以通过name定义结果key
-        Sum(lambda x: x["score"] * 2, name="score_x2"),
-    ),
+# 聚合操作
+agg_result = dataset.aggregate(
+    Sum(lambda x: x.metadata["context_length"]),
+    Mean(lambda x: x.metadata["context_length"]),
+    Count(),
+)
 
-    # 对country列进行分组，然后进行聚合分析
-    "group_by_country_agg": [
-        agg.data
-        for agg in dataset.group_by(lambda x: x["country"])
-        .aggregate(
-            Count(),
-            Mean(lambda x: x["score"]),
+# 分组后聚合
+grouped_count = dataset.group_by(lambda x: x.metadata["country"]).count().collect()
+
+print(results)
+print(agg_result)
+print(grouped_count)
+```
+
+## Operator
+
+Operator（算子）是数据处理的核心单元，封装了特定的数据处理逻辑。框架提供了三种基本类型的算子：
+
+1. **MapOperator**: 一对一映射，对每个元素单独处理
+2. **FilterOperator**: 过滤操作，决定保留或删除元素
+3. **TransformOperator**: 多对多映射，可以对多个元素同时操作
+
+```python
+from blossom.op import *
+from blossom.util import loads_markdown_first_json
+
+# 使用装饰器定义自定义算子，第一个参数为元素
+@map_operator()
+def uppercase_text(item):
+    item.content = item.content.upper()
+    return item
+
+@filter_operator()
+def filter_short_text(item):
+    return len(item.content) > 10
+
+@transform_operator()
+def batch_process(items):
+    return [item for item in items if "keyword" in item.content]
+
+# 使用上下文调用模型的算子，名称以context开头，第一个参数为上下文，第二个参数为元素
+# 传入parallel以指定并发数
+@context_map_operator(parallel=4)
+def translate_with_model(context, item):
+    result = context.chat_completion(
+        "gpt-4o-mini", 
+        [user(f"Translate to Chinese: {item.content}")]
+    )
+    return TextSchema(content=result)
+
+# 继承Operator实现自定义算子
+# 对于map算子，需要实现process_item方法，通过self.context访问上下文
+class SelfQA(MapOperator):
+    def process_item(self, item):
+        self_qa_prompt = (
+            "基于给定的文本，随意生成一个问题以及对应的长答案。\n"
+            "你的输出应该是一个json，包含question、answer两个字符串字段，不需要输出任何其他的无关解释。\n"
+            f"给定的文本：{item.content}"
         )
-        .collect()
-    ],
+        raw_result = self.context.chat_completion("gpt-4o-mini", [user(self_qa_prompt)])
+        result = loads_markdown_first_json(raw_result)
+        return ChatSchema(
+            messages=[
+                user(result["question"]),
+                assistant(result["answer"]),
+            ]
+        )
+```
 
-    # 自定义聚合函数
-    "custom_aggregate_func": dataset.aggregate(
-        RowAggregateFunc(
-            # 初始值
-            initial_value={"cn_count": 0},
-            # 分区内元素聚合
-            accumulate=lambda x, y: {
-                "cn_count": (
-                    x["cn_count"] + 1 if y["country"] == "CN" else x["cn_count"]
-                ),
-            },
-            # 分区聚合
-            merge=lambda x, y: {
-                "cn_count": x["cn_count"] + y["cn_count"],
-            },
-            # 结果转换
-            finalize=lambda x: x["cn_count"],
-        ),
-    ),
-}
-print(statistics)
+## Context
+
+Context（上下文）提供了算子执行所需的环境和资源，包括配置信息和模型提供者的访问。它是算子与外部资源交互的桥梁，使得算子可以访问模型服务、配置参数等。
+
+```python
+# 创建上下文
+context = Context()
+
+# 访问配置
+config = context.get_config()
+
+# 获取模型提供者
+provider = context.get_model("gpt-4o-mini")
+
+# 使用模型生成内容
+response = context.chat_completion(
+    "gpt-4o-mini",
+    [user("你好，请问今天天气如何？")]
+)
+
+# 生成嵌入向量
+embedding = context.embedding("text-embedding-3-small", "这是一段文本")
 ```

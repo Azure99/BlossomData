@@ -1,5 +1,7 @@
 # BlossomData
 
+中文 | [English](README_EN.md)
+
 ![](https://img.shields.io/badge/language-Python-214870)
 ![GitHub License](https://img.shields.io/github/license/Azure99/BlossomData)
 [![PyPI - Version](https://img.shields.io/pypi/v/blossom-data)](https://pypi.org/project/blossom-data/)
@@ -21,7 +23,7 @@ pip install blossom-data
 
 下面是一个非常实用的示例，仅依赖数学题目和参考答案，即可合成经过验证的长推理中文训练数据。
 
-框架提供了大量内置算子，可以在[blossom.op](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/__init__.py)中查看。例如，当原始数据缺失答案时，可以使用[ChatDistiller](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/chat/chat_distiller.py)生成回答，然后通过[ChatMultiReasoningFilter](https://github.com/Azure99/BlossomData/blob/main/src/blossom/op/chat/chat_multi_reasoning_filter.py)基于投票方式过滤掉潜在错误样本。
+框架提供了大量内置算子，可以在[blossom.op](src/blossom/op/__init__.py)中查看。例如，当原始数据缺失答案时，可以使用[ChatDistiller](src/blossom/op/chat/chat_distiller.py)生成回答，然后通过[ChatMultiReasoningFilter](src/blossom/op/chat/chat_multi_reasoning_filter.py)基于投票方式过滤掉潜在错误样本。
 
 ```python
 from blossom import *
@@ -95,6 +97,8 @@ custom_data = CustomSchema(data=1)
 DataFrame是对数据的抽象表示，提供了对数据进行转换、过滤和聚合的接口。框架支持多种DataFrame实现，包括Local、Spark和Ray，使得同一套代码可以在不同的执行引擎中运行。
 
 Dataset是对DataFrame的高级封装，提供了更加便捷的接口和额外的功能，特别是对算子的支持。Dataset是用户交互的主要接口，隐藏了底层执行引擎的复杂性。
+
+为保证数据的类型和结构一致，框架推荐使用强类型Schema。对于已有数据集，可通过实现自定义[DataHandler](src/blossom/dataframe/data_handler.py)来定制不同格式数据的加载与保存逻辑。
 
 ```python
 # 创建数据集

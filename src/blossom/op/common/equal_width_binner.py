@@ -32,8 +32,12 @@ class EqualWidthBinner(Operator):
             raise ValueError(f"Number of labels must match number of bins: {num_bins}")
 
     def _compute_bin_edges(self, dataframe: DataFrame) -> list[float]:
-        range_min = self.range_min or dataframe.cache().min(self.func)
-        range_max = self.range_max or dataframe.cache().max(self.func)
+        range_min = self.range_min
+        range_max = self.range_max
+        if range_min is None:
+            range_min = dataframe.cache().min(self.func)
+        if range_max is None:
+            range_max = dataframe.cache().max(self.func)
         bin_edges = np.linspace(range_min, range_max, self.num_bins + 1).tolist()
         assert isinstance(bin_edges, list)
         return bin_edges

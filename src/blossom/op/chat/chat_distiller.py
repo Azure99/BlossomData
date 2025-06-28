@@ -38,6 +38,7 @@ class ChatDistiller(MapOperator):
         _item = self._cast_chat(item)
 
         new_messages: list[ChatMessage] = []
+        last_exception = None
         for _ in range(self.max_retry):
             try:
                 new_messages, truncated = self._process_item_messages(_item.messages)
@@ -45,12 +46,15 @@ class ChatDistiller(MapOperator):
                     _item.metadata[METADATA_RESPONSE_TRUNCATED] = True
                 break
             except Exception as e:
+                last_exception = e
                 logger.exception(f"Failed to distill chat: {e}")
 
         if new_messages:
             _item.messages = new_messages
         else:
-            _item.failed = True
+            _item.mark_failed(
+                str(last_exception) if last_exception else "Failed to generate messages"
+            )
 
         return self._cast_base(_item)
 

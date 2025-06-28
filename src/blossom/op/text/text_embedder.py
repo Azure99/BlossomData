@@ -39,7 +39,7 @@ class TextEmbedder(MapOperator):
                 )
             ]
         except Exception as e:
-            _item.failed = True
             logger.exception(f"Failed to embed text: {e}")
+            _item.mark_failed(str(e))
 
         return self._cast_base(_item)

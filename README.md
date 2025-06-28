@@ -90,6 +90,7 @@ custom_data = CustomSchema(data=1)
 - `id`: 唯一标识符
 - `type`: Schema类型标识
 - `failed`: 处理失败标志
+- `failure_reason`: 失败原因，当failed=True时记录具体的失败信息
 - `metadata`: dict类型的附加元数据
 
 ## DataFrame与Dataset

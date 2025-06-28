@@ -8,6 +8,7 @@ T = TypeVar("T", bound="Schema")
 FIELD_ID = "id"
 FIELD_TYPE = "type"
 FIELD_FAILED = "failed"
+FIELD_FAILURE_REASON = "failure_reason"
 FIELD_METADATA = "metadata"
 FIELD_DATA = "data"
 
@@ -34,6 +35,9 @@ class Schema(BaseModel):
     failed: bool = Field(default=False)
     """Flag indicating whether processing of this item has failed"""
 
+    failure_reason: Optional[str] = Field(default=None)
+    """Reason for failure when failed=True, typically the exception message"""
+
     metadata: dict[str, Any] = Field(default_factory=dict)
     """Additional metadata that can be attached to the schema"""
 
@@ -48,6 +52,16 @@ class Schema(BaseModel):
     def convert_null_metadata(cls, v: Any) -> dict[str, Any]:
         """Convert None values to empty dict for the metadata field"""
         return {} if v is None else v
+
+    def mark_failed(self, reason: Optional[str] = None) -> None:
+        """
+        Mark this schema as failed with a specific reason.
+
+        Args:
+            reason: The reason for failure, typically an exception message
+        """
+        self.failed = True
+        self.failure_reason = reason
 
     def to_dict(self) -> dict[str, Any]:
         """

@@ -49,9 +49,9 @@ class ChatTranslator(MapOperator):
                             if isinstance(part, ChatMessageContentText):
                                 part.text = self._translate(part.text)
                 except Exception as e:
-                    _item.failed = True
                     logger.exception(
                         f"Failed to translate message: {message.content}, {e}"
                     )
+                    _item.mark_failed(str(e))
 
         return self._cast_base(_item)

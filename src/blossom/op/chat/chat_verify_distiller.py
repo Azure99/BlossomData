@@ -87,6 +87,7 @@ class ChatVerifyDistiller(MapOperator):
         if not question or (not reference and self.mode != self.Mode.NONE):
             return self._cast_base(_item)
 
+        last_exception = None
         for retry_count in range(self.max_retry):
             try:
                 model_message = self._distill_with_validate(question, reference)
@@ -97,9 +98,14 @@ class ChatVerifyDistiller(MapOperator):
                 _item.metadata[METADATA_REASONING_COUNT] = retry_count + 1
                 return self._cast_base(_item)
             except Exception as e:
+                last_exception = e
                 logger.info(f"Validation failed: {question}, {e}")
 
-        _item.failed = True
+        _item.mark_failed(
+            str(last_exception)
+            if last_exception
+            else "Validation failed after max retries"
+        )
         return self._cast_base(_item)
 
     def _distill_with_validate(

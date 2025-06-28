@@ -17,6 +17,7 @@ from blossom.schema.row_schema import RowSchema
 from blossom.schema.schema import (
     FIELD_DATA,
     FIELD_FAILED,
+    FIELD_FAILURE_REASON,
     FIELD_ID,
     FIELD_METADATA,
     FIELD_TYPE,
@@ -33,6 +34,7 @@ def schema_to_row(schema: Schema) -> dict[str, Any]:
     row = {
         FIELD_ID: data.pop(FIELD_ID),
         FIELD_FAILED: data.pop(FIELD_FAILED),
+        FIELD_FAILURE_REASON: data.pop(FIELD_FAILURE_REASON, None),
         FIELD_TYPE: data.pop(FIELD_TYPE),
         FIELD_METADATA: json.dumps(data.pop(FIELD_METADATA), ensure_ascii=False),
     }
@@ -44,6 +46,7 @@ def row_to_schema(row: dict[str, Any]) -> Schema:
     data = json.loads(row[FIELD_DATA])
     data[FIELD_ID] = row[FIELD_ID]
     data[FIELD_FAILED] = row[FIELD_FAILED]
+    data[FIELD_FAILURE_REASON] = row.get(FIELD_FAILURE_REASON)
     data[FIELD_TYPE] = row[FIELD_TYPE]
     data[FIELD_METADATA] = json.loads(row[FIELD_METADATA])
     return Schema.from_dict(data)

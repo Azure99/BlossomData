@@ -90,6 +90,7 @@ Each Schema instance contains the following common fields:
 - `id`: Unique identifier
 - `type`: Schema type identifier
 - `failed`: Processing failure flag
+- `failure_reason`: Failure reason, records specific failure information when failed=True
 - `metadata`: Additional metadata of type dict
 
 ## DataFrame and Dataset

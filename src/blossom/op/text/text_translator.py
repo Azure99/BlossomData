@@ -35,6 +35,6 @@ class TextTranslator(MapOperator):
             )
         except Exception as e:
             logger.exception(f"Failed to translate text: {e}")
-            _item.failed = True
+            _item.mark_failed(str(e))
 
         return self._cast_base(_item)

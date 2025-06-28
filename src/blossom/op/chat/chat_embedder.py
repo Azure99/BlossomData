@@ -66,8 +66,8 @@ class ChatEmbedder(MapOperator):
                             content_embedding.append(self._embedding(part.text))
                 embeddings.extend(content_embedding)
             except Exception as e:
-                _item.failed = True
                 logger.exception(f"Failed to embed message: {message.content}, {e}")
+                _item.mark_failed(str(e))
                 return self._cast_base(_item)
         _item.metadata[self.embedding_field] = embeddings
 

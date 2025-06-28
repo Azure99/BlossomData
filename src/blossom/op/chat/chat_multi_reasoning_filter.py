@@ -46,13 +46,17 @@ class ChatMultiReasoningFilter(FilterOperator):
     def process_item(self, item: Schema) -> bool:
         _item = self._cast_chat(item)
 
+        last_exception = None
         for _ in range(self.max_retry):
             try:
                 return self._process_item(_item)
             except Exception as e:
+                last_exception = e
                 logger.info(f"Failed to reason or validate chat: {e}")
 
-        item.failed = True
+        item.mark_failed(
+            str(last_exception) if last_exception else "Max retries exceeded"
+        )
         return True
 
     def _process_item(self, item: ChatSchema) -> bool:

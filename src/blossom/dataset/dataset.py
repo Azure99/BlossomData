@@ -218,17 +218,17 @@ class Dataset(ABC):
 
     @abstractmethod
     def read_json(
-        self, path: str, data_handler: Optional[DataHandler] = None
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
     ) -> "Dataset":
         """
-        Read a dataset from a JSON file.
+        Read a dataset from JSON file(s).
 
         Args:
-            path: Path to the JSON file
+            path: Path to the JSON file or list of paths to JSON files.
             data_handler: Optional data handler for custom deserialization
 
         Returns:
-            A new dataset containing the items from the JSON file
+            A new dataset containing the items from the JSON file(s)
         """
         pass
 

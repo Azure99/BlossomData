@@ -88,7 +88,7 @@ class StandardDataset(Dataset):
         return StandardDataset(self.context, self.dataframe.from_list(schemas))
 
     def read_json(
-        self, path: str, data_handler: Optional[DataHandler] = None
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
     ) -> "Dataset":
         return StandardDataset(
             self.context, self.dataframe.read_json(path, data_handler)

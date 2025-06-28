@@ -157,8 +157,9 @@ class SparkDataFrame(DataFrame):
         return [Schema.from_dict(row_dict) for row_dict in self.spark_rdd.collect()]
 
     def read_json(
-        self, path: str, data_handler: Optional[DataHandler] = None
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
     ) -> "DataFrame":
+        paths = [path] if isinstance(path, str) else path
         data_handler = data_handler or DefaultDataHandler()
 
         def load_json_line(line: str) -> dict[str, Any]:
@@ -166,8 +167,14 @@ class SparkDataFrame(DataFrame):
             schema = data_handler.from_dict(data_dict)
             return schema.to_dict()
 
-        rdd = self.spark_session.sparkContext.textFile(path).map(load_json_line)
-        return SparkDataFrame(rdd, self.spark_session)
+        spark_ctx = self.spark_session.sparkContext
+        rdds = []
+        for single_path in paths:
+            rdd = spark_ctx.textFile(single_path).map(load_json_line)
+            rdds.append(rdd)
+        final_rdd = rdds[0] if len(rdds) == 1 else spark_ctx.union(rdds)
+
+        return SparkDataFrame(final_rdd, self.spark_session)
 
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         data_handler = data_handler or DefaultDataHandler()

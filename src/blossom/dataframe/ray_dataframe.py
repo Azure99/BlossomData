@@ -211,8 +211,9 @@ class RayDataFrame(DataFrame):
         return [row_to_schema(row) for row in self.ray_dataset.take_all()]
 
     def read_json(
-        self, path: str, data_handler: Optional[DataHandler] = None
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
     ) -> "DataFrame":
+        paths = [path] if isinstance(path, str) else path
         data_handler = data_handler or DefaultDataHandler()
 
         def load_json_line(row: dict[str, Any]) -> dict[str, Any]:
@@ -220,10 +221,17 @@ class RayDataFrame(DataFrame):
             schema = data_handler.from_dict(data_dict)
             return schema_to_row(schema)
 
-        dataset = ray.data.read_text(path, file_extensions=["json", "jsonl"]).map(
-            load_json_line
+        datasets = []
+        for single_path in paths:
+            dataset = ray.data.read_text(
+                single_path, file_extensions=["json", "jsonl"]
+            ).map(load_json_line)
+            datasets.append(dataset)
+        final_dataset = (
+            datasets[0] if len(datasets) == 1 else datasets[0].union(*datasets[1:])
         )
-        return RayDataFrame(dataset)
+
+        return RayDataFrame(final_dataset)
 
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         data_handler = data_handler or DefaultDataHandler()

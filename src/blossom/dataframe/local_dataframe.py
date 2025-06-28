@@ -99,15 +99,18 @@ class LocalDataFrame(DataFrame):
         return self.data
 
     def read_json(
-        self, path: str, data_handler: Optional[DataHandler] = None
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
     ) -> "DataFrame":
-        file_list = self._list_files(path, [".json", ".jsonl"], True)
+        paths = [path] if isinstance(path, str) else path
         data_handler = data_handler or DefaultDataHandler()
 
         rows = []
-        for file in file_list:
-            with open(file, encoding="utf-8") as f:
-                rows.extend([json.loads(line) for line in f])
+        for p in paths:
+            files = self._list_files(p, [".json", ".jsonl"], True)
+            for file in files:
+                with open(file, encoding="utf-8") as f:
+                    rows.extend([json.loads(line) for line in f])
+
         return LocalDataFrame([data_handler.from_dict(row) for row in rows])
 
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:

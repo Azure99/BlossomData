@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from pyspark.sql import SparkSession
 
@@ -41,7 +41,7 @@ class DatasetEngine(StrEnum):
 
 
 def load_dataset(
-    path: str,
+    path: Union[str, list[str]],
     engine: str = DatasetEngine.LOCAL,
     data_type: str = DataType.JSON,
     data_handler: Optional[DataHandler] = None,
@@ -49,10 +49,10 @@ def load_dataset(
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:
     """
-    Load a dataset from a file.
+    Load a dataset from file(s).
 
     Args:
-        path: Path to the data file
+        path: Path to the data file or list of paths to data files.
         engine: Processing engine to use (default: local)
         data_type: Type of data file (default: json)
         data_handler: Optional custom data handler for deserialization

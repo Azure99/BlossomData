@@ -19,8 +19,10 @@ class ChatEmbedder(MapOperator):
         model: str,
         roles: Optional[list[ChatRole]] = None,
         strategy: Strategy = Strategy.FIRST,
-        embedding_field: str = "embedding",
+        embeddings_field: str = "embeddings",
         overwrite_field: bool = False,
+        merge_messages: bool = False,
+        message_separator: str = "\n\n",
         max_retry: int = 1,
         extra_params: Optional[dict[str, Any]] = None,
         parallel: int = 1,
@@ -29,8 +31,10 @@ class ChatEmbedder(MapOperator):
         self.model = model
         self.roles = roles or [ChatRole.SYSTEM, ChatRole.USER, ChatRole.ASSISTANT]
         self.strategy = strategy
-        self.embedding_field = embedding_field
+        self.embeddings_field = embeddings_field
         self.overwrite_field = overwrite_field
+        self.merge_messages = merge_messages
+        self.message_separator = message_separator
         self.max_retry = max_retry
         self.extra_params = extra_params
 
@@ -45,7 +49,7 @@ class ChatEmbedder(MapOperator):
     def process_item(self, item: Schema) -> Schema:
         _item = self._cast_chat(item)
 
-        if not self.overwrite_field and _item.metadata.get(self.embedding_field):
+        if not self.overwrite_field and _item.metadata.get(self.embeddings_field):
             return self._cast_base(_item)
 
         messages = list(filter(lambda x: x.role in self.roles, _item.messages))
@@ -54,21 +58,28 @@ class ChatEmbedder(MapOperator):
         elif self.strategy == ChatEmbedder.Strategy.LAST:
             messages = [messages[-1]]
 
-        embeddings = []
+        contents = []
         for message in messages:
+            content = ""
+            if isinstance(message.content, str):
+                content += message.content
+            elif isinstance(message.content, list):
+                for part in message.content:
+                    if isinstance(part, ChatMessageContentText):
+                        content += part.text
+            contents.append(content)
+
+        if self.merge_messages:
+            contents = [self.message_separator.join(contents)]
+
+        embeddings = []
+        for content in contents:
             try:
-                content_embedding = []
-                if isinstance(message.content, str):
-                    content_embedding = [self._embedding(message.content)]
-                elif isinstance(message.content, list):
-                    for part in message.content:
-                        if isinstance(part, ChatMessageContentText):
-                            content_embedding.append(self._embedding(part.text))
-                embeddings.extend(content_embedding)
+                embeddings.append(self._embedding(content))
             except Exception as e:
-                logger.exception(f"Failed to embed message: {message.content}, {e}")
+                logger.exception(f"Failed to embed message: {content}, {e}")
                 _item.mark_failed(str(e))
                 return self._cast_base(_item)
-        _item.metadata[self.embedding_field] = embeddings
 
+        _item.metadata[self.embeddings_field] = embeddings
         return self._cast_base(_item)

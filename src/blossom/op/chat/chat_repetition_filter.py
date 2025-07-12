@@ -14,9 +14,11 @@ class ChatRepetitionFilter(FilterOperator):
         min_ratio: float = 0.0,
         max_ratio: float = 0.5,
         reverse: bool = False,
+        filter_reasoning: bool = False,
     ):
         super().__init__(reverse=reverse)
         self.roles = roles or [ChatRole.ASSISTANT]
+        self.filter_reasoning = filter_reasoning
         self.char_repetition_filter = CharRepetitionFilter(
             n=n, min_ratio=min_ratio, max_ratio=max_ratio
         )
@@ -33,4 +35,8 @@ class ChatRepetitionFilter(FilterOperator):
                         if isinstance(part, ChatMessageContentText):
                             if not self.char_repetition_filter.filter(part.text):
                                 return False
+                
+                if self.filter_reasoning and message.reasoning_content:
+                    if not self.char_repetition_filter.filter(message.reasoning_content):
+                        return False
         return True

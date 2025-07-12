@@ -15,11 +15,13 @@ class ChatContentFilter(FilterOperator):
         roles: Optional[list[ChatRole]] = None,
         case_sensitive: bool = True,
         reverse: bool = False,
+        filter_reasoning: bool = False,
     ):
         super().__init__(reverse=reverse)
         self.contents = contents
         self.roles = roles or [ChatRole.ASSISTANT]
         self.case_sensitive = case_sensitive
+        self.filter_reasoning = filter_reasoning
         if not case_sensitive:
             self.contents = [content.lower() for content in contents]
 
@@ -34,6 +36,10 @@ class ChatContentFilter(FilterOperator):
                     for part in message.content:
                         if isinstance(part, ChatMessageContentText):
                             text += part.text
+                
+                if self.filter_reasoning and message.reasoning_content:
+                    text += message.reasoning_content
+                
                 if not self.case_sensitive:
                     text = text.lower()
                 if any(content in text for content in self.contents):

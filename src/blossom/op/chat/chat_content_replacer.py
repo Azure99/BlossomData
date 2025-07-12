@@ -12,11 +12,13 @@ class ChatContentReplacer(MapOperator):
         replacements: dict[str, str],
         roles: Optional[list[ChatRole]] = None,
         case_sensitive: bool = True,
+        replace_reasoning: bool = False,
     ):
         super().__init__()
         self.replacements = replacements
         self.roles = roles or [ChatRole.ASSISTANT]
         self.case_sensitive = case_sensitive
+        self.replace_reasoning = replace_reasoning
 
     def _replace_text(self, text: str) -> str:
         return replace_text(
@@ -35,4 +37,7 @@ class ChatContentReplacer(MapOperator):
                     for part in message.content:
                         if isinstance(part, ChatMessageContentText):
                             part.text = self._replace_text(part.text)
+                
+                if self.replace_reasoning and message.reasoning_content:
+                    message.reasoning_content = self._replace_text(message.reasoning_content)
         return self._cast_base(item)

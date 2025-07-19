@@ -1,4 +1,6 @@
 from typing import Any, Optional
+import os
+from pathlib import Path
 
 import yaml
 from pydantic import BaseModel, ValidationError
@@ -42,6 +44,50 @@ class Config(BaseModel):
     models: list[ModelConfig]
 
 
+def _discover_config_path(config_file: str = DEFAULT_CONFIG_FILE) -> Path:
+    """
+    Discover a valid configuration file path.
+
+    Search order (first existing wins):
+    1) Env var `BLOSSOM_CONFIG`
+    2) Explicit `config_file` path (relative to CWD or absolute)
+    3) User config: `~/.blossom.yaml`
+
+    Args:
+        config_file: Preferred filename (default: "config.yaml")
+
+    Returns:
+        Path to the existing configuration file
+
+    Raises:
+        FileNotFoundError: If none of the candidate paths exist
+    """
+    candidates: list[Path] = []
+
+    # 1) Env var
+    env_path = os.environ.get("BLOSSOM_CONFIG")
+    if env_path:
+        candidates.append(Path(os.path.expanduser(env_path)))
+
+    # 2) Given path (absolute or relative to CWD)
+    p = Path(config_file)
+    candidates.append(p if p.is_absolute() else Path.cwd() / p)
+
+    # 3) ~/.blossom.yaml
+    home = Path.home()
+    candidates.append(home / ".blossom.yaml")
+
+    for c in candidates:
+        if c.exists() and c.is_file():
+            return c
+
+    # Not found
+    search_list = "\n".join(str(c) for c in candidates)
+    raise FileNotFoundError(
+        "No configuration file found. Tried:\n" + search_list
+    )
+
+
 def load_config(config_file: str = DEFAULT_CONFIG_FILE) -> Config:
     """
     Load configuration from a YAML file.
@@ -57,11 +103,12 @@ def load_config(config_file: str = DEFAULT_CONFIG_FILE) -> Config:
         ValueError: If there's an error parsing the YAML or validating the configuration
     """
     try:
-        with open(config_file, encoding="utf-8") as file:
+        cfg_path = _discover_config_path(config_file)
+        with open(cfg_path, encoding="utf-8") as file:
             data = yaml.safe_load(file)
         return Config(**data)
     except FileNotFoundError as e:
-        raise FileNotFoundError(f"The file at {config_file} was not found.") from e
+        raise FileNotFoundError(str(e)) from e
     except yaml.YAMLError as e:
         raise ValueError(f"Error parsing YAML file: {e}") from e
     except ValidationError as e:

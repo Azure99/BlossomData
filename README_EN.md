@@ -19,6 +19,11 @@ pip install blossom-data
 
 Before using, please configure the API keys and related parameters of your model service provider in the `config.yaml` file. (You can refer to `config.yaml.example`)
 
+Config discovery order (first found wins):
+- Path specified by env `BLOSSOM_CONFIG`
+- `config.yaml` in the current working directory
+- User config `~/.blossom.yaml`
+
 ## Your First Data Synthesis Task
 
 Below is a practical example that synthesizes verified long-reasoning Chinese training data using only math problems and reference answers.

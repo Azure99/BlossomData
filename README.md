@@ -19,6 +19,11 @@ pip install blossom-data
 
 在使用之前，请在`config.yaml`文件中配置模型服务提供商的API密钥和相关参数。（可参考`config.yaml.example`）
 
+配置加载顺序（找到即止）：
+- 环境变量 `BLOSSOM_CONFIG` 指定的路径
+- 当前工作目录下的 `config.yaml`
+- 用户目录 `~/.blossom.yaml`
+
 ## 第一个数据合成任务
 
 下面是一个非常实用的示例，仅依赖数学题目和参考答案，即可合成经过验证的长推理中文训练数据。

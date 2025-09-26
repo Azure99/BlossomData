@@ -23,7 +23,7 @@ The JSON should contain only one boolean field named "inconsistent," which indic
 Please output only a JSON without any explanation or other irrelevant content."""
 
 
-class ChatMultiReasoningFilter(FilterOperator):
+class ChatReasoningConsistencyFilter(FilterOperator):
     def __init__(
         self,
         review_model: str,

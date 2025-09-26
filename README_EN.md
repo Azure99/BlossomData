@@ -28,7 +28,7 @@ Config discovery order (first found wins):
 
 Below is a practical example that synthesizes verified long-reasoning Chinese training data using only math problems and reference answers.
 
-The framework provides numerous built-in operators, which can be found in [blossom.op](src/blossom/op/__init__.py). For example, when the original data lacks answers, you can use [ChatDistiller](src/blossom/op/chat/chat_distiller.py) to generate responses, and then filter out potentially incorrect samples based on a voting mechanism using [ChatMultiReasoningFilter](src/blossom/op/chat/chat_multi_reasoning_filter.py).
+The framework provides numerous built-in operators, which can be found in [blossom.op](src/blossom/op/__init__.py). For example, when the original data lacks answers, you can use [ChatDistiller](src/blossom/op/chat/chat_distiller.py) to generate responses, and then filter out potentially inconsistent/incorrect samples based on a voting mechanism using [ChatReasoningConsistencyFilter](src/blossom/op/chat/chat_reasoning_consistency_filter.py).
 
 ```python
 from blossom import *

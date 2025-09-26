@@ -1,6 +1,6 @@
 from blossom.dataset import create_dataset
 
-from blossom.op import ChatMultiReasoningFilter
+from blossom.op import ChatReasoningConsistencyFilter
 from blossom.schema import ChatSchema, user, assistant
 
 data = [
@@ -19,7 +19,9 @@ data = [
 ]
 
 ops = [
-    ChatMultiReasoningFilter(review_model="gpt-4o-mini", reasoning_model="gpt-4o-mini"),
+    ChatReasoningConsistencyFilter(
+        review_model="gpt-4o-mini", reasoning_model="gpt-4o-mini"
+    ),
 ]
 
 result = create_dataset(data).execute(ops).collect()

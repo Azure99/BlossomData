@@ -5,7 +5,7 @@ from .chat.chat_distiller import ChatDistiller
 from .chat.chat_embedder import ChatEmbedder
 from .chat.chat_invalid_filter import ChatInvalidFilter
 from .chat.chat_length_filter import ChatLengthFilter
-from .chat.chat_multi_reasoning_filter import ChatMultiReasoningFilter
+from .chat.chat_reasoning_consistency_filter import ChatReasoningConsistencyFilter
 from .chat.chat_reasoning_content_merger import ChatReasoningContentMerger
 from .chat.chat_repetition_filter import ChatRepetitionFilter
 from .chat.chat_translator import ChatTranslator
@@ -40,7 +40,7 @@ __all__ = [
     "ChatEmbedder",
     "ChatInvalidFilter",
     "ChatLengthFilter",
-    "ChatMultiReasoningFilter",
+    "ChatReasoningConsistencyFilter",
     "ChatReasoningContentMerger",
     "ChatRepetitionFilter",
     "ChatTranslator",

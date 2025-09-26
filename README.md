@@ -28,7 +28,7 @@ pip install blossom-data
 
 下面是一个非常实用的示例，仅依赖数学题目和参考答案，即可合成经过验证的长推理中文训练数据。
 
-框架提供了大量内置算子，可以在[blossom.op](src/blossom/op/__init__.py)中查看。例如，当原始数据缺失答案时，可以使用[ChatDistiller](src/blossom/op/chat/chat_distiller.py)生成回答，然后通过[ChatMultiReasoningFilter](src/blossom/op/chat/chat_multi_reasoning_filter.py)基于投票方式过滤掉潜在错误样本。
+框架提供了大量内置算子，可以在[blossom.op](src/blossom/op/__init__.py)中查看。例如，当原始数据缺失答案时，可以使用[ChatDistiller](src/blossom/op/chat/chat_distiller.py)生成回答，然后通过[ChatReasoningConsistencyFilter](src/blossom/op/chat/chat_reasoning_consistency_filter.py)基于投票方式过滤掉潜在不一致/错误样本。
 
 ```python
 from blossom import *

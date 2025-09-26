@@ -36,10 +36,10 @@ class ChatContentFilter(FilterOperator):
                     for part in message.content:
                         if isinstance(part, ChatMessageContentText):
                             text += part.text
-                
+
                 if self.filter_reasoning and message.reasoning_content:
                     text += message.reasoning_content
-                
+
                 if not self.case_sensitive:
                     text = text.lower()
                 if any(content in text for content in self.contents):

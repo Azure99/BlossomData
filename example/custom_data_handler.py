@@ -4,7 +4,7 @@ from blossom.op.text.text_content_filter import TextContentFilter
 from blossom.schema.text_schema import TextSchema
 
 
-# 自定义加载/保存逻辑
+# 自定义 DataHandler，明确数据字典与 TextSchema 之间的字段映射。
 class CustomDataHandler(DataHandler):
     def from_dict(self, data):
         return TextSchema(content=data["your_text_field"])

@@ -50,9 +50,11 @@ class ChatTranslator(MapOperator):
                         for part in message.content:
                             if isinstance(part, ChatMessageContentText):
                                 part.text = self._translate(part.text)
-                    
+
                     if self.translate_reasoning and message.reasoning_content:
-                        message.reasoning_content = self._translate(message.reasoning_content)
+                        message.reasoning_content = self._translate(
+                            message.reasoning_content
+                        )
                 except Exception as e:
                     logger.exception(
                         f"Failed to translate message: {message.content}, {e}"

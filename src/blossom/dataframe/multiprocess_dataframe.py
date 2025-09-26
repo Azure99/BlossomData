@@ -4,9 +4,9 @@ import os
 import random
 from concurrent.futures import ProcessPoolExecutor
 from itertools import repeat
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union, cast
 
-import cloudpickle
+import cloudpickle  # type: ignore[import-untyped]
 
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler, DefaultDataHandler
@@ -25,7 +25,7 @@ def _dicts_to_schemas(dicts: list[dict[str, Any]]) -> list[Schema]:
 
 
 def _loads_callable(serialized_func: bytes) -> Callable[..., Any]:
-    return cloudpickle.loads(serialized_func)
+    return cast(Callable[..., Any], cloudpickle.loads(serialized_func))
 
 
 def _map_chunk(
@@ -186,7 +186,7 @@ class MultiProcessDataFrame(DataFrame):
         self,
         *aggs: AggregateFunc,
     ) -> Union[Any, dict[str, Any]]:
-        # Note: Aggregations may capture non-picklable closures; perform in-process.
+        # Aggregations can close over non-picklable state, so execute them in-process.
         results = {}
         for agg in aggs:
             result = agg.initial_value
@@ -281,7 +281,7 @@ class GroupedMultiProcessDataFrame(GroupedDataFrame):
         self.num_workers = num_workers
 
     def aggregate(self, *aggs: AggregateFunc) -> DataFrame:
-        # Perform aggregation in-process to avoid pickling issues with user closures.
+        # Keep group aggregations local to avoid pickling user-defined closures.
         grouped_results: list[Schema] = []
 
         for group_value, data in self.grouped_data.items():

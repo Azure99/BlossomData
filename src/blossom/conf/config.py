@@ -64,16 +64,16 @@ def _discover_config_path(config_file: str = DEFAULT_CONFIG_FILE) -> Path:
     """
     candidates: list[Path] = []
 
-    # 1) Env var
+    # 1) Honor the BLOSSOM_CONFIG env var so callers can override discovery.
     env_path = os.environ.get("BLOSSOM_CONFIG")
     if env_path:
         candidates.append(Path(os.path.expanduser(env_path)))
 
-    # 2) Given path (absolute or relative to CWD)
+    # 2) Try the provided config_file path (absolute, or relative to the CWD).
     p = Path(config_file)
     candidates.append(p if p.is_absolute() else Path.cwd() / p)
 
-    # 3) ~/.blossom.yaml
+    # 3) Fall back to the per-user default ~/.blossom.yaml.
     home = Path.home()
     candidates.append(home / ".blossom.yaml")
 
@@ -81,11 +81,9 @@ def _discover_config_path(config_file: str = DEFAULT_CONFIG_FILE) -> Path:
         if c.exists() and c.is_file():
             return c
 
-    # Not found
+    # Exhausted all candidates without finding a file; surface the search list.
     search_list = "\n".join(str(c) for c in candidates)
-    raise FileNotFoundError(
-        "No configuration file found. Tried:\n" + search_list
-    )
+    raise FileNotFoundError("No configuration file found. Tried:\n" + search_list)
 
 
 def load_config(config_file: str = DEFAULT_CONFIG_FILE) -> Config:

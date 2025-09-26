@@ -37,7 +37,9 @@ class ChatContentReplacer(MapOperator):
                     for part in message.content:
                         if isinstance(part, ChatMessageContentText):
                             part.text = self._replace_text(part.text)
-                
+
                 if self.replace_reasoning and message.reasoning_content:
-                    message.reasoning_content = self._replace_text(message.reasoning_content)
+                    message.reasoning_content = self._replace_text(
+                        message.reasoning_content
+                    )
         return self._cast_base(item)

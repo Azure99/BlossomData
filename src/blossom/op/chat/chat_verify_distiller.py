@@ -118,9 +118,9 @@ class ChatVerifyDistiller(MapOperator):
         )
         finish_reason = response.choices[0].finish_reason
 
-        # model answer is not complete
+        # Abort validation when the upstream model response is incomplete.
         if finish_reason != ChatCompletionFinishReason.STOP:
-            # cannot validate incomplete model answer
+            # Validation assumes a full answer; incomplete output is treated as failure.
             if self.mode != self.Mode.NONE:
                 raise ValueError("Model answer is not complete")
 

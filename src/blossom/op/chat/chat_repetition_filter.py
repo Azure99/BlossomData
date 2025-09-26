@@ -35,8 +35,10 @@ class ChatRepetitionFilter(FilterOperator):
                         if isinstance(part, ChatMessageContentText):
                             if not self.char_repetition_filter.filter(part.text):
                                 return False
-                
+
                 if self.filter_reasoning and message.reasoning_content:
-                    if not self.char_repetition_filter.filter(message.reasoning_content):
+                    if not self.char_repetition_filter.filter(
+                        message.reasoning_content
+                    ):
                         return False
         return True

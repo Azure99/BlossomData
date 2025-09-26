@@ -12,6 +12,7 @@ data = [
                     image_content(
                         "https://www.rainng.com/wp-content/uploads/2024/04/logo-blossom.jpg"
                     ),
+                    # To reference a local image instead of a URL, swap in helpers such as:
                     # image_content_from_file("logo-blossom.jpg", target_size=128),
                     # image_content_from_image(Image.open("logo-blossom.jpg")),
                 ]

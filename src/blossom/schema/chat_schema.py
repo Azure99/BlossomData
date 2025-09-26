@@ -4,7 +4,7 @@ from PIL import Image
 from pydantic import BaseModel, field_validator
 
 from blossom.schema.schema import Schema
-from blossom.util.image import encode_image_file_to_url, encode_image_to_url
+from blossom.util.image import encode_image_file_to_data_url, encode_image_to_data_url
 from blossom.util.type import StrEnum
 
 SCHEMA_TYPE_CHAT = "chat"
@@ -513,7 +513,7 @@ def image_content_from_file(
         A ChatMessageContentImage object
     """
     return image_content(
-        encode_image_file_to_url(path, target_size=target_size, fmt=fmt), detail
+        encode_image_file_to_data_url(path, target_size=target_size, fmt=fmt), detail
     )
 
 
@@ -538,5 +538,5 @@ def image_content_from_image(
         A ChatMessageContentImage object
     """
     return image_content(
-        encode_image_to_url(img, target_size=target_size, fmt=fmt), detail
+        encode_image_to_data_url(img, target_size=target_size, fmt=fmt), detail
     )

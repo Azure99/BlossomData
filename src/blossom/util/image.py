@@ -21,9 +21,11 @@ def encode_image_to_base64(
         return base64.b64encode(img_raw).decode("utf-8")
 
 
-def encode_image_to_url(
+def encode_image_to_data_url(
     img: Image.Image, target_size: Optional[int] = None, fmt: str = "JPEG"
 ) -> str:
+    """Return a data URL that inlines the encoded image."""
+
     return f"data:image/{fmt.lower()};base64,{encode_image_to_base64(img, target_size, fmt=fmt)}"
 
 
@@ -34,7 +36,9 @@ def encode_image_file_to_base64(
         return encode_image_to_base64(img, target_size, fmt)
 
 
-def encode_image_file_to_url(
+def encode_image_file_to_data_url(
     file_path: str, target_size: Optional[int] = None, fmt: str = "JPEG"
 ) -> str:
+    """Return a data URL that inlines the encoded image file."""
+
     return f"data:image/{fmt.lower()};base64,{encode_image_file_to_base64(file_path, target_size, fmt=fmt)}"

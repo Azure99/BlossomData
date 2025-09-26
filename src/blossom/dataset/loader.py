@@ -38,15 +38,15 @@ class DatasetEngine(StrEnum):
     """
 
     LOCAL = "local"
-    MULTIPROCESS = "mp"
+    MULTIPROCESS = "multiprocess"
     SPARK = "spark"
     RAY = "ray"
 
 
 def load_dataset(
     path: Union[str, list[str]],
-    engine: str = DatasetEngine.LOCAL,
-    data_type: str = DataType.JSON,
+    engine: DatasetEngine = DatasetEngine.LOCAL,
+    data_type: DataType = DataType.JSON,
     data_handler: Optional[DataHandler] = None,
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
@@ -56,8 +56,8 @@ def load_dataset(
 
     Args:
         path: Path to the data file or list of paths to data files.
-        engine: Processing engine to use (default: local)
-        data_type: Type of data file (default: json)
+        engine: Processing engine to use (default: DatasetEngine.LOCAL)
+        data_type: Type of data file (default: DataType.JSON)
         data_handler: Optional custom data handler for deserialization
         context: Optional execution context
         spark_session: Optional Spark session (required for Spark engine)
@@ -90,7 +90,7 @@ def load_dataset(
 
 def create_dataset(
     data: Optional[list[Schema]] = None,
-    engine: str = DatasetEngine.LOCAL,
+    engine: DatasetEngine = DatasetEngine.LOCAL,
     context: Optional[Context] = None,
     spark_session: Optional[SparkSession] = None,
 ) -> Dataset:
@@ -99,7 +99,7 @@ def create_dataset(
 
     Args:
         data: List of schema objects (default: empty list)
-        engine: Processing engine to use (default: local)
+        engine: Processing engine to use (default: DatasetEngine.LOCAL)
         context: Optional execution context
         spark_session: Optional Spark session (required for Spark engine)
 

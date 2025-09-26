@@ -6,6 +6,7 @@ from blossom.context.context import Context
 from blossom.dataframe.data_handler import DataHandler
 from blossom.dataframe.dataframe import DataFrame
 from blossom.dataframe.local_dataframe import LocalDataFrame
+from blossom.dataframe.multiprocess_dataframe import MultiProcessDataFrame
 from blossom.dataframe.ray_dataframe import RayDataFrame
 from blossom.dataframe.spark_dataframe import SparkDataFrame
 from blossom.dataset.dataset import Dataset
@@ -31,11 +32,13 @@ class DatasetEngine(StrEnum):
 
     Attributes:
         LOCAL: Local in-memory processing engine
+        MULTIPROCESS: Multi-process processing engine
         SPARK: Apache Spark distributed processing engine
         RAY: Ray distributed processing engine
     """
 
     LOCAL = "local"
+    MULTIPROCESS = "mp"
     SPARK = "spark"
     RAY = "ray"
 
@@ -68,6 +71,8 @@ def load_dataset(
     dataframe: DataFrame
     if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
+    elif engine == DatasetEngine.MULTIPROCESS:
+        dataframe = MultiProcessDataFrame()
     elif engine == DatasetEngine.RAY:
         dataframe = RayDataFrame()
     elif engine == DatasetEngine.SPARK:
@@ -107,6 +112,8 @@ def create_dataset(
     dataframe: DataFrame
     if engine == DatasetEngine.LOCAL:
         dataframe = LocalDataFrame()
+    elif engine == DatasetEngine.MULTIPROCESS:
+        dataframe = MultiProcessDataFrame()
     elif engine == DatasetEngine.RAY:
         dataframe = RayDataFrame()
     elif engine == DatasetEngine.SPARK:

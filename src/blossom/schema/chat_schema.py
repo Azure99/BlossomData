@@ -174,7 +174,9 @@ class ChatSchema(Schema):
         data["messages"] = [message.model_dump() for message in self.messages]
         return data
 
-    def add_message(self, role: ChatRole, content: str) -> "ChatSchema":
+    def add_message(
+        self, role: ChatRole, content: Union[str, list[ChatMessageContent]]
+    ) -> "ChatSchema":
         """
         Add a new message to the conversation.
 
@@ -188,7 +190,7 @@ class ChatSchema(Schema):
         self.messages.append(ChatMessage(role=role, content=content))
         return self
 
-    def add_system(self, content: str) -> "ChatSchema":
+    def add_system(self, content: Union[str, list[ChatMessageContent]]) -> "ChatSchema":
         """
         Add a system message to the conversation.
 
@@ -200,7 +202,7 @@ class ChatSchema(Schema):
         """
         return self.add_message(ChatRole.SYSTEM, content)
 
-    def add_user(self, content: str) -> "ChatSchema":
+    def add_user(self, content: Union[str, list[ChatMessageContent]]) -> "ChatSchema":
         """
         Add a user message to the conversation.
 
@@ -212,7 +214,9 @@ class ChatSchema(Schema):
         """
         return self.add_message(ChatRole.USER, content)
 
-    def add_assistant(self, content: str) -> "ChatSchema":
+    def add_assistant(
+        self, content: Union[str, list[ChatMessageContent]]
+    ) -> "ChatSchema":
         """
         Add an assistant message to the conversation.
 

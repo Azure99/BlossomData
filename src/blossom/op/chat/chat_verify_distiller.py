@@ -34,7 +34,7 @@ LLM_VERIFY_JSON_PROMPT = """Please output your conclusion directly in JSON forma
 The JSON should contain only one boolean field named "consistent," which indicates whether the "reference answer" and the "response" are consistent.
 Please output only a JSON without any explanation or other irrelevant content."""
 
-METADATA_REASONING_COUNT = "reasoning_count"
+METADATA_VALIDATION_ATTEMPTS = "validation_attempts"
 
 
 class ChatVerifyDistiller(MapOperator):
@@ -95,7 +95,7 @@ class ChatVerifyDistiller(MapOperator):
                     user(question),
                     model_message,
                 ]
-                _item.metadata[METADATA_REASONING_COUNT] = retry_count + 1
+                _item.metadata[METADATA_VALIDATION_ATTEMPTS] = retry_count + 1
                 return self._cast_base(_item)
             except Exception as e:
                 last_exception = e

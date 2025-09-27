@@ -14,6 +14,7 @@ from .common.equal_width_binner import EqualWidthBinner
 from .failed_item_filter import FailedItemFilter
 from .filter_operator import FilterOperator, context_filter_operator, filter_operator
 from .map_operator import MapOperator, context_map_operator, map_operator
+from .metric_filter_operator import MetricFilterOperator
 from .operator import Operator
 from .text.text_content_filter import TextContentFilter
 from .text.text_content_replacer import TextContentReplacer
@@ -51,6 +52,7 @@ __all__ = [
     "FailedItemFilter",
     "FilterOperator",
     "MapOperator",
+    "MetricFilterOperator",
     "Operator",
     "TextContentFilter",
     "TextContentReplacer",

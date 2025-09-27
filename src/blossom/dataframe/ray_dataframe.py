@@ -1,7 +1,6 @@
 import json
 from typing import Callable, Iterator, Optional, Any, Union
 
-import numpy as np
 import pyarrow as pa
 import ray
 import ray.data
@@ -56,20 +55,13 @@ def _map_batches(
     dataset: ray.data.Dataset,
     func: Callable[[list[dict[str, Any]]], list[dict[str, Any]]],
 ) -> ray.data.Dataset:
-    def _map_batch(
-        batch: dict[str, np.ndarray[Any, Any]]
-    ) -> dict[str, np.ndarray[Any, Any]]:
-        batch_size = len(next(iter(batch.values())))
-        rows = [{k: v[i] for k, v in batch.items()} for i in range(batch_size)]
-        transformed_rows = func(rows)
+    def _map_batch(batch: pa.Table) -> pa.Table:
+        transformed = func(batch.to_pylist())
+        if not transformed:
+            return pa.table({})
+        return pa.Table.from_pylist(transformed)
 
-        result: dict[str, list[Any]] = {}
-        for row in transformed_rows:
-            for k, v in row.items():
-                result.setdefault(k, []).append(v)
-        return {k: np.array(v) for k, v in result.items()}
-
-    ds: ray.data.Dataset = dataset.map_batches(_map_batch)
+    ds: ray.data.Dataset = dataset.map_batches(_map_batch, batch_format="pyarrow")
     return ds
 
 

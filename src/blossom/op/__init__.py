@@ -1,6 +1,7 @@
 from .chat.chat_content_filter import ChatContentFilter
 from .chat.chat_content_replacer import ChatContentReplacer
 from .chat.chat_content_trimmer import ChatContentTrimmer
+from .chat.chat_conversation_synthesizer import ChatMultiTurnSynthesizer
 from .chat.chat_distiller import ChatDistiller
 from .chat.chat_embedder import ChatEmbedder
 from .chat.chat_invalid_filter import ChatInvalidFilter
@@ -41,6 +42,7 @@ __all__ = [
     "ChatEmbedder",
     "ChatInvalidFilter",
     "ChatLengthFilter",
+    "ChatMultiTurnSynthesizer",
     "ChatReasoningConsistencyFilter",
     "ChatReasoningContentMerger",
     "ChatRepetitionFilter",

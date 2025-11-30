@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "blossom-data"
 packages = [{ include = "blossom", from = "src" }]
-version = "0.4.3"
+version = "0.5.0"
 description = "A simple way to synthesize LLM training data."
 repository = "https://github.com/Azure99/BlossomData"
 authors = ["Azure99"]

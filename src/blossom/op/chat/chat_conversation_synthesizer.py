@@ -1,5 +1,5 @@
 import json
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from blossom.log import logger
 from blossom.op.map_operator import MapOperator
@@ -147,7 +147,8 @@ class ChatMultiTurnSynthesizer(MapOperator):
         user_simulator_model: Optional[str] = None,
         input_truncate_rounds: Optional[int] = 1,
         max_total_tokens: Optional[int] = None,
-        max_rounds: int = 2,
+        max_rounds: Optional[int] = None,
+        max_rounds_func: Optional[Callable[[Schema], int]] = None,
         user_simulator_prompt: str = USER_SIMULATOR_PROMPT,
         max_retry: int = 1,
         assistant_extra_params: Optional[dict[str, Any]] = None,
@@ -166,7 +167,9 @@ class ChatMultiTurnSynthesizer(MapOperator):
             max_total_tokens: Optional upper bound on total tokens for each
                 assistant generation. None disables this limit.
             max_rounds: Maximum total assistant turns (including existing ones)
-                allowed in the conversation.
+                allowed in the conversation. None allows using max_rounds_func.
+            max_rounds_func: Optional function that receives a sample item and
+                returns max_rounds for that sample.
             user_simulator_prompt: Prompt template for the user simulator.
             max_retry: Maximum times to retry synthesis for a single item.
             assistant_extra_params: Extra params forwarded to the assistant model.
@@ -183,9 +186,14 @@ class ChatMultiTurnSynthesizer(MapOperator):
         if max_total_tokens is not None and max_total_tokens <= 0:
             raise ValueError("max_total_tokens must be greater than 0")
         self.max_total_tokens = max_total_tokens
-        if max_rounds < 1:
+        if max_rounds is None and max_rounds_func is None:
+            raise ValueError("max_rounds and max_rounds_func cannot both be None")
+        if max_rounds_func is not None and not callable(max_rounds_func):
+            raise ValueError("max_rounds_func must be callable")
+        if max_rounds is not None and max_rounds < 1:
             raise ValueError("max_rounds must be at least 1")
         self.max_rounds = max_rounds
+        self.max_rounds_func = max_rounds_func
         self.user_simulator_prompt = user_simulator_prompt
         self.max_retry = max_retry
         self.assistant_extra_params = assistant_extra_params
@@ -199,7 +207,10 @@ class ChatMultiTurnSynthesizer(MapOperator):
 
         for _ in range(self.max_retry):
             try:
-                new_messages, truncated = self._synthesize_conversation(_item.messages)
+                max_rounds = self._resolve_max_rounds(_item)
+                new_messages, truncated = self._synthesize_conversation(
+                    _item.messages, max_rounds
+                )
                 if truncated:
                     _item.metadata[METADATA_RESPONSE_TRUNCATED] = True
 
@@ -218,7 +229,7 @@ class ChatMultiTurnSynthesizer(MapOperator):
         return self._cast_base(_item)
 
     def _synthesize_conversation(
-        self, messages: list[ChatMessage]
+        self, messages: list[ChatMessage], max_rounds: int
     ) -> tuple[list[ChatMessage], bool]:
         messages = self._truncate_input_messages(messages)
 
@@ -226,9 +237,11 @@ class ChatMultiTurnSynthesizer(MapOperator):
             1 for message in messages if message.role == ChatRole.ASSISTANT
         )
 
-        while assistant_rounds < self.max_rounds:
-            next_question = self._generate_next_user_question(messages)
-            messages.append(ChatMessage(role=ChatRole.USER, content=next_question))
+        while assistant_rounds < max_rounds:
+            # If the latest message is assistant, generate next user question.
+            if messages and messages[-1].role == ChatRole.ASSISTANT:
+                next_question = self._generate_next_user_question(messages)
+                messages.append(ChatMessage(role=ChatRole.USER, content=next_question))
 
             response = self.context.chat_completion_with_details(
                 model=self.model,
@@ -250,6 +263,18 @@ class ChatMultiTurnSynthesizer(MapOperator):
                 break
 
         return messages, False
+
+    def _resolve_max_rounds(self, item: Schema) -> int:
+        if self.max_rounds_func is not None:
+            max_rounds = self.max_rounds_func(item)
+            if not isinstance(max_rounds, int):
+                raise ValueError("max_rounds_func must return an int")
+            if max_rounds < 1:
+                raise ValueError("max_rounds_func must return at least 1")
+            return max_rounds
+        if self.max_rounds is None:
+            raise ValueError("max_rounds is required when max_rounds_func is None")
+        return self.max_rounds
 
     def _truncate_input_messages(
         self, messages: list[ChatMessage]

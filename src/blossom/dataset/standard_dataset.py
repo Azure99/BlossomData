@@ -97,6 +97,18 @@ class StandardDataset(Dataset):
     def write_json(self, path: str, data_handler: Optional[DataHandler] = None) -> None:
         self.dataframe.write_json(path, data_handler)
 
+    def read_parquet(
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
+    ) -> "Dataset":
+        return StandardDataset(
+            self.context, self.dataframe.read_parquet(path, data_handler)
+        )
+
+    def write_parquet(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> None:
+        self.dataframe.write_parquet(path, data_handler)
+
     def sum(self, func: Callable[[Schema], Union[int, float]]) -> Union[int, float]:
         return self.dataframe.sum(func)
 

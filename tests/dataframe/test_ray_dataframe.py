@@ -139,3 +139,13 @@ def test_ray_dataframe_io(
     values = sorted(item["data"]["a"] for item in payloads)
     assert values == [1, 2]
     assert all(item["type"] == "row" for item in payloads)
+
+
+def test_ray_dataframe_parquet_io(ray_context: None, tmp_path) -> None:
+    df = _make_df([1, 2])
+    out_path = tmp_path / "ray_parquet"
+    df.write_parquet(str(out_path))
+
+    loaded = RayDataFrame().read_parquet(str(out_path))
+    values = sorted(row.data["value"] for row in loaded.collect())
+    assert values == [1, 2]

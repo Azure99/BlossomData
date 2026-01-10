@@ -21,9 +21,11 @@ class DataType(StrEnum):
 
     Attributes:
         JSON: JSON file format
+        PARQUET: Parquet file format
     """
 
     JSON = "json"
+    PARQUET = "parquet"
 
 
 class DatasetEngine(StrEnum):
@@ -57,7 +59,9 @@ def load_dataset(
     Args:
         path: Path to the data file or list of paths to data files.
         engine: Processing engine to use (default: DatasetEngine.LOCAL)
-        data_type: Type of data file (default: DataType.JSON)
+        data_type: Type of data file (default: DataType.JSON). Supported types:
+            - DataType.JSON: JSON/JSONL files
+            - DataType.PARQUET: Parquet files
         data_handler: Optional custom data handler for deserialization
         context: Optional execution context
         spark_session: Optional Spark session (required for Spark engine)
@@ -82,6 +86,8 @@ def load_dataset(
 
     if data_type == DataType.JSON:
         dataframe = dataframe.read_json(path, data_handler)
+    elif data_type == DataType.PARQUET:
+        dataframe = dataframe.read_parquet(path, data_handler)
     else:
         raise ValueError(f"Invalid file type: {data_type}")
 

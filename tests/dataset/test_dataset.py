@@ -60,6 +60,12 @@ class _DummyDataset(dataset_module.Dataset):
     def write_json(self, path, data_handler=None):
         return self._not_impl()
 
+    def read_parquet(self, path, data_handler=None):
+        return self._not_impl()
+
+    def write_parquet(self, path, data_handler=None):
+        return self._not_impl()
+
     def add_metadata(self, func):
         return self._not_impl()
 

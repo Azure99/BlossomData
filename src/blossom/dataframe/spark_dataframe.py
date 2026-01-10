@@ -10,7 +10,7 @@ from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler, DefaultDataHandler
 from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.schema.row_schema import RowSchema
-from blossom.schema.schema import Schema
+from blossom.schema.schema import FIELD_FAILURE_REASON, FIELD_METADATA, Schema
 
 GROUP_KEY = "__group_key__"
 
@@ -184,6 +184,43 @@ class SparkDataFrame(DataFrame):
             return json.dumps(data_handler.to_dict(schema), ensure_ascii=False)
 
         self.spark_rdd.map(serialize_row).saveAsTextFile(path)
+
+    def read_parquet(
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
+    ) -> "DataFrame":
+        paths = [path] if isinstance(path, str) else path
+        data_handler = data_handler or DefaultDataHandler()
+
+        def load_row(row: Any) -> dict[str, Any]:
+            schema = data_handler.from_dict(row.asDict(recursive=True))
+            return schema.to_dict()
+
+        spark_ctx = self.spark_session.sparkContext
+        rdds = []
+        for single_path in paths:
+            df = self.spark_session.read.parquet(single_path)
+            rdds.append(df.rdd.map(load_row))
+        final_rdd = rdds[0] if len(rdds) == 1 else spark_ctx.union(rdds)
+
+        return SparkDataFrame(final_rdd, self.spark_session)
+
+    def write_parquet(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> None:
+        data_handler = data_handler or DefaultDataHandler()
+
+        def serialize_row(row_dict: dict[str, Any]) -> dict[str, Any]:
+            schema = Schema.from_dict(row_dict)
+            payload = data_handler.to_dict(schema)
+            metadata = payload.get(FIELD_METADATA)
+            if metadata is None or metadata == {}:
+                payload.pop(FIELD_METADATA, None)
+            if payload.get(FIELD_FAILURE_REASON) is None:
+                payload.pop(FIELD_FAILURE_REASON, None)
+            return payload
+
+        df = self.spark_session.createDataFrame(self.spark_rdd.map(serialize_row))
+        df.write.parquet(path)
 
 
 class GroupedSparkDataFrame(GroupedDataFrame):

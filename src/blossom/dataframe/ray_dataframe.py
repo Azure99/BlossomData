@@ -232,6 +232,41 @@ class RayDataFrame(DataFrame):
         data_handler = data_handler or DefaultDataHandler()
         self.ray_dataset.write_datasink(SchemaRowDataSink(path, data_handler))
 
+    def read_parquet(
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
+    ) -> "DataFrame":
+        paths = [path] if isinstance(path, str) else path
+        data_handler = data_handler or DefaultDataHandler()
+
+        def deserialize_row(row: dict[str, Any]) -> dict[str, Any]:
+            schema = data_handler.from_dict(row)
+            return schema_to_row(schema)
+
+        datasets = []
+        for single_path in paths:
+            dataset = ray.data.read_parquet(single_path).map(deserialize_row)
+            datasets.append(dataset)
+        final_dataset = (
+            datasets[0] if len(datasets) == 1 else datasets[0].union(*datasets[1:])
+        )
+
+        return RayDataFrame(final_dataset)
+
+    def write_parquet(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> None:
+        data_handler = data_handler or DefaultDataHandler()
+
+        def serialize_row(row: dict[str, Any]) -> dict[str, Any]:
+            schema = row_to_schema(row)
+            payload = data_handler.to_dict(schema)
+            metadata = payload.get(FIELD_METADATA)
+            if metadata is None or metadata == {}:
+                payload.pop(FIELD_METADATA, None)
+            return payload
+
+        self.ray_dataset.map(serialize_row).write_parquet(path)
+
 
 class GroupedRayDataFrame(GroupedDataFrame):
     def __init__(self, name: str, grouped_data: ray.data.grouped_data.GroupedData):

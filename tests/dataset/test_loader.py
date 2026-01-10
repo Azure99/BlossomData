@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from blossom.dataset import DatasetEngine, create_dataset, load_dataset
+from blossom.dataset import DataType, DatasetEngine, create_dataset, load_dataset
 from blossom.schema.text_schema import TextSchema
 
 
@@ -21,6 +21,23 @@ def test_load_dataset_local_json(write_jsonl) -> None:
     )
     dataset = load_dataset(str(path), engine=DatasetEngine.LOCAL)
     result = dataset.collect()
+    assert [item.content for item in result] == ["hello", "world"]
+
+
+def test_load_dataset_local_parquet(tmp_path) -> None:
+    pytest.importorskip("pyarrow")
+
+    data = [TextSchema(content="hello"), TextSchema(content="world")]
+    dataset = create_dataset(data, engine=DatasetEngine.LOCAL)
+    path = tmp_path / "data.parquet"
+    dataset.write_parquet(str(path))
+
+    loaded = load_dataset(
+        str(path),
+        engine=DatasetEngine.LOCAL,
+        data_type=DataType.PARQUET,
+    )
+    result = loaded.collect()
     assert [item.content for item in result] == ["hello", "world"]
 
 

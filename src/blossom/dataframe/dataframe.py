@@ -235,6 +235,35 @@ class DataFrame(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_parquet(
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
+    ) -> "DataFrame":
+        """
+        Read a dataframe from Parquet file(s).
+
+        Args:
+            path: Path to the Parquet file or list of paths to Parquet files.
+            data_handler: Optional data handler for custom deserialization
+
+        Returns:
+            A new dataframe containing the items from the Parquet file(s)
+        """
+        pass
+
+    @abstractmethod
+    def write_parquet(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> None:
+        """
+        Write the dataframe to a Parquet file.
+
+        Args:
+            path: Path to the Parquet file
+            data_handler: Optional data handler for custom serialization
+        """
+        pass
+
     def add_metadata(self, func: Callable[[Schema], dict[str, Any]]) -> "DataFrame":
         """
         Add metadata to each item in the dataframe.

@@ -4,12 +4,15 @@ import os
 import random
 from typing import Any, Callable, Optional, Union
 
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 from blossom.dataframe.aggregate import AggregateFunc
 from blossom.dataframe.data_handler import DataHandler, DefaultDataHandler
 from blossom.dataframe.dataframe import DataFrame, GroupedDataFrame
 from blossom.log import logger
 from blossom.schema.row_schema import RowSchema
-from blossom.schema.schema import Schema
+from blossom.schema.schema import FIELD_FAILURE_REASON, FIELD_METADATA, Schema
 
 
 class LocalDataFrame(DataFrame):
@@ -120,6 +123,33 @@ class LocalDataFrame(DataFrame):
             for schema in self.data:
                 json_data = data_handler.to_dict(schema)
                 f.write(json.dumps(json_data, ensure_ascii=False) + "\n")
+
+    def read_parquet(
+        self, path: Union[str, list[str]], data_handler: Optional[DataHandler] = None
+    ) -> "DataFrame":
+        paths = [path] if isinstance(path, str) else path
+        data_handler = data_handler or DefaultDataHandler()
+
+        rows = []
+        for single_path in paths:
+            table = pq.read_table(single_path)
+            rows.extend(table.to_pylist())
+
+        return LocalDataFrame([data_handler.from_dict(row) for row in rows])
+
+    def write_parquet(
+        self, path: str, data_handler: Optional[DataHandler] = None
+    ) -> None:
+        data_handler = data_handler or DefaultDataHandler()
+        dict_rows: list[dict[str, Any]] = []
+        for schema in self.data:
+            row = data_handler.to_dict(schema)
+            metadata = row.get(FIELD_METADATA)
+            if metadata is None or metadata == {}:
+                row.pop(FIELD_METADATA, None)
+            dict_rows.append(row)
+        table = pa.Table.from_pylist(dict_rows)
+        pq.write_table(table, path)
 
     @staticmethod
     def _list_files(

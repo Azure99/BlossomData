@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from blossom.dataframe.aggregate import Sum
 from blossom.dataset import DatasetEngine, create_dataset, load_dataset
 from blossom.op.map_operator import map_operator
@@ -56,3 +58,18 @@ def test_standard_dataset_union_split_cache_and_io(tmp_path: Path) -> None:
     unioned.write_json(str(json_path))
     reloaded = load_dataset(str(json_path), engine=DatasetEngine.LOCAL)
     assert [item.content for item in reloaded.collect()] == ["a", "b", "c"]
+
+
+def test_standard_dataset_parquet_io(tmp_path: Path) -> None:
+    pytest.importorskip("pyarrow")
+
+    dataset = create_dataset(
+        [TextSchema(content="alpha"), TextSchema(content="beta")],
+        engine=DatasetEngine.LOCAL,
+    )
+
+    parquet_path = tmp_path / "data.parquet"
+    dataset.write_parquet(str(parquet_path))
+
+    reloaded = dataset.read_parquet(str(parquet_path))
+    assert [item.content for item in reloaded.collect()] == ["alpha", "beta"]

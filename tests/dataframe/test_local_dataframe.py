@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from blossom.dataframe.aggregate import Sum
 from blossom.dataframe.local_dataframe import LocalDataFrame
 from blossom.schema.row_schema import RowSchema
@@ -61,3 +63,17 @@ def test_local_dataframe_io(write_jsonl, tmp_path) -> None:
     lines = [json.loads(line) for line in out_path.read_text().splitlines()]
     assert lines[0]["type"] == "row"
     assert "data" in lines[0]
+
+
+def test_local_dataframe_parquet_io(tmp_path) -> None:
+    pytest.importorskip("pyarrow")
+
+    first_path = tmp_path / "part1.parquet"
+    second_path = tmp_path / "part2.parquet"
+
+    LocalDataFrame([RowSchema(data={"a": 1})]).write_parquet(str(first_path))
+    LocalDataFrame([RowSchema(data={"a": 2})]).write_parquet(str(second_path))
+
+    df = LocalDataFrame().read_parquet([str(first_path), str(second_path)])
+    values = [row.data["a"] for row in df.collect()]
+    assert values == [1, 2]

@@ -104,3 +104,13 @@ def test_spark_dataframe_io(spark_session: SparkSession, write_jsonl, tmp_path) 
     values = sorted(item["data"]["a"] for item in payloads)
     assert values == [1, 2]
     assert all(item["type"] == "row" for item in payloads)
+
+
+def test_spark_dataframe_parquet_io(spark_session: SparkSession, tmp_path) -> None:
+    df = _make_df(spark_session, [1, 2])
+    out_path = tmp_path / "spark_parquet"
+    df.write_parquet(str(out_path))
+
+    loaded = SparkDataFrame(spark_session=spark_session).read_parquet(str(out_path))
+    values = sorted(row.data["value"] for row in loaded.collect())
+    assert values == [1, 2]

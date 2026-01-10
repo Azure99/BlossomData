@@ -30,7 +30,11 @@ Use this skill to create consistent Blossom operators that follow existing patte
 4) Wire and validate
 - Place the file under src/blossom/op/<area> and name it snake_case.
 - Export the operator in src/blossom/op/__init__.py and add to __all__.
-- Smoke test with an example script or a small dataset chain.
+
+5) Write unit tests
+- Add tests under tests/ to mirror the src/blossom/ module path (e.g., src/blossom/op/text/foo.py → tests/op/text/test_foo.py).
+- Use pytest with test_<module>.py filenames and cover at least: happy path, schema casting/validation, and filter/transform semantics.
+- Stub provider calls or external dependencies; avoid network access in tests.
 
 ## References
 Read these before implementing or modifying an operator:

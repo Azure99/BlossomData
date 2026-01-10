@@ -189,7 +189,10 @@ class RayDataFrame(DataFrame):
             assert isinstance(other, RayDataFrame)
             other_datasets.append(other.ray_dataset)
 
-        return RayDataFrame(self.ray_dataset.union(other_datasets))
+        unioned = self.ray_dataset
+        for dataset in other_datasets:
+            unioned = unioned.union(dataset)
+        return RayDataFrame(unioned)
 
     def cache(self) -> "DataFrame":
         return RayDataFrame(self.ray_dataset.materialize())

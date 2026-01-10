@@ -10,16 +10,17 @@
 ## Build, Test, and Development Commands
 - `poetry install` sets up the dev environment.
 - `poetry run python example/chat_distill.py` runs a local example pipeline.
+- `poetry run pytest` runs the unit test suite.
 - `poetry build` creates sdist and wheel packages.
-- `poetry run black src example` formats code.
-- `poetry run ruff check src example` runs lint rules from `pyproject.toml`.
+- `poetry run black src example tests` formats code.
+- `poetry run ruff check src example tests` runs lint rules from `pyproject.toml`.
 - `poetry run mypy src` runs type checks (optional, aligns with `py.typed`).
 
 ## Coding Style and Naming Conventions
 Use 4-space indentation and keep code Black-compatible. Favor type hints for public APIs. Name modules and functions in `snake_case`, classes in `PascalCase`, and constants in `UPPER_CASE`. Keep operator classes and functions in `src/blossom/op/` and add public exports in `src/blossom/op/__init__.py` when needed.
 
 ## Testing Guidelines
-There is no dedicated test suite configured in this repository. Use the scripts in `example/` as smoke tests, and document any manual checks you ran in your PR. If you add tests, place them under `tests/` and use `test_*.py` naming so a future test runner can discover them.
+Unit tests live under `tests/` and are executed with pytest (`poetry run pytest`). Use `test_*.py` naming for new tests. If a test depends on Ray or Spark, mark it with `@pytest.mark.ray` or `@pytest.mark.spark` (markers are defined in `pyproject.toml`).
 
 ## Commit and Pull Request Guidelines
 Commit history follows a Conventional Commit-style prefix such as `feat:`, `fix:`, `refactor:`, or `chore:` with a short, imperative summary. PRs should include a brief description, links to issues when applicable, and notes on config or API changes. If you change examples or operators, include the exact command you used to validate behavior.

@@ -24,6 +24,19 @@ class _LengthMetricFilter(MetricFilterOperator):
         return metrics <= MAX_METRIC_LENGTH
 
 
+class _DictLengthMetricFilter(MetricFilterOperator):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.calls = 0
+
+    def compute_metrics(self, item: TextSchema) -> dict[str, int]:
+        self.calls += 1
+        return {"length": len(item.content)}
+
+    def should_keep(self, item: TextSchema, metrics: dict[str, int]) -> bool:
+        return metrics["length"] > 1
+
+
 def test_metric_filter_operator_metrics_only() -> None:
     df = LocalDataFrame([TextSchema(content="a"), TextSchema(content="bbbb")])
     op = _LengthMetricFilter(metrics_only=True)
@@ -42,3 +55,23 @@ def test_metric_filter_operator_recompute_flag() -> None:
     df = LocalDataFrame([item])
     op.process(df).collect()
     assert op.calls == 0
+
+
+def test_metric_filter_operator_metrics_flow() -> None:
+    df = LocalDataFrame([TextSchema(content="a"), TextSchema(content="bb")])
+
+    op = _DictLengthMetricFilter(metrics_only=True)
+    result = op.process(df).collect()
+    assert result[0].metadata[op.metrics_metadata_key]["length"] == 1
+    expected_length = 2
+    expected_calls = 2
+    assert result[1].metadata[op.metrics_metadata_key]["length"] == expected_length
+    assert op.calls == expected_calls
+
+    op_filter = _DictLengthMetricFilter(parallel=2)
+    filtered = op_filter.process(df).collect()
+    assert [item.content for item in filtered] == ["bb"]
+
+    op_reverse = _DictLengthMetricFilter(reverse=True)
+    reversed_items = op_reverse.process(df).collect()
+    assert [item.content for item in reversed_items] == ["a"]

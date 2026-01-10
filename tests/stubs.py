@@ -79,3 +79,46 @@ class StubContext:
 
     def embedding_with_details(self, *args, **kwargs):
         return self._provider.embedding_with_details(*args, **kwargs)
+
+
+class QueuedStubContext:
+    def __init__(
+        self,
+        chat_responses: list[str] | None = None,
+        detail_responses: list[ChatCompletionResponse] | None = None,
+        embeddings: list[list[float]] | None = None,
+    ) -> None:
+        self._chat_responses = list(chat_responses or [])
+        self._detail_responses = list(detail_responses or [])
+        self._embeddings = list(embeddings or [])
+        self.last_chat_messages: list[ChatMessage] | None = None
+        self.last_detail_messages: list[ChatMessage] | None = None
+        self.last_embedding_input: str | None = None
+
+    def chat_completion(self, messages, *args, **kwargs) -> str:
+        self.last_chat_messages = messages
+        if not self._chat_responses:
+            raise AssertionError("No queued chat responses available")
+        return self._chat_responses.pop(0)
+
+    def chat_completion_with_details(self, messages, *args, **kwargs):
+        self.last_detail_messages = messages
+        if not self._detail_responses:
+            raise AssertionError("No queued detailed chat responses available")
+        return self._detail_responses.pop(0)
+
+    def embedding(self, input_text: str, *args, **kwargs) -> list[float]:
+        self.last_embedding_input = input_text
+        if not self._embeddings:
+            raise AssertionError("No queued embeddings available")
+        return self._embeddings.pop(0)
+
+    def embedding_with_details(
+        self, input_text: str, *args, **kwargs
+    ) -> EmbeddingResponse:
+        self.last_embedding_input = input_text
+        if not self._embeddings:
+            raise AssertionError("No queued embeddings available")
+        data = [EmbeddingData(index=0, embedding=self._embeddings.pop(0))]
+        usage = UsageInfo(prompt_tokens=0, total_tokens=0, completion_tokens=0)
+        return EmbeddingResponse(data=data, usage=usage)
